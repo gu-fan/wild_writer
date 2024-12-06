@@ -1,0 +1,6 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://07kcvj2gqhbo"]
+
+[ext_resource type="FontFile" uid="uid://cnenglo1whyuy" path="res://assets/fonts/SiYuanHeiTi-Regular/SourceHanSansSC-Regular-2.otf" id="1_hm4ip"]
+
+[resource]
+default_font = ExtResource("1_hm4ip")

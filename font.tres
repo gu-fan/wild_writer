@@ -1,0 +1,6 @@
+[gd_resource type="FontVariation" load_steps=2 format=3 uid="uid://nrx67heb2sgn"]
+
+[ext_resource type="FontFile" uid="uid://b36e4usrnkcjn" path="res://assets/fonts/ZiHunBianTaoTi/ZiHunBianTaoTi-2.ttf" id="1_fdl3b"]
+
+[resource]
+base_font = ExtResource("1_fdl3b")

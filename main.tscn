@@ -1,0 +1,77 @@
+[gd_scene load_steps=5 format=3 uid="uid://cemps7hmry4uj"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_6mt4q"]
+[ext_resource type="PackedScene" uid="uid://b76vnt4rv4p0q" path="res://dock.tscn" id="2_vnslg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5xe6"]
+content_margin_left = 80.0
+content_margin_top = 80.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.165656, 0.165656, 0.165656, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rxkgt"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_6mt4q")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_lock_ = true
+
+[node name="TextEdit" type="TextEdit" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_s5xe6")
+theme_override_styles/focus = SubResource("StyleBoxFlat_s5xe6")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_s5xe6")
+placeholder_text = "Wild Writer 0.0.1
+
+<c-o> open file
+<c-s> save file
+<c-n> new file
+<esc> options
+
+by xianrenak.itch.io
+"
+caret_blink = true
+caret_multiple = false
+
+[node name="Dock" parent="CanvasLayer/VBoxContainer" instance=ExtResource("2_vnslg")]
+visible = false
+layout_mode = 2
+
+[node name="BottomPanel" type="ColorRect" parent="CanvasLayer/VBoxContainer"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+color = Color(0.165656, 0.165656, 0.165656, 1)
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/BottomPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rxkgt")
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+visible = false
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+
+[node name="LineEdit" type="LineEdit" parent="."]
+offset_right = 59.9375
+offset_bottom = 32.0
+text = "eea"
