@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://cemps7hmry4uj"]
+[gd_scene load_steps=6 format=3 uid="uid://cemps7hmry4uj"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_6mt4q"]
+[ext_resource type="Script" path="res://scripts/TinyEditor.gd" id="2_vfkp7"]
 [ext_resource type="PackedScene" uid="uid://b76vnt4rv4p0q" path="res://dock.tscn" id="2_vnslg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5xe6"]
@@ -18,6 +19,7 @@ content_margin_right = 20.0
 script = ExtResource("1_6mt4q")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+script = ExtResource("2_vfkp7")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
 anchors_preset = 15
@@ -51,15 +53,31 @@ visible = false
 layout_mode = 2
 
 [node name="BottomPanel" type="ColorRect" parent="CanvasLayer/VBoxContainer"]
-custom_minimum_size = Vector2(20, 20)
+custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
+
+[node name="ToggleButton" type="Button" parent="CanvasLayer/VBoxContainer/BottomPanel"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -29.0
+offset_top = -16.0
+offset_bottom = 16.0
+grow_horizontal = 0
+grow_vertical = 2
+focus_mode = 0
+text = "EN"
 
 [node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/BottomPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -33.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/normal = SubResource("StyleBoxEmpty_rxkgt")
@@ -70,8 +88,3 @@ custom_minimum_size = Vector2(50, 50)
 anchors_preset = 9
 anchor_bottom = 1.0
 grow_vertical = 2
-
-[node name="LineEdit" type="LineEdit" parent="."]
-offset_right = 59.9375
-offset_bottom = 32.0
-text = "eea"
