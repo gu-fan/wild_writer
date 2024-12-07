@@ -4,15 +4,13 @@ extends CanvasLayer
 signal typing
 
 @onready var ime = TinyIME
-@onready var bottom_label: Label = $VBoxContainer/BottomPanel/Label
-@onready var toggle_button: Button = $VBoxContainer/BottomPanel/ToggleButton
 @onready var editor: TextEdit = $VBoxContainer/TextEdit
 @onready var dock: Control = $VBoxContainer/Dock
 
-const Boom: PackedScene = preload("res://boom.tscn")
-const Blip: PackedScene = preload("res://blip.tscn")
-const Newline: PackedScene = preload("res://newline.tscn")
-const Dock: PackedScene = preload("res://dock.tscn")
+const Boom: PackedScene = preload("res://effects/boom.tscn")
+const Blip: PackedScene = preload("res://effects/blip.tscn")
+const Newline: PackedScene = preload("res://effects/newline.tscn")
+const Dock: PackedScene = preload("res://scenes/dock.tscn")
 
 const PITCH_DECREMENT := 2.0
 
@@ -24,32 +22,30 @@ var pitch_increase: float = 0.0
 var editors = {}
 
 var ime_display
+var ime_button
+var setting_button
+var bottom_label
 
-var file_manager: FileManager
 
-var current_file_path = ''
-
-func _ready():
+func init():
     ime_display = preload("res://scenes/ime_display.tscn").instantiate()
     ime_display.hide()
     add_child(ime_display)
 
     ime_display.feed_ime_input.connect(feed_ime_input)
-    toggle_button.pressed.connect(ime.toggle_ime)
+    ime_button.pressed.connect(ime.toggle_ime)
     ime.ime_state_changed.connect(func(v):
         if v:
-            toggle_button.text = 'CN'
+            ime_button.text = 'CN'
             ime_display.show()
             update_ime_position()
         else:
-            toggle_button.text = 'EN'
+            ime_button.text = 'EN'
             ime_display.hide()
     )
 
     editor.caret_changed.connect(update_ime_position)
-    
     setup_editor([editor])
-    set_title('Untitled')
     typing.connect(Callable(dock,"_on_typing"))
 
 func update_ime_position():
@@ -113,37 +109,8 @@ func gui_input(event):
         elif last_key == 'Ctrl+N':
             get_viewport().set_input_as_handled()
 
-func _input(event: InputEvent) -> void:
-    # if event.is_action_pressed("ui_cancel"):
-    #     dock.visible = !dock.visible
-    if event.is_action_pressed("save"):
-        if current_file_path == '':
-            current_file_path = await file_manager.show_save_dialog()
-            set_title(current_file_path)
-        file_manager.save_file(editor, current_file_path)
-        show_hint('saved')
-        get_viewport().set_input_as_handled()
-    elif event.is_action_pressed("open"):
-        var file_path = await file_manager.show_open_dialog()
-        file_manager.open_file(editor, file_path)
-        current_file_path = file_path
-        set_title(current_file_path)
-        show_hint('opened')
-        get_viewport().set_input_as_handled()
-    elif event.is_action_pressed("new"):
-        file_manager.new_file(editor)
-        current_file_path = ''
-        set_title('Untitled')
-        show_hint('create new')
-        get_viewport().set_input_as_handled()
 
-func set_title(file_path):
-    DisplayServer.window_set_title(file_path)
 
-func show_hint(txt):
-    bottom_label.text = txt
-    await get_tree().create_timer(2.0).timeout
-    bottom_label.text = ''
 
 # -------------------------------------------
 

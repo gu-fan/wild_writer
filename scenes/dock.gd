@@ -89,11 +89,9 @@ func start_fireworks():
     fire_particles_one.emitting = true
     fire_particles_two.emitting = true
 
-
 func stop_fireworks():
     fire_particles_one.emitting = false
     fire_particles_two.emitting = false
-
 
 func update_progress():
     xp_label.text = "XP: %d / %d" % [ xp, xp_next ]

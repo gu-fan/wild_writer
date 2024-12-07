@@ -7,6 +7,7 @@ var pinyin_buffer: String = ""
 var candidates: Array = []
 var current_selection: int = 0
 var is_ime_active: bool = false
+var disabled: bool = false
 
 # 简单的拼音到汉字的映射字典
 var pinyin_dict = {}
@@ -17,8 +18,18 @@ var char_frequencies: Dictionary = {}
 var page_size: int = 5
 var current_page: int = 0
 
+# 添加字母缓存字典
+var pinyin_dict_cache = {}
+
 func _ready():
     load_pinyin_dict()
+    build_pinyin_cache()
+    load_settings()
+    SettingManager.setting_changed.connect(load_settings)
+
+func load_settings():
+    page_size =  SettingManager.get_ime_setting('page_size')
+    
 
 func load_pinyin_dict():
     var file = FileAccess.open("res://scripts/google_pinyin.txt", FileAccess.READ)
@@ -56,7 +67,20 @@ func load_pinyin_dict():
             pinyin_dict[pinyin] = []
         pinyin_dict[pinyin].append(char)
 
+func build_pinyin_cache():
+    # 初始化26个字母的缓存
+    for ascii in range(97, 123):  # a-z的ASCII码
+        var letter = char(ascii)
+        pinyin_dict_cache[letter] = []
+    
+    # 将拼音按首字母分类
+    for pinyin in pinyin_dict:
+        var first_letter = pinyin[0]
+        if first_letter in pinyin_dict_cache:
+            pinyin_dict_cache[first_letter].append(pinyin)
+
 func _input(event: InputEvent) -> void:
+    if disabled: return
     if not is_ime_active:
         return
         
@@ -149,22 +173,27 @@ func update_candidates() -> void:
     while pos < buffer.length():
         var found = false
         # 从最长可能的拼音开始尝试
-        for length in range(7, 0, -1):  # 假设最长拼音为7个字母
+        for length in range(6, 0, -1):
             if pos + length > buffer.length():
                 continue
             var segment = buffer.substr(pos, length)
-            if segment in pinyin_dict:
-                var char = pinyin_dict[segment][0]  # 取频率最高的字
-                var freq = 0.0
-                if char in char_frequencies and segment in char_frequencies[char]:
-                    freq = char_frequencies[char][segment]
-                    
-                # 只有频率足够高的字才加入组合
-                if freq > 1000.0:
-                    matched_chars.append(char)
-                    total_freq += freq
-                    pos += length
-                    found = true
+            # 使用缓存检查可能的拼音
+            var first_letter = segment[0]
+            if first_letter in pinyin_dict_cache:
+                for possible_pinyin in pinyin_dict_cache[first_letter]:
+                    if possible_pinyin == segment and segment in pinyin_dict:
+                        var char = pinyin_dict[segment][0]
+                        var freq = 0.0
+                        if char in char_frequencies and segment in char_frequencies[char]:
+                            freq = char_frequencies[char][segment]
+                            
+                        if freq > 1000.0:
+                            matched_chars.append(char)
+                            total_freq += freq
+                            pos += length
+                            found = true
+                            break
+                if found:
                     break
         if not found:
             pos += 1

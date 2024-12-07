@@ -3,6 +3,7 @@ class_name FileManager extends Node
 func show_save_dialog() -> String:
     var file_dialog = FileDialog.new()
     get_tree().root.add_child(file_dialog)
+    # file_dialog.current_dir = 
     file_dialog.access = FileDialog.ACCESS_FILESYSTEM
     file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
     file_dialog.size = Vector2(600, 400)

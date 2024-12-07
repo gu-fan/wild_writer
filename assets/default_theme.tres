@@ -1,6 +1,63 @@
-[gd_resource type="Theme" load_steps=2 format=3 uid="uid://07kcvj2gqhbo"]
+[gd_resource type="Theme" load_steps=16 format=3 uid="uid://07kcvj2gqhbo"]
 
+[ext_resource type="FontVariation" uid="uid://r045b8gwnt3k" path="res://assets/fonts/agave_fixed.tres" id="1_26vv4"]
 [ext_resource type="FontFile" uid="uid://cnenglo1whyuy" path="res://assets/fonts/SiYuanHeiTi-Regular/SourceHanSansSC-Regular-2.otf" id="1_hm4ip"]
+[ext_resource type="Texture2D" uid="uid://bpwhum17yikfj" path="res://assets/themes/checkbutton_unchecked.png" id="2_7i37d"]
+[ext_resource type="Texture2D" uid="uid://cgl6o8kl1mmg7" path="res://assets/themes/checkbutton_checked.png" id="2_kemtw"]
+[ext_resource type="Texture2D" uid="uid://d2fepkqof34q5" path="res://assets/themes/slider_tick_count.png" id="2_ya87t"]
+[ext_resource type="Texture2D" uid="uid://dgbqyicxvebnf" path="res://assets/themes/checkbutton_disabled.png" id="3_2yeyj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_td3mu"]
+bg_color = Color(0.4, 0.4, 0.4, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bdfsb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v0nj1"]
+bg_color = Color(0.266667, 0.266667, 0.266667, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6y1dq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_08bv7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6087g"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(0.12549, 0.12549, 0.12549, 1)
+border_width_top = 2
+border_color = Color(0.12549, 0.12549, 0.12549, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4wf8y"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(0.12549, 0.12549, 0.12549, 1)
+border_width_top = 2
+border_color = Color(0.6, 0.6, 0.6, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yry5d"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(0.0666667, 0.0666667, 0.0666667, 1)
+border_width_top = 2
+border_color = Color(0.0666667, 0.0666667, 0.0666667, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l2qp6"]
 
 [resource]
 default_font = ExtResource("1_hm4ip")
+Button/colors/font_color = Color(0.6, 0.6, 0.6, 1)
+Button/fonts/font = ExtResource("1_26vv4")
+Button/styles/focus = SubResource("StyleBoxFlat_td3mu")
+CheckButton/icons/checked = ExtResource("2_kemtw")
+CheckButton/icons/checked_disabled = ExtResource("3_2yeyj")
+CheckButton/icons/unchecked = ExtResource("2_7i37d")
+CheckButton/icons/unchecked_disabled = ExtResource("3_2yeyj")
+CheckButton/styles/focus = SubResource("StyleBoxEmpty_bdfsb")
+HSlider/icons/tick = ExtResource("2_ya87t")
+LineEdit/styles/focus = SubResource("StyleBoxFlat_v0nj1")
+RichTextLabel/colors/default_color = Color(0.8, 0.8, 0.8, 1)
+RichTextLabel/styles/focus = SubResource("StyleBoxEmpty_6y1dq")
+TabContainer/styles/tab_focus = SubResource("StyleBoxEmpty_08bv7")
+TabContainer/styles/tab_hovered = SubResource("StyleBoxFlat_6087g")
+TabContainer/styles/tab_selected = SubResource("StyleBoxFlat_4wf8y")
+TabContainer/styles/tab_unselected = SubResource("StyleBoxFlat_yry5d")
+TextEdit/styles/focus = SubResource("StyleBoxEmpty_l2qp6")

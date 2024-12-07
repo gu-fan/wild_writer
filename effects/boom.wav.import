@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://dyi5lstxrfkdt"
-path="res://.godot/imported/fireworks.wav-5ec8547a385cb8a96ec61e77606713be.sample"
+uid="uid://b6841f7osi4rh"
+path="res://.godot/imported/boom.wav-f1600add0327a9ad606a6a29cea3c0f1.sample"
 
 [deps]
 
-source_file="res://fireworks.wav"
-dest_files=["res://.godot/imported/fireworks.wav-5ec8547a385cb8a96ec61e77606713be.sample"]
+source_file="res://effects/boom.wav"
+dest_files=["res://.godot/imported/boom.wav-f1600add0327a9ad606a6a29cea3c0f1.sample"]
 
 [params]
 

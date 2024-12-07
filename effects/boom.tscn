@@ -1,8 +1,8 @@
 [gd_scene load_steps=15 format=3 uid="uid://c4rdv4wkukc5g"]
 
-[ext_resource type="Texture2D" uid="uid://dl75e74oom1i3" path="res://boom.png" id="1"]
-[ext_resource type="AudioStream" uid="uid://b6841f7osi4rh" path="res://boom.wav" id="2"]
-[ext_resource type="Script" path="res://boom.gd" id="4"]
+[ext_resource type="Texture2D" uid="uid://dl75e74oom1i3" path="res://effects/boom.png" id="1"]
+[ext_resource type="AudioStream" uid="uid://b6841f7osi4rh" path="res://effects/boom.wav" id="2"]
+[ext_resource type="Script" path="res://effects/boom.gd" id="4"]
 [ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://font.tres" id="5"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_g3t5t"]

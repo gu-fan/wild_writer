@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1tio2ceqgm7m"
-path="res://.godot/imported/blip.png-1b127efe09e5f6040c09bc3d9beb265c.ctex"
+uid="uid://bpwhum17yikfj"
+path="res://.godot/imported/checkbutton_unchecked.png-17e817b59786f13b5a0bae0b0b8da90d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://blip.png"
-dest_files=["res://.godot/imported/blip.png-1b127efe09e5f6040c09bc3d9beb265c.ctex"]
+source_file="res://assets/themes/checkbutton_unchecked.png"
+dest_files=["res://.godot/imported/checkbutton_unchecked.png-17e817b59786f13b5a0bae0b0b8da90d.ctex"]
 
 [params]
 

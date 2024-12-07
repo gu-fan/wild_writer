@@ -1,8 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://cemps7hmry4uj"]
+[gd_scene load_steps=8 format=3 uid="uid://cemps7hmry4uj"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_6mt4q"]
 [ext_resource type="Script" path="res://scripts/TinyEditor.gd" id="2_vfkp7"]
-[ext_resource type="PackedScene" uid="uid://b76vnt4rv4p0q" path="res://dock.tscn" id="2_vnslg"]
+[ext_resource type="PackedScene" uid="uid://b76vnt4rv4p0q" path="res://scenes/dock.tscn" id="2_vnslg"]
+[ext_resource type="FontVariation" uid="uid://r045b8gwnt3k" path="res://assets/fonts/agave_fixed.tres" id="4_a1stm"]
+[ext_resource type="PackedScene" uid="uid://cpgmiqm77p2cq" path="res://scenes/settings.tscn" id="5_5262d"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5xe6"]
 content_margin_left = 80.0
@@ -45,6 +47,7 @@ placeholder_text = "Wild Writer 0.0.1
 
 by xianrenak.itch.io
 "
+wrap_mode = 1
 caret_blink = true
 caret_multiple = false
 
@@ -57,30 +60,44 @@ custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
 
-[node name="ToggleButton" type="Button" parent="CanvasLayer/VBoxContainer/BottomPanel"]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -29.0
-offset_top = -16.0
-offset_bottom = 16.0
-grow_horizontal = 0
-grow_vertical = 2
-focus_mode = 0
-text = "EN"
-
-[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/BottomPanel"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/BottomPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -33.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 1
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
+theme_override_fonts/font = ExtResource("4_a1stm")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_rxkgt")
+vertical_alignment = 1
+
+[node name="State" type="Label" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.466667, 0.466667, 0.466667, 1)
+theme_override_fonts/font = ExtResource("4_a1stm")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rxkgt")
+text = "8182C"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="IMEButton" type="Button" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+focus_mode = 0
+text = "EN"
+
+[node name="SettingButton" type="Button" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+focus_mode = 0
+text = ""
 
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
 visible = false
@@ -88,3 +105,6 @@ custom_minimum_size = Vector2(50, 50)
 anchors_preset = 9
 anchor_bottom = 1.0
 grow_vertical = 2
+
+[node name="Settings" parent="CanvasLayer" instance=ExtResource("5_5262d")]
+visible = false

@@ -1,7 +1,5 @@
 extends Node2D
 
-# this
-
 var destroy: bool = false
 var last_key: String = ""
 var pitch_increase: float = 0.0

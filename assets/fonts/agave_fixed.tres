@@ -1,0 +1,10 @@
+[gd_resource type="FontVariation" load_steps=3 format=3 uid="uid://r045b8gwnt3k"]
+
+[ext_resource type="FontFile" uid="uid://b5n65c1fx4c2t" path="res://assets/fonts/Agave/AgaveNerdFontMono-Regular.ttf" id="1_2g8un"]
+[ext_resource type="FontFile" uid="uid://cnenglo1whyuy" path="res://assets/fonts/SiYuanHeiTi-Regular/SourceHanSansSC-Regular-2.otf" id="2_0g5hm"]
+
+[resource]
+fallbacks = Array[Font]([ExtResource("2_0g5hm")])
+base_font = ExtResource("1_2g8un")
+spacing_top = 1
+spacing_bottom = -1
