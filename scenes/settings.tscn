@@ -13,7 +13,7 @@ mouse_filter = 2
 script = ExtResource("1_6as7x")
 
 [node name="TabBar" type="TabContainer" parent="."]
-custom_minimum_size = Vector2(400, 490)
+custom_minimum_size = Vector2(380, 520)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -21,9 +21,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -250.0
-offset_right = 200.0
-offset_bottom = 170.0
+offset_top = -285.0
+offset_right = 180.0
+offset_bottom = 205.0
 grow_horizontal = 2
 grow_vertical = 2
 current_tab = 0
@@ -64,7 +64,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "初始打开最近编辑的文件"
+text = "自动打开最近的文件"
 
 [node name="CheckButton" type="CheckButton" parent="TabBar/BASIC/Margin/VBox/AutoOpen"]
 layout_mode = 2
@@ -100,9 +100,21 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "换行显示"
+text = "文本换行"
 
 [node name="CheckButton" type="CheckButton" parent="TabBar/BASIC/Margin/VBox/WrapLine"]
+layout_mode = 2
+
+[node name="HighlightLine" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/BASIC/Margin/VBox/HighlightLine"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "高亮当前行"
+
+[node name="CheckButton" type="CheckButton" parent="TabBar/BASIC/Margin/VBox/HighlightLine"]
 layout_mode = 2
 
 [node name="FontSize" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
@@ -117,75 +129,24 @@ text = "字体大小"
 [node name="HSlider" type="HSlider" parent="TabBar/BASIC/Margin/VBox/FontSize"]
 custom_minimum_size = Vector2(120, 20)
 layout_mode = 2
-max_value = 2.0
-tick_count = 3
+max_value = 3.0
+tick_count = 4
 ticks_on_borders = true
 
-[node name="LABEL_shortcut" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
+[node name="DocumentDir" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="TabBar/BASIC/Margin/VBox/LABEL_shortcut"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-text = "快捷键"
-horizontal_alignment = 1
-
-[node name="NewFile" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="TabBar/BASIC/Margin/VBox/NewFile"]
+[node name="Label" type="Label" parent="TabBar/BASIC/Margin/VBox/DocumentDir"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "新建文件"
+text = "默认文档位置"
 
-[node name="LineEdit" type="LineEdit" parent="TabBar/BASIC/Margin/VBox/NewFile"]
-custom_minimum_size = Vector2(100, 20)
+[node name="Button" type="Button" parent="TabBar/BASIC/Margin/VBox/DocumentDir"]
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "Ctrl+N"
-
-[node name="OpenFile" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="TabBar/BASIC/Margin/VBox/OpenFile"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "打开文件"
-
-[node name="LineEdit" type="LineEdit" parent="TabBar/BASIC/Margin/VBox/OpenFile"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-text = "Ctrl+O"
-
-[node name="SaveFile" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="TabBar/BASIC/Margin/VBox/SaveFile"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "保存文件"
-
-[node name="LineEdit" type="LineEdit" parent="TabBar/BASIC/Margin/VBox/SaveFile"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-text = "Ctrl+S"
-
-[node name="OpenSetting" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="TabBar/BASIC/Margin/VBox/OpenSetting"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "打开设置面板"
-
-[node name="LineEdit" type="LineEdit" parent="TabBar/BASIC/Margin/VBox/OpenSetting"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-text = "Ctrl+'"
+text = "~/Documents"
+text_overrun_behavior = 1
 
 [node name="Sep" type="ColorRect" parent="TabBar/BASIC/Margin/VBox"]
 custom_minimum_size = Vector2(1, 1)
@@ -193,7 +154,7 @@ layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
 
 [node name="Sep2" type="Control" parent="TabBar/BASIC/Margin/VBox"]
-custom_minimum_size = Vector2(1, 1)
+custom_minimum_size = Vector2(6, 6)
 layout_mode = 2
 
 [node name="Reset" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
@@ -206,10 +167,115 @@ layout_mode = 2
 focus_mode = 0
 text = "重置所有选项"
 
-[node name="EFFECT" type="Control" parent="TabBar"]
+[node name="KEY" type="Control" parent="TabBar"]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
+
+[node name="Margin" type="MarginContainer" parent="TabBar/KEY"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="TabBar/KEY/Margin"]
+layout_mode = 2
+
+[node name="LABEL_title" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/KEY/Margin/VBox/LABEL_title"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+text = "快捷键"
+horizontal_alignment = 1
+
+[node name="NewFile" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/KEY/Margin/VBox/NewFile"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "新建文件"
+
+[node name="Button" type="Button" parent="TabBar/KEY/Margin/VBox/NewFile"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+text = "Ctrl+N"
+
+[node name="OpenFile" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/KEY/Margin/VBox/OpenFile"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "打开文件"
+
+[node name="Button" type="Button" parent="TabBar/KEY/Margin/VBox/OpenFile"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+text = "Ctrl+O"
+
+[node name="SaveFile" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/KEY/Margin/VBox/SaveFile"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "保存文件"
+
+[node name="Button" type="Button" parent="TabBar/KEY/Margin/VBox/SaveFile"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+text = "Ctrl+S"
+
+[node name="OpenSetting" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/KEY/Margin/VBox/OpenSetting"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "打开设置面板"
+
+[node name="Button" type="Button" parent="TabBar/KEY/Margin/VBox/OpenSetting"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+text = "Ctrl+'"
+
+[node name="Sep" type="ColorRect" parent="TabBar/KEY/Margin/VBox"]
+custom_minimum_size = Vector2(1, 1)
+layout_mode = 2
+color = Color(0.165656, 0.165656, 0.165656, 1)
+
+[node name="Sep2" type="Control" parent="TabBar/KEY/Margin/VBox"]
+custom_minimum_size = Vector2(6, 6)
+layout_mode = 2
+
+[node name="Reset" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="Button" type="Button" parent="TabBar/KEY/Margin/VBox/Reset"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+focus_mode = 0
+text = "重置所有快捷键"
+
+[node name="EFFECT" type="Control" parent="TabBar"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
 
 [node name="Margin" type="MarginContainer" parent="TabBar/EFFECT"]
 layout_mode = 1
@@ -341,7 +407,7 @@ layout_mode = 2
 [node name="INPUT" type="Control" parent="TabBar"]
 visible = false
 layout_mode = 2
-metadata/_tab_index = 2
+metadata/_tab_index = 3
 
 [node name="Margin" type="MarginContainer" parent="TabBar/INPUT"]
 layout_mode = 1
@@ -418,7 +484,7 @@ text = "中英文切换"
 [node name="LineEdit" type="LineEdit" parent="TabBar/INPUT/Margin/VBox/SwitchKey"]
 custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
-text = "Shift+Space"
+text = "Shift+Esc"
 
 [node name="PrevPage" type="HBoxContainer" parent="TabBar/INPUT/Margin/VBox"]
 layout_mode = 2
@@ -451,7 +517,7 @@ text = "]"
 [node name="ABOUT" type="Control" parent="TabBar"]
 visible = false
 layout_mode = 2
-metadata/_tab_index = 3
+metadata/_tab_index = 4
 
 [node name="Margin" type="MarginContainer" parent="TabBar/ABOUT"]
 layout_mode = 1

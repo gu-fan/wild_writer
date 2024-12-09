@@ -6,41 +6,89 @@ signal setting_changed
 
 # ~/.local/share/godot/app_userdata/wild_writer/wild_writer.ini
 const SETTINGS_FILE: String = "user://wild_writer.ini"
+# backup current editing file
+const BACKUP_FILE: String = "user://backup.txt"
 var config: ConfigFile = ConfigFile.new()
 
 var _has_valid_config = false
 var _default_settings = {
      "basic": {
-        "auto_open_recent": true,
+        "auto_open_recent": 1,
+        "auto_save": 1,
+        "show_char_count": 1,
+        "line_wrap": 1,
+        "highlight_line": 1,
+        "font_size": 1,
+        "document_dir": "~/Documents",
         "recent_file": "",
-        "auto_save": true,
-        "show_char_count": true,
-        "word_wrap": true,
-        "font_size": 16
+        "backup_file": "",
+        "backup_caret_line": 0,
+        "backup_caret_col": 0,
     },
     "shortcut": {
         "new_file": "Ctrl+N",
         "open_file": "Ctrl+O",
         "save_file": "Ctrl+S",
-        "open_setting": "Ctrl+'"
+        "open_setting": "Ctrl+Apostrophe"
     },
     "effect": {
         "level": 1.0,
-        "combo": true,
-        "transparent": false,
-        "audio": true,
-        "screen_shake": true,
-        "char_effect": true,
-        "enter_effect": true,
-        "delete_effect": true
+        "combo": 1,
+        "transparent": 0,
+        "audio": 1,
+        "screen_shake": 1,
+        "char_effect": 1,
+        "enter_effect": 1,
+        "delete_effect":1 
     },
     "ime": {
-        "show_icon": true,
+        "show_icon": 1,
         "page_size": 5,
-        "switch_key": "Shift+Space",
+        "switch_key": "Shift+Escape",
         "prev_page_key": "[",
         "next_page_key": "]"
     },
+}
+
+const KEY_DISPLAY_MAP = {
+    "apostrophe": "'",
+    "backslash": "\\",
+    "slash": "/",
+    "semicolon": ";",
+    "comma": ",",
+    "period": ".",
+    "minus": "-",
+    "equal": "=",
+    "bracketleft": "[",
+    "bracketright": "]",
+    "quoteleft": "`",
+    "space": "Space",
+    "escape": "Esc",
+    "tab": "Tab",
+    "return": "Enter",
+    "backspace": "←",
+    "delete": "Delete",
+    "insert": "Insert",
+    "home": "Home",
+    "end": "End",
+    "pageUp": "PgUp",
+    "pageDown": "PgDn",
+    "up": "↑",
+    "down": "↓",
+    "left": "←",
+    "right": "→",
+    "shift+apostrophe": "\"",
+    "shift+backslash": "|",
+    "shift+slash": "?",
+    "shift+semicolon": ":",
+    "shift+comma": "<",
+    "shift+period": ">",
+    "shift+space": "_",
+    "shift+minus": "_",
+    "shift+equal": "+",
+    "shift+bracketleft": "{",
+    "shift+bracketright": "}",
+    "shift+quoteleft": "~",
 }
 
 func _ready():
@@ -66,9 +114,26 @@ func set_setting(section: String, key: String, value) -> void:
         push_warning("Invalid setting: %s/%s" % [section, key])
         return
         
+    # 根据默认值的类型转换输入值
+    var default_value = _default_settings[section][key]
+    match typeof(default_value):
+        TYPE_BOOL:
+            value = bool(value)
+        TYPE_INT:
+            value = int(value)
+        TYPE_FLOAT:
+            value = float(value)
+        TYPE_STRING:
+            value = str(value)
+        TYPE_VECTOR2:
+            if not value is Vector2:
+                value = Vector2(value)
+        TYPE_COLOR:
+            if not value is Color:
+                value = Color(value)
+    
     config.set_value(section, key, value)
     save_settings()
-
     emit_signal('setting_changed')
 
 func set_setting_no_signal(section: String, key: String, value) -> void:
@@ -84,23 +149,42 @@ func get_setting(section: String, key: String):
         push_warning("Invalid setting: %s/%s" % [section, key])
         return null
         
+    var default_value = _default_settings[section][key]
     if _has_valid_config and config.has_section_key(section, key):
-        return config.get_value(section, key)
-    return _default_settings[section][key]
-
-
-func get_basic_setting(key: String):
-    return get_setting("basic", key)
-
-func set_basic_setting(key: String, value) -> void:
-    set_setting("basic", key, value)
-
+        var value = config.get_value(section, key)
+        # 根据默认值的类型转换配置值
+        match typeof(default_value):
+            TYPE_BOOL:
+                return bool(value)
+            TYPE_INT:
+                return int(value)
+            TYPE_FLOAT:
+                return float(value)
+            TYPE_STRING:
+                return str(value)
+            TYPE_VECTOR2:
+                if value is Vector2:
+                    return value
+                return Vector2(value)
+            TYPE_COLOR:
+                if value is Color:
+                    return value
+                return Color(value)
+            _:
+                return value
+    return default_value
 
 # 重置所有设置到默认值
 func reset_to_default():
     for section in _default_settings:
+        if section == 'shortcut': continue
         for key in _default_settings[section]:
             set_setting(section, key, _default_settings[section][key])
+    save_settings()
+
+func reset_key_to_default():
+    for key in _default_settings['shortcut']:
+        set_setting('shortcut', key, _default_settings['shortcut'][key])
     save_settings()
 
 # 获取某个分类的所有设置
@@ -112,6 +196,12 @@ func get_section_settings(section: String) -> Dictionary:
     for key in _default_settings[section]:
         settings[key] = get_setting(section, key)
     return settings
+
+func get_basic_setting(key: String):
+    return get_setting("basic", key)
+
+func set_basic_setting(key: String, value) -> void:
+    set_setting("basic", key, value)
 
 # IME设置便捷方法
 func get_ime_setting(key: String):
@@ -133,3 +223,68 @@ func get_shortcut_setting(key: String):
 
 func set_shortcut_setting(key: String, value) -> void:
     set_setting("shortcut", key, value)
+
+func set_recent(value) -> void:
+    set_setting_no_signal('basic', 'recent_file', value)
+
+# ---------------------------
+static func get_key_shown(key_string: String) -> String:
+    if key_string.is_empty():
+        return ""
+        
+    var parts = key_string.split("+")
+    var result = []
+    
+    for part in parts:
+        # 处理修饰键
+        match part.to_lower():
+            "ctrl":
+                result.append("Ctrl")
+            "shift":
+                result.append("Shift")
+            "alt":
+                result.append("Alt")
+            "meta", "cmd", "command", "super":
+                result.append("Cmd")
+            _:
+                # 查找映射表中的显示名称
+                # var p_c = part.capitalize()
+                var p_l = part.to_lower()
+                if SettingManager.KEY_DISPLAY_MAP.has(p_l):
+                    result.append(SettingManager.KEY_DISPLAY_MAP[p_l])
+                else:
+                    result.append(part)
+    
+    return "+".join(result)
+static func get_key_shown_shift(key_string: String) -> String:
+    if key_string.is_empty():
+        return ""
+        
+    var parts = key_string.split("+")
+    var result = []
+    
+    var has_shift = false
+    for part in parts:
+        # 处理修饰键
+        match part.to_lower():
+            "ctrl":
+                result.append("Ctrl")
+            "shift":
+                has_shift = true
+            "alt":
+                result.append("Alt")
+            "meta", "cmd", "command", "super":
+                result.append("Cmd")
+            _:
+                # 查找映射表中的显示名称
+                var p_l = part.to_lower()
+                if has_shift: p_l = 'shift+' + p_l
+                if SettingManager.KEY_DISPLAY_MAP.has(p_l):
+                    result.append(SettingManager.KEY_DISPLAY_MAP[p_l])
+                else:
+                    if has_shift:
+                        result.append(part)
+                    else:
+                        result.append(p_l)
+    
+    return "+".join(result)

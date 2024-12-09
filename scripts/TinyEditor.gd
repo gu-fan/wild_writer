@@ -4,15 +4,26 @@ extends CanvasLayer
 signal typing
 
 @onready var ime = TinyIME
-@onready var editor: TextEdit = $VBoxContainer/TextEdit
-@onready var dock: Control = $VBoxContainer/Dock
+@onready var editor: TextEdit = $Control/MarginContainer/VBoxContainer/TextEdit
+# @onready var dock: Control = $Control/MarginContainer/VBoxContainer/Dock
 
 const Boom: PackedScene = preload("res://effects/boom.tscn")
+const Combo: PackedScene = preload("res://effects/combo.tscn")
+const Laser: PackedScene = preload("res://effects/laser.tscn")
 const Blip: PackedScene = preload("res://effects/blip.tscn")
 const Newline: PackedScene = preload("res://effects/newline.tscn")
-const Dock: PackedScene = preload("res://scenes/dock.tscn")
+# const Dock: PackedScene = preload("res://scenes/dock.tscn")
 
 const PITCH_DECREMENT := 2.0
+
+var effects = {
+    explosions=true,
+    blips=true,
+    chars=true,
+    shake=true,
+    sound=false,
+    # fireworks=true,
+}
 
 var shake: float = 0.0
 var shake_intensity:float  = 0.0
@@ -21,11 +32,13 @@ var last_key: String = ""
 var pitch_increase: float = 0.0
 var editors = {}
 
+var combo_node: Control
+
 var ime_display
 var ime_button
 var setting_button
 var bottom_label
-
+var editor_main
 
 func init():
     ime_display = preload("res://scenes/ime_display.tscn").instantiate()
@@ -46,7 +59,9 @@ func init():
 
     editor.caret_changed.connect(update_ime_position)
     setup_editor([editor])
-    typing.connect(Callable(dock,"_on_typing"))
+    # typing.connect(Callable(dock,"_on_typing"))
+
+    editor_main = get_tree().current_scene
 
 func update_ime_position():
     if ime_display and ime_display.visible:
@@ -55,11 +70,10 @@ func update_ime_position():
         var ime_height = ime_display.size.y
         
         # 计算默认位置（光标上方）
-        var pos = editor.position + caret_pos + Vector2(0, -line_height - 40)
+        var pos = editor.position + caret_pos + Vector2(0, -line_height - 20)
         
         # 如果位置会导致 IME 超出顶部，则将其放在光标下方
-        if pos.y < 10:
-            pos.y = editor.position.y + caret_pos.y + line_height
+        if pos.y < 10: pos.y = editor.position.y + caret_pos.y + line_height
             
         # 确保不会超出右边界
         var editor_width = editor.size.x
@@ -67,8 +81,7 @@ func update_ime_position():
             pos.x = editor_width - ime_display.size.x
             
         # 确保不会超出左边界
-        if pos.x < 0:
-            pos.x = 0
+        if pos.x < 0: pos.x = 0
             
         ime_display.position = pos
 
@@ -99,7 +112,8 @@ func gui_input(event):
         event = event as InputEventKey
         last_key = OS.get_keycode_string(event.get_keycode_with_modifiers())
 
-        if last_key == 'Shift+Space':
+        is_single_letter = true
+        if last_key == 'Shift+Escape':
             ime.toggle_ime()
             get_viewport().set_input_as_handled()
         elif last_key == 'Ctrl+S':
@@ -110,13 +124,11 @@ func gui_input(event):
             get_viewport().set_input_as_handled()
 
 
-
-
 # -------------------------------------------
-
 var last_line = ''
 var caret_col = 0
 var caret_line = 0
+var is_single_letter = true
 func _on_text_changed():
     # this is before shake to get the current typed word by ime
     var old_caret_line = caret_line
@@ -126,6 +138,7 @@ func _on_text_changed():
     last_line = editor.get_line(caret_line)
     if last_key == '': 
         if caret_line == old_caret_line:
+            is_single_letter = false
             last_key = last_line.substr(old_caret_col, caret_col - old_caret_col)
 
 func _process(delta):
@@ -150,7 +163,6 @@ func shake_screen(duration, intensity):
 
 
 func caret_changed(textedit):
-    
     editors["line"] = textedit.get_caret_line()
 
 func text_changed(textedit : TextEdit):
@@ -158,34 +170,37 @@ func text_changed(textedit : TextEdit):
     var pos = textedit.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
     emit_signal("typing")
     
+    var is_text_updated = false
     if editors.has(textedit):
 
-        # print('last', last_key)
+        var len_d = len(textedit.text) - len(editors[textedit]["text"])
 
-        # if last_key == 'Ctrl+S': return
-        # if last_key == 'Ctrl+O': return
-        # if last_key == 'Ctrl+N': return
         # Deleting
-        if timer > 0.1 and len(textedit.text) < len(editors[textedit]["text"]):
+        if timer > 0.1 and len_d < 0:
+            is_text_updated = true
             timer = 0.0
+            decr_combo(len_d)
             
-            if dock.explosions:
+            if effects.explosions:
                 # Draw the thing
                 var thing = Boom.instantiate()
                 thing.position = pos
                 thing.destroy = true
-                if dock.chars: thing.last_key = last_key
-                thing.sound = dock.sound
+                if effects.chars: thing.last_key = last_key
+                thing.sound = effects.sound
                 textedit.add_child(thing)
-                # thing.top_level = true
                 
-                if dock.shake:
-                    # Shake
-                    shake_screen(0.3, 20)
+                if effects.shake:
+                    shake_screen(0.3, 10)
         
         # Typing
-        if timer > 0.02 and len(textedit.text) >= len(editors[textedit]["text"]):
+        if timer > 0.02 and len_d > 0:
+            is_text_updated = true
             timer = 0.0
+            if is_single_letter:
+                incr_combo(len_d)
+            else:
+                incr_combo(len_d*3) # average is 4
             
             # Draw the thing
             var thing = Blip.instantiate()
@@ -193,36 +208,69 @@ func text_changed(textedit : TextEdit):
             pitch_increase += 1.0
             thing.position = pos
             thing.destroy = true
-            thing.blips = dock.blips
-            if dock.chars: thing.last_key = last_key
-            thing.sound = dock.sound
-            # thing.top_level = true
+            thing.blips = effects.blips
+            if effects.chars: thing.last_key = last_key
+            thing.sound = effects.sound
             textedit.add_child(thing)
             
-            if dock.shake:
-                # Shake
+            if effects.shake:
                 shake_screen(0.05, 8)
             
         # Newline
         if textedit.get_caret_line() != editors[textedit]["line"]:
+            is_text_updated = true
             # Draw the thing
             var thing = Newline.instantiate()
             thing.position = pos
             thing.destroy = true
-            thing.blips = dock.blips
+            thing.blips = effects.blips
+            thing.caret_col = caret_col
+            thing.last_key = last_key
             textedit.add_child(thing)
-            thing.top_level = true
-            
-            if dock.shake:
-                # Shake
-                shake_screen(0.05, 8)
+            if effects.shake:
+                shake_screen(0.05, 15)
+            finish_combo(pos)
     
-    editors[textedit]["text"] = textedit.text
+    if is_text_updated: editors[textedit]["text"] = textedit.text
     editors[textedit]["line"] = textedit.get_caret_line()
 
 # ---------------------
 func feed_ime_input(key):
     last_key = key
+    is_single_letter = false
     editor.insert_text_at_caret(key)
-    # _on_text_changed()
-    # text_changed(editor)
+# ---------------------
+func create_combo_node_if_null():
+    if combo_node == null or !is_instance_valid(combo_node):
+        var thing = Combo.instantiate()
+        # thing.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+        # thing.set_offsets_preset(Control.PRESET_TOP_RIGHT, 3)
+        # thing.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+        editor.add_child(thing)
+        combo_node = thing
+
+func incr_combo(n=1):
+    create_combo_node_if_null()
+    combo_node.incr(n)
+
+func decr_combo(n=1):
+    if combo_node:
+        combo_node.decr(n)
+        if combo_node.count <= 0:
+            remove_combo()
+
+func finish_combo(pos):
+    if combo_node:
+        var count = combo_node.count
+        combo_node.queue_free()
+        combo_node = null
+        if count > 1 and last_key == 'Enter':
+            var thing = Laser.instantiate()
+            thing.count = count
+            editor.add_child(thing)
+            thing.position.y = pos.y
+
+func remove_combo():
+    if combo_node:
+        combo_node.queue_free()
+        combo_node = null

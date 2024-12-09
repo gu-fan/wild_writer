@@ -9,6 +9,7 @@ signal feed_ime_input(text)
 
 func _ready():
     ime.ime_text_changed.connect(_on_ime_text_changed)
+    pinyin_label.set("theme_override_font_sizes/font_size", 20)
 
 func _process(_delta):
     var state = ime.get_current_state()
@@ -16,7 +17,6 @@ func _process(_delta):
     update_candidates_display(state.candidates)
 
     panel.visible = !state.pinyin.is_empty()
-    
 
 func update_candidates_display(candidates: Array) -> void:
     # Clear existing candidates first
@@ -35,6 +35,7 @@ func update_candidates_display(candidates: Array) -> void:
         label.text = "%d.%s" % [display_number, candidates[i]]
         label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         label.custom_minimum_size = Vector2(40, 30)
+        label.set("theme_override_font_sizes/font_size", 20)
         candidates_container.add_child(label)
 
     # Add navigation indicator if needed
@@ -43,6 +44,7 @@ func update_candidates_display(candidates: Array) -> void:
         prev_label.text = "["
         prev_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         prev_label.custom_minimum_size = Vector2(10, 30)
+        prev_label.set("theme_override_font_sizes/font_size", 20)
         candidates_container.add_child(prev_label)
     
     # Add next page indicator if needed
@@ -51,6 +53,7 @@ func update_candidates_display(candidates: Array) -> void:
         next_label.text = "]"
         next_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         next_label.custom_minimum_size = Vector2(10, 30)
+        next_label.set("theme_override_font_sizes/font_size", 20)
         candidates_container.add_child(next_label)
 
 func _on_ime_text_changed(text: String) -> void:

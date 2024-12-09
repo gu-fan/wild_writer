@@ -147,3 +147,5 @@ layout_mode = 2
 [node name="resetButton" type="Button" parent="VBoxContainer/CenterContainer"]
 layout_mode = 2
 text = "Reset"
+
+[node name="Window" type="Window" parent="."]

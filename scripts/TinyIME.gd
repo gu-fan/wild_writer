@@ -117,12 +117,14 @@ func handle_key_input(event: InputEventKey) -> void:
                 get_viewport().set_input_as_handled()
                 return
         "BracketLeft":  # < 键，上一页
-            get_viewport().set_input_as_handled()
+            if !pinyin_buffer.is_empty():
+                get_viewport().set_input_as_handled()
             if current_page > 0:
                 current_page -= 1
                 return
         "BracketRight":  # > 键，下一页
-            get_viewport().set_input_as_handled()
+            if !pinyin_buffer.is_empty():
+                get_viewport().set_input_as_handled()
             if (current_page + 1) * page_size < candidates.size():
                 current_page += 1
                 return
@@ -187,7 +189,7 @@ func update_candidates() -> void:
                         if char in char_frequencies and segment in char_frequencies[char]:
                             freq = char_frequencies[char][segment]
                             
-                        if freq > 1000.0:
+                        if freq > 500.0:
                             matched_chars.append(char)
                             total_freq += freq
                             pos += length

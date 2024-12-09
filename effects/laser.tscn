@@ -1,0 +1,148 @@
+[gd_scene load_steps=20 format=3 uid="uid://c2slty6tfxac"]
+
+[ext_resource type="Script" path="res://effects/laser.gd" id="1_3qhlv"]
+[ext_resource type="Texture2D" uid="uid://cctp8x8o2mqta" path="res://effects/laser.png" id="2_y16c8"]
+[ext_resource type="Texture2D" uid="uid://bvrbx27nbwxs5" path="res://effects/laser_emit.png" id="3_me2y4"]
+[ext_resource type="AudioStream" uid="uid://dq8aw3r2jidgb" path="res://effects/laser.ogg" id="4_jm44b"]
+[ext_resource type="Texture2D" uid="uid://ds45igi6es7lb" path="res://effects/circle_0.png" id="5_xafgu"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fliwp"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q3u0j"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dblwc"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_we7n0"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2f88s"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qw58s"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xghwn"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(576, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l7hsq"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(672, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_apomd"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(768, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ywge1"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(864, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xu8he"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(960, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3sjd1"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(1056, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hb7wg"]
+atlas = ExtResource("3_me2y4")
+region = Rect2(1152, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_l5s03"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fliwp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q3u0j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dblwc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_we7n0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2f88s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qw58s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xghwn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l7hsq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_apomd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ywge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xu8he")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3sjd1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hb7wg")
+}],
+"loop": true,
+"name": &"default",
+"speed": 20.0
+}]
+
+[node name="Control" type="Control"]
+texture_filter = 1
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("1_3qhlv")
+
+[node name="Line2D" type="Line2D" parent="."]
+z_index = 10
+z_as_relative = false
+points = PackedVector2Array(-12, 0, 1200, 0)
+width = 50.0
+texture = ExtResource("2_y16c8")
+texture_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+z_index = 20
+z_as_relative = false
+position = Vector2(-10, 0)
+sprite_frames = SubResource("SpriteFrames_l5s03")
+autoplay = "default"
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 3.0
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_jm44b")
+
+[node name="Circle" type="Sprite2D" parent="."]
+z_index = 20
+texture_filter = 1
+position = Vector2(-10, 0)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("5_xafgu")
+
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]

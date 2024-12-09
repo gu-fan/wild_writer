@@ -129,7 +129,6 @@ func connect_checkboxes():
         save_checkbox_state()
     )
 
-
 func save_checkbox_state():
     stats.set_value("settings", "explosion", explosions)
     stats.set_value("settings", "blips", blips)
@@ -138,7 +137,6 @@ func save_checkbox_state():
     stats.set_value("settings", "sound", sound)
     stats.set_value("settings", "fireworks", fireworks)
     stats.save(STATS_FILE)
-
 
 func load_checkbox_state():
     if stats.load(STATS_FILE) == OK:

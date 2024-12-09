@@ -1,16 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://cemps7hmry4uj"]
+[gd_scene load_steps=7 format=3 uid="uid://cemps7hmry4uj"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_6mt4q"]
 [ext_resource type="Script" path="res://scripts/TinyEditor.gd" id="2_vfkp7"]
-[ext_resource type="PackedScene" uid="uid://b76vnt4rv4p0q" path="res://scenes/dock.tscn" id="2_vnslg"]
 [ext_resource type="FontVariation" uid="uid://r045b8gwnt3k" path="res://assets/fonts/agave_fixed.tres" id="4_a1stm"]
 [ext_resource type="PackedScene" uid="uid://cpgmiqm77p2cq" path="res://scenes/settings.tscn" id="5_5262d"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5xe6"]
 content_margin_left = 80.0
-content_margin_top = 80.0
-content_margin_right = 5.0
-content_margin_bottom = 5.0
+content_margin_top = 0.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
 bg_color = Color(0.165656, 0.165656, 0.165656, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rxkgt"]
@@ -23,18 +22,33 @@ script = ExtResource("1_6mt4q")
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 script = ExtResource("2_vfkp7")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+[node name="Control" type="Control" parent="CanvasLayer"]
+custom_minimum_size = Vector2(40, 100)
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-metadata/_edit_lock_ = true
 
-[node name="TextEdit" type="TextEdit" parent="CanvasLayer/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_top = 65
+theme_override_constants/margin_right = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/MarginContainer"]
+layout_mode = 2
+
+[node name="TextEdit" type="TextEdit" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+clip_contents = false
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 24
+theme_override_constants/caret_width = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_s5xe6")
 theme_override_styles/focus = SubResource("StyleBoxFlat_s5xe6")
 theme_override_styles/read_only = SubResource("StyleBoxFlat_s5xe6")
@@ -50,17 +64,14 @@ by xianrenak.itch.io
 wrap_mode = 1
 caret_blink = true
 caret_multiple = false
+highlight_current_line = true
 
-[node name="Dock" parent="CanvasLayer/VBoxContainer" instance=ExtResource("2_vnslg")]
-visible = false
-layout_mode = 2
-
-[node name="BottomPanel" type="ColorRect" parent="CanvasLayer/VBoxContainer"]
+[node name="BottomPanel" type="ColorRect" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer/BottomPanel"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -69,7 +80,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 1
 
-[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+[node name="Label" type="Label" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
@@ -77,25 +88,27 @@ theme_override_fonts/font = ExtResource("4_a1stm")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_rxkgt")
 vertical_alignment = 1
 
-[node name="State" type="Label" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+[node name="Char" type="Label" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.466667, 0.466667, 0.466667, 1)
 theme_override_fonts/font = ExtResource("4_a1stm")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_rxkgt")
-text = "8182C"
+text = "0C"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="IMEButton" type="Button" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+[node name="IMEButton" type="Button" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer"]
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
+tooltip_text = "输入法"
 focus_mode = 0
 text = "EN"
 
-[node name="SettingButton" type="Button" parent="CanvasLayer/VBoxContainer/BottomPanel/HBoxContainer"]
+[node name="SettingButton" type="Button" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer"]
 custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
+tooltip_text = "设置"
 focus_mode = 0
 text = ""
 

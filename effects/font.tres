@@ -1,0 +1,9 @@
+[gd_resource type="FontVariation" load_steps=3 format=3 uid="uid://nrx67heb2sgn"]
+
+[ext_resource type="FontFile" uid="uid://c8v5degxetmxa" path="res://assets/fonts/YouSheBiaoTiHei/YouSheBiaoTiHei-2.ttf" id="1_h0ux7"]
+
+[sub_resource type="FontVariation" id="FontVariation_odby7"]
+base_font = ExtResource("1_h0ux7")
+
+[resource]
+base_font = SubResource("FontVariation_odby7")
