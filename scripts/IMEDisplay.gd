@@ -60,5 +60,4 @@ func _on_ime_text_changed(text: String) -> void:
     # 处理选中的文字
     # print(text)
     # editor.feed_ime_input()
-    ime.reset_ime()
     emit_signal('feed_ime_input', text)
