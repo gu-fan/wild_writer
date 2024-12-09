@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://effects/blip.gd" id="1_tp8nq"]
 [ext_resource type="Texture2D" uid="uid://d1tio2ceqgm7m" path="res://effects/blip.png" id="2_kj7um"]
-[ext_resource type="AudioStream" uid="uid://b2ood3lkcgpqb" path="res://effects/blip.wav" id="3_xg6qd"]
+[ext_resource type="AudioStream" uid="uid://d2b5xpsrj5ts3" path="res://effects/blip.ogg" id="3_any3y"]
 [ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="4_ullf3"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hp4ed"]
@@ -83,8 +83,8 @@ spread = 180.0
 initial_velocity_min = 300.0
 initial_velocity_max = 400.0
 gravity = Vector3(0, 0, 0)
-scale_min = 5.0
-scale_max = 5.0
+scale_min = 4.0
+scale_max = 4.0
 color_ramp = SubResource("GradientTexture2D_b7f0m")
 
 [node name="Node2D" type="Node2D"]
@@ -98,7 +98,7 @@ frame = 7
 frame_progress = 1.0
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("3_xg6qd")
+stream = ExtResource("3_any3y")
 volume_db = -12.0
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]

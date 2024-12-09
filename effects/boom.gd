@@ -2,7 +2,7 @@ extends Node2D
 
 var destroy = false
 var last_key = ""
-var sound = true
+var audio: bool = true
 
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
@@ -11,14 +11,25 @@ var sound = true
 @onready var gpu_particle_2d: GPUParticles2D = $GPUParticles2D
 
 func _ready():
-    if sound:
+
+    var font_size = SettingManager.get_basic_setting("font_size")
+    var extra_scale = 1
+    if font_size == 2: 
+        extra_scale = 1.5
+    elif font_size == 3: 
+        extra_scale = 2
+
+    if audio:
         audio_stream_player.play()
     
     animated_sprite_2d.frame = 0
     animated_sprite_2d.play("2")
+    animated_sprite_2d.scale = Vector2(3, 3) * extra_scale
     timer.start()
     label.text = '←'
     gpu_particle_2d.emitting = true
+    gpu_particle_2d.process_material.scale_min = 4 * extra_scale
+    gpu_particle_2d.process_material.scale_max = 4 * extra_scale
 
     var clr_to =Color.from_hsv(-0.1 + Rnd.rangef(0.2), 0.8, 1.0)
     TwnLite.at(label).tween({
@@ -29,8 +40,8 @@ func _ready():
         parallel=true,
     }).tween({
         prop='scale',
-        from=Vector2(1, 1),
-        to=Vector2(3, 3),
+        from=Vector2(1, 1)*extra_scale,
+        to=Vector2(3, 3)*extra_scale,
         dur=0.3,
         parallel=true,
     }).tween({

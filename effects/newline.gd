@@ -10,12 +10,42 @@ var last_key = ''
 var caret_col = 0
 
 func _ready():
+    var font_size = SettingManager.get_basic_setting("font_size")
+    var extra_scale = 1
+    if font_size == 2: 
+        extra_scale = 1.5
+    elif font_size == 3: 
+        extra_scale = 2
+
     if blips:
         animated_sprite_2d.frame = 0
         animated_sprite_2d.play("1")
+        animated_sprite_2d.scale = Vector2(2, 2) * extra_scale
+        
         if caret_col > 0:
-            animated_sprite_2d.position = Vector2(90, -4)
             animated_sprite_2d.rotation_degrees = 90
+            match font_size:
+                3: animated_sprite_2d.position.x = 120
+                2: animated_sprite_2d.position.x = 100
+                _: animated_sprite_2d.position.x = 80
+        else:
+            match font_size:
+                2: animated_sprite_2d.position.x = -90
+                3: animated_sprite_2d.position.x = -120
+        if caret_col <= 0:
+            match font_size:
+                0: animated_sprite_2d.position.y = 13
+                1: animated_sprite_2d.position.y = 20
+                2: animated_sprite_2d.position.y = 25
+                3: animated_sprite_2d.position.y = 72
+        else:
+            match font_size:
+                0: animated_sprite_2d.position.y = 3
+                1: animated_sprite_2d.position.y = 3
+                2: animated_sprite_2d.position.y = 3
+                3: animated_sprite_2d.position.y = 3
+
+
 
     timer.start()
 

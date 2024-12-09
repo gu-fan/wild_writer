@@ -17,6 +17,7 @@ var _default_settings = {
         "auto_save": 1,
         "show_char_count": 1,
         "line_wrap": 1,
+        "line_number": 1,
         "highlight_line": 1,
         "font_size": 1,
         "document_dir": "~/Documents",
@@ -32,9 +33,9 @@ var _default_settings = {
         "open_setting": "Ctrl+Apostrophe"
     },
     "effect": {
-        "level": 1.0,
+        "level": 1,
         "combo": 1,
-        "transparent": 0,
+        "combo_shot": 1,
         "audio": 1,
         "screen_shake": 1,
         "char_effect": 1,
@@ -71,8 +72,8 @@ const KEY_DISPLAY_MAP = {
     "insert": "Insert",
     "home": "Home",
     "end": "End",
-    "pageUp": "PgUp",
-    "pageDown": "PgDn",
+    "pageup": "PgUp",
+    "pagedown": "PgDn",
     "up": "↑",
     "down": "↓",
     "left": "←",
@@ -113,16 +114,22 @@ func set_setting(section: String, key: String, value) -> void:
     if not _default_settings.has(section) or not _default_settings[section].has(key):
         push_warning("Invalid setting: %s/%s" % [section, key])
         return
-        
+
     # 根据默认值的类型转换输入值
     var default_value = _default_settings[section][key]
     match typeof(default_value):
         TYPE_BOOL:
             value = bool(value)
         TYPE_INT:
-            value = int(value)
+            if typeof(value) == TYPE_BOOL:
+                value = 1 if value else 0
+            else:
+                value = int(value)
         TYPE_FLOAT:
-            value = float(value)
+            if typeof(value) == TYPE_BOOL:
+                value = 1.0 if value else 0.0
+            else:
+                value = float(value)
         TYPE_STRING:
             value = str(value)
         TYPE_VECTOR2:
@@ -226,6 +233,8 @@ func set_shortcut_setting(key: String, value) -> void:
 
 func set_recent(value) -> void:
     set_setting_no_signal('basic', 'recent_file', value)
+func set_backup(value) -> void:
+    set_setting_no_signal('basic', 'backup_file', value)
 
 # ---------------------------
 static func get_key_shown(key_string: String) -> String:

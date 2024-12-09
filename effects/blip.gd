@@ -3,7 +3,7 @@ extends Node2D
 var destroy: bool = false
 var last_key: String = ""
 var pitch_increase: float = 0.0
-var sound: bool = true
+var audio: bool = true
 var blips: bool = true
 
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
@@ -13,7 +13,15 @@ var blips: bool = true
 @onready var label: Label = $Label
 
 func _ready():
-    if sound:
+
+    var font_size = SettingManager.get_basic_setting("font_size")
+    var extra_scale = 1
+    if font_size == 2: 
+        extra_scale = 1.5
+    elif font_size == 3: 
+        extra_scale = 2
+
+    if audio:
         audio_stream_player.pitch_scale = 1.0 + pitch_increase * 0.01
         audio_stream_player.play()
     
@@ -21,6 +29,18 @@ func _ready():
         animated_sprite_2d.frame = 0
         animated_sprite_2d.play("default")
         gpu_particle_2d.emitting = true
+        gpu_particle_2d.process_material.scale_min = 4 * extra_scale
+        gpu_particle_2d.process_material.scale_max = 4 * extra_scale
+
+        TwnLite.at(animated_sprite_2d).tween({
+            prop='modulate:a',
+            from=1.0,
+            to=0.0,
+            dur=0.2,
+            delay=0.2,
+            ease=Tween.EASE_OUT,
+            trans=Tween.TRANS_QUAD,
+        })
     
     timer.start()
 
@@ -43,14 +63,14 @@ func _ready():
         parallel=true,
     }).tween({
         prop='scale',
-        from=Vector2(1, 1),
-        to=Vector2(3, 3),
+        from=Vector2(1, 1)*extra_scale,
+        to=Vector2(3, 3)*extra_scale,
         dur=0.3,
         parallel=true,
     }).tween({
         prop='position',
         from=Vector2(-35+20, -60),
-        to=Vector2(-35-80, -110) if !move_right else Vector2(-35+120, -110),
+        to=Vector2(-35-100, -110)*extra_scale if !move_right else Vector2(-35+140, -110)*extra_scale,
         dur=0.6,
         parallel=true,
         ease=Tween.EASE_OUT,
@@ -58,17 +78,17 @@ func _ready():
     }).tween({
         target=animated_sprite_2d,
         prop='scale',
-        from=Vector2(1, 1),
-        to=Vector2(5, 5),
+        from=Vector2(1, 1)*extra_scale,
+        to=Vector2(5, 5)*extra_scale,
         dur=0.6,
         parallel=true,
     }).tween({
         prop='modulate',
         from=Color.WHITE,
         to=Color('FFFFFF00'),
-        dur=0.3,
+        dur=0.4,
         parallel=true,
-        delay=0.6,
+        delay=0.55,
     })
 
 

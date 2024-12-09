@@ -72,6 +72,12 @@ func save_file(editor: TextEdit, file_path: String):
         file.store_string(editor.text)
         file.close()
 
+func save_text(text: String, file_path: String):
+    var file = FileAccess.open(file_path, FileAccess.WRITE)
+    if file:
+        file.store_string(text)
+        file.close()
+
 func new_file(editor: TextEdit):
     editor.text = ""
 

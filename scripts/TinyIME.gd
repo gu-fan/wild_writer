@@ -25,12 +25,6 @@ var pinyin_dict_cache = {}
 func _ready():
     load_pinyin_dict()
     build_pinyin_cache()
-    load_settings()
-    SettingManager.setting_changed.connect(load_settings)
-
-func load_settings():
-    page_size =  SettingManager.get_ime_setting('page_size')
-    
 
 func load_pinyin_dict():
     var file = FileAccess.open("res://scripts/google_pinyin.txt", FileAccess.READ)

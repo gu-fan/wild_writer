@@ -11,7 +11,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="IMEDisplay" type="Control"]
-z_index = 40
+z_index = 100
 z_as_relative = false
 layout_mode = 3
 anchors_preset = 0

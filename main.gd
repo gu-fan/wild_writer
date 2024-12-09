@@ -54,53 +54,68 @@ func _ready():
     autosave_timer.timeout.connect(_on_autosave_timeout)
     backup_timer.timeout.connect(_on_backup_timeout)
 
-    SettingManager.setting_changed.connect(load_settings)
-
     load_settings(true)
 
     backup_timer.start(BACKUP_INTERVAL)
-
-    # 初始化快捷键
-    _update_shortcuts()
     
     # 监听设置变化
     SettingManager.setting_changed.connect(_on_setting_changed)
 
+
 func load_settings(is_init=false):
     if is_init:
-        editor_man.editor.grab_focus()
-        var auto_open_recent = int(SettingManager.get_basic_setting('auto_open_recent'))
-        if auto_open_recent:
-            var recent_file = SettingManager.get_basic_setting('recent_file')
-            var backup_file = SettingManager.get_basic_setting('backup_file')
-            
-            if recent_file:
-                # 如果备份文件与最近文件相同，比较修改时间
-                if backup_file == recent_file:
-                    var recent_time = FileAccess.get_modified_time(recent_file)
-                    var backup_time = FileAccess.get_modified_time(SettingManager.BACKUP_FILE)
-                    
-                    if backup_time > recent_time:
-                        # 备份文件更新，加载备份
-                        current_file_path = recent_file
-                        file_manager.open_file(editor, SettingManager.BACKUP_FILE)
-                        is_dirty = true
-                        _update_title()
-                        _update_char()
-                        show_hint(':opened backup of %s' % current_file_path)
-                        editor_man.editor.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
-                        editor_man.editor.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
+        _load_auto_open_file()
+        _init_gutter()
+        editor_man._update_edit_cache()
 
-                    else:
-                        # 原文件更新，加载原文件
-                        current_file_path = recent_file
-                        file_manager.open_file(editor, current_file_path)
-                        is_dirty = false
-                        _update_title()
-                        _update_char()
-                        show_hint(':opened %s' % current_file_path)
+    _on_setting_changed()
+
+func _init_gutter():
+    editor_man._init_gutter()
+
+func _update_editor_effects():
+    # Retrieve effect settings from SettingManager
+    var effect_level = SettingManager.get_effect_setting("level")
+    
+    # Update editor_man effects dictionary
+    editor_man.effects = {
+        "level": effect_level,
+        "shake": effect_level and SettingManager.get_effect_setting("screen_shake"),
+        "chars": effect_level and SettingManager.get_effect_setting("char_effect"),
+        "newline": effect_level and SettingManager.get_effect_setting("enter_effect"),
+        "combo": effect_level and SettingManager.get_effect_setting("combo"),
+        "combo_shot": effect_level and SettingManager.get_effect_setting("combo_shot"),
+        "audio": effect_level and SettingManager.get_effect_setting("audio"),
+        "delete": effect_level and SettingManager.get_effect_setting("delete_effect")
+    }
+    # print('update', effect_level, editor_man.effects)
+
+# ------------------------------------------------------------------
+func _load_auto_open_file():
+    var auto_open_recent = int(SettingManager.get_basic_setting('auto_open_recent'))
+    if auto_open_recent:
+        var recent_file = SettingManager.get_basic_setting('recent_file')
+        var backup_file = SettingManager.get_basic_setting('backup_file')
+        
+        if recent_file:
+            # 如果备份文件与最近文件相同，比较修改时间
+            if backup_file == recent_file:
+                var recent_time = FileAccess.get_modified_time(recent_file)
+                var backup_time = FileAccess.get_modified_time(SettingManager.BACKUP_FILE)
+                
+                if backup_time > recent_time:
+                    # 备份文件更新，加载备份
+                    current_file_path = recent_file
+                    file_manager.open_file(editor, SettingManager.BACKUP_FILE)
+                    is_dirty = true
+                    _update_title()
+                    _update_char()
+                    show_hint(':opened backup of %s' % current_file_path)
+                    editor_man.editor.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
+                    editor_man.editor.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
+
                 else:
-                    # 不同文件，直接加载最近文件
+                    # 原文件更新，加载原文件
                     current_file_path = recent_file
                     file_manager.open_file(editor, current_file_path)
                     is_dirty = false
@@ -108,22 +123,66 @@ func load_settings(is_init=false):
                     _update_char()
                     show_hint(':opened %s' % current_file_path)
             else:
-                # 没有最近文件，加载备份
-                current_file_path = ''
-                file_manager.open_file(editor, SettingManager.BACKUP_FILE)
-                is_dirty = true
+                # 不同文件，直接加载最近文件
+                current_file_path = recent_file
+                file_manager.open_file(editor, current_file_path)
+                is_dirty = false
                 _update_title()
                 _update_char()
-                show_hint(':opened last untitled')
-                editor_man.editor.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
-                editor_man.editor.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
+                show_hint(':opened %s' % current_file_path)
         else:
+            # 没有最近文件，加载备份
             current_file_path = ''
-            is_dirty = false
+            file_manager.open_file(editor, SettingManager.BACKUP_FILE)
+            is_dirty = true
             _update_title()
             _update_char()
+            show_hint(':opened last untitled')
+            editor_man.editor.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
+            editor_man.editor.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
+    else:
+        current_file_path = ''
+        is_dirty = false
+        _update_title()
+        _update_char()
 
-    _on_setting_changed()
+# 当设置改变时更新自动保存
+func _on_setting_changed():
+    var auto_save = SettingManager.get_basic_setting("auto_save")
+    if auto_save and not autosave_timer.is_stopped():
+        autosave_timer.start(AUTOSAVE_INTERVAL)
+    elif not auto_save:
+        autosave_timer.stop()
+    var show_char_count =  SettingManager.get_basic_setting("show_char_count")
+    char_label.visible = show_char_count
+    var line_wrap = SettingManager.get_basic_setting("line_wrap")
+    if line_wrap:
+        editor_man.editor.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+    else:
+        editor_man.editor.wrap_mode = TextEdit.LINE_WRAPPING_NONE
+    var highlight_line =  SettingManager.get_basic_setting("highlight_line")
+    editor_man.editor.highlight_current_line = highlight_line
+
+    var font_size = SettingManager.get_basic_setting("font_size")
+    match font_size:
+        0: editor_man.editor.set("theme_override_font_sizes/font_size", 16)
+        1: editor_man.editor.set("theme_override_font_sizes/font_size", 24)
+        2: editor_man.editor.set("theme_override_font_sizes/font_size", 32)
+        3: editor_man.editor.set("theme_override_font_sizes/font_size", 96)
+    editor_man._update_gutter()
+
+    # 更新快捷键
+    _update_shortcuts()
+    _update_editor_effects()
+    _update_input_settings()
+
+func _update_input_settings():
+
+    ime.page_size =  SettingManager.get_ime_setting('page_size')
+    ime_button.visible = SettingManager.get_ime_setting('show_icon')
+
+
+# --------------------------
 
 func _unhandled_input(event):
     if event.is_action_pressed("ui_cancel"):
@@ -137,6 +196,7 @@ func _input(event: InputEvent) -> void:
             current_file_path = await file_manager.file_selected
             if current_file_path:
                 SettingManager.set_recent(current_file_path)
+                _update_backup()
             else:
                 return
         file_manager.save_file(editor, current_file_path)
@@ -152,22 +212,54 @@ func _input(event: InputEvent) -> void:
             current_file_path = file_path
             show_hint(':opened %s' % current_file_path)
             SettingManager.set_recent(current_file_path)
+            _update_backup()
+            editor_man._update_edit_cache()
             is_dirty = false
             _update_title()
             _update_char()
     elif event.is_action_pressed("new"):
-        get_viewport().set_input_as_handled()
-        file_manager.new_file(editor)
-        current_file_path = ''
-        is_dirty = false
-        _update_title()
-        _update_char()
-        show_hint(':created new file: untitled')
-        SettingManager.set_recent(current_file_path)
+        _new_file()
     elif event.is_action_pressed("setting"):
         # settings.show()
         _toggle_setting()
         get_viewport().set_input_as_handled()
+
+func _new_file():
+    get_viewport().set_input_as_handled()
+    
+    # Add confirmation dialog if there are unsaved changes
+    if is_dirty:
+        var dialog = ConfirmationDialog.new()
+        dialog.title = "当前文件未保存"
+        dialog.dialog_text = "文件未保存。是否继续创建新文件？"
+        dialog.ok_button_text = "创建"
+        dialog.cancel_button_text = "取消"
+        add_child(dialog)
+        
+        dialog.confirmed.connect(func():
+            _create_new_file()
+            dialog.queue_free()
+        )
+        
+        dialog.canceled.connect(func():
+            dialog.queue_free()
+        )
+        
+        dialog.popup_centered()
+    else:
+        _create_new_file()
+
+# Helper function to create new file
+func _create_new_file():
+    file_manager.new_file(editor)
+    current_file_path = ''
+    is_dirty = false
+    _update_title()
+    _update_char()
+    show_hint(':created new file: untitled')
+    SettingManager.set_recent(current_file_path)
+    _update_backup()
+    editor_man._update_edit_cache()
 
 func set_title(file_path):
     DisplayServer.window_set_title(file_path)
@@ -201,38 +293,13 @@ func _on_autosave_timeout():
 
 func _on_backup_timeout():
     if is_dirty:
-        file_manager.save_file(editor, SettingManager.BACKUP_FILE)
-        SettingManager.set_setting_no_signal('basic', 'backup_file', current_file_path)
+        _update_backup()
         SettingManager.set_setting_no_signal('basic', 'backup_caret_line', editor_man.editor.get_caret_line())
         SettingManager.set_setting_no_signal('basic', 'backup_caret_col', editor_man.editor.get_caret_column())
         
-        # is_dirty = false
-
-# 当设置改变时更新自动保存
-func _on_setting_changed():
-    var auto_save = SettingManager.get_basic_setting("auto_save")
-    if auto_save and not autosave_timer.is_stopped():
-        autosave_timer.start(AUTOSAVE_INTERVAL)
-    elif not auto_save:
-        autosave_timer.stop()
-    var show_char_count =  SettingManager.get_basic_setting("show_char_count")
-    char_label.visible = show_char_count
-    var line_wrap = SettingManager.get_basic_setting("line_wrap")
-    if line_wrap:
-        editor_man.editor.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-    else:
-        editor_man.editor.wrap_mode = TextEdit.LINE_WRAPPING_NONE
-    var highlight_line =  SettingManager.get_basic_setting("highlight_line")
-    editor_man.editor.highlight_current_line = highlight_line
-    var font_size = SettingManager.get_basic_setting("font_size")
-    match font_size:
-        0: editor_man.editor.set("theme_override_font_sizes/font_size", 16)
-        1: editor_man.editor.set("theme_override_font_sizes/font_size", 24)
-        2: editor_man.editor.set("theme_override_font_sizes/font_size", 32)
-        3: editor_man.editor.set("theme_override_font_sizes/font_size", 128)
-
-    # 更新快捷键
-    _update_shortcuts()
+func _update_backup():
+    file_manager.save_file(editor, SettingManager.BACKUP_FILE)
+    SettingManager.set_backup(current_file_path)
 
 func _notification(what):
     if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -253,6 +320,8 @@ func _update_title():
 
 func _update_char():
     char_label.text = '%dC' % editor_man.editor.text.length() 
+
+# --------------------------------
 
 # 更新所有快捷键
 func _update_shortcuts():

@@ -17,12 +17,14 @@ const Newline: PackedScene = preload("res://effects/newline.tscn")
 const PITCH_DECREMENT := 2.0
 
 var effects = {
-    explosions=true,
-    blips=true,
-    chars=true,
-    shake=true,
-    sound=false,
-    # fireworks=true,
+    level=1,
+    combo=1,
+    combo_shot=1,
+    audio=1,
+    shake=1,
+    chars=1,
+    delete=1,
+    newline=1,
 }
 
 var shake: float = 0.0
@@ -123,7 +125,6 @@ func gui_input(event):
         elif last_key == 'Ctrl+N':
             get_viewport().set_input_as_handled()
 
-
 # -------------------------------------------
 var last_line = ''
 var caret_col = 0
@@ -153,19 +154,25 @@ func _process(delta):
     if (pitch_increase > 0.0):
         pitch_increase -= delta * PITCH_DECREMENT
 
-
 func shake_screen(duration, intensity):
     if shake > 0:
         return
         
     shake = duration
     shake_intensity = intensity
-
+func shake_screen_force(duration, intensity):
+    shake = duration
+    shake_intensity = intensity
 
 func caret_changed(textedit):
     editors["line"] = textedit.get_caret_line()
 
 func text_changed(textedit : TextEdit):
+    textedit.center_viewport_to_caret()
+    _text_changed.call_deferred(textedit)
+
+func _text_changed(textedit: TextEdit):
+
     var line_height = textedit.get_line_height()
     var pos = textedit.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
     emit_signal("typing")
@@ -179,19 +186,20 @@ func text_changed(textedit : TextEdit):
         if timer > 0.1 and len_d < 0:
             is_text_updated = true
             timer = 0.0
-            decr_combo(len_d)
+            decr_combo(abs(len_d))
             
-            if effects.explosions:
+            if effects.delete:
                 # Draw the thing
-                var thing = Boom.instantiate()
-                thing.position = pos
-                thing.destroy = true
-                if effects.chars: thing.last_key = last_key
-                thing.sound = effects.sound
-                textedit.add_child(thing)
-                
+                if effects.chars: 
+                    var thing = Boom.instantiate()
+                    thing.position = pos
+                    thing.destroy = true
+                    thing.last_key = last_key
+                    thing.audio = effects.audio
+                    textedit.add_child(thing)
+                    
                 if effects.shake:
-                    shake_screen(0.3, 10)
+                    shake_screen(0.3, 9)
         
         # Typing
         if timer > 0.02 and len_d > 0:
@@ -203,36 +211,44 @@ func text_changed(textedit : TextEdit):
                 incr_combo(len_d*3) # average is 4
             
             # Draw the thing
-            var thing = Blip.instantiate()
-            thing.pitch_increase = pitch_increase
-            pitch_increase += 1.0
-            thing.position = pos
-            thing.destroy = true
-            thing.blips = effects.blips
-            if effects.chars: thing.last_key = last_key
-            thing.sound = effects.sound
-            textedit.add_child(thing)
+            if effects.chars: 
+                var thing = Blip.instantiate()
+                thing.pitch_increase = pitch_increase
+                pitch_increase += 1.0
+                pitch_increase = min(pitch_increase, 999)
+                thing.position = pos
+                thing.destroy = true
+                thing.audio = effects.audio
+                thing.last_key = last_key
+                textedit.add_child(thing)
             
             if effects.shake:
-                shake_screen(0.05, 8)
+                shake_screen(0.05, 6)
             
         # Newline
         if textedit.get_caret_line() != editors[textedit]["line"]:
             is_text_updated = true
             # Draw the thing
-            var thing = Newline.instantiate()
-            thing.position = pos
-            thing.destroy = true
-            thing.blips = effects.blips
-            thing.caret_col = caret_col
-            thing.last_key = last_key
-            textedit.add_child(thing)
+            if effects.newline:
+                var thing = Newline.instantiate()
+                thing.position = pos 
+                thing.destroy = true
+                thing.caret_col = caret_col
+                thing.last_key = last_key
+                textedit.add_child(thing)
+
+                finish_combo(pos)
             if effects.shake:
-                shake_screen(0.05, 15)
-            finish_combo(pos)
+                shake_screen(0.05, 12)
     
     if is_text_updated: editors[textedit]["text"] = textedit.text
     editors[textedit]["line"] = textedit.get_caret_line()
+    _update_gutter()
+
+# ---------------------
+func _update_edit_cache():
+    editors[editor]["text"] = editor.text
+    editors[editor]["line"] = editor.get_caret_line()
 
 # ---------------------
 func feed_ime_input(key):
@@ -250,27 +266,75 @@ func create_combo_node_if_null():
         combo_node = thing
 
 func incr_combo(n=1):
-    create_combo_node_if_null()
-    combo_node.incr(n)
+    if effects.combo:
+        create_combo_node_if_null()
+        combo_node.incr(n)
 
 func decr_combo(n=1):
-    if combo_node:
-        combo_node.decr(n)
-        if combo_node.count <= 0:
-            remove_combo()
+    if effects.combo:
+        if combo_node:
+            combo_node.decr(n)
+            if combo_node.count <= 0:
+                remove_combo()
 
 func finish_combo(pos):
-    if combo_node:
-        var count = combo_node.count
-        combo_node.queue_free()
-        combo_node = null
-        if count > 1 and last_key == 'Enter':
-            var thing = Laser.instantiate()
-            thing.count = count
-            editor.add_child(thing)
-            thing.position.y = pos.y
+    pitch_increase = 0
+    if effects.combo:
+        if combo_node:
+            var count = combo_node.combo_count
+            if effects.combo_shot and EffectLaser.can_finish_combo(count) and last_key == 'Enter':
+                var thing = Laser.instantiate()
+                thing.count = count
+                thing.audio = effects.audio
+                var font_size = SettingManager.get_basic_setting("font_size")
+                match font_size:
+                    0: thing.position.y = pos.y + 8
+                    1: thing.position.y = pos.y + 12
+                    2: thing.position.y = pos.y + 20
+                    3: thing.position.y = pos.y + 30
+                editor.add_child(thing)
+
+                if effects.shake:
+                    var size = EffectLaser.get_count_size(count)
+                    shake_screen_force(EffectLaser.get_main_duration(count)-0.3, size * 3)
+            combo_node.queue_free()
+            combo_node = null
 
 func remove_combo():
-    if combo_node:
-        combo_node.queue_free()
-        combo_node = null
+    pitch_increase = 0
+    if effects.combo:
+        if combo_node:
+            combo_node.queue_free()
+            combo_node = null
+
+#---------------------------
+func _init_gutter():
+    editor.add_gutter()
+    editor.set_gutter_type(0, TextEdit.GUTTER_TYPE_STRING)
+    _update_gutter()
+
+var _line_number_setted = 1
+const SIZE_GUTTER_W = {
+    0: 20,
+    1: 20,
+    2: 25,
+    3: 50,
+}
+func _update_gutter():
+    var line_count = editor.get_line_count()
+    var len = str(line_count).length()
+    var font_size = SettingManager.get_basic_setting("font_size")
+    var gutter_size = SIZE_GUTTER_W[font_size]
+    editor.set_gutter_width(0, max(4*gutter_size, (len+1)*gutter_size))
+    if SettingManager.get_basic_setting('line_number'):
+        for line in editor.get_line_count():
+            var t = '%4d' % [line+1]
+            if editor.get_line_gutter_text(line, 0 ) != t:
+                editor.set_line_gutter_text(line, 0, t)
+                editor.set_line_gutter_item_color(line, 0, '666666')
+        _line_number_setted = 1
+    else:
+        if _line_number_setted:
+            for line in editor.get_line_count():
+                editor.set_line_gutter_text(line, 0, '')
+            _line_number_setted = 0

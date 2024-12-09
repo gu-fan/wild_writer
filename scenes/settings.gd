@@ -5,6 +5,7 @@ extends Control
 @onready var auto_save = $TabBar/BASIC/Margin/VBox/AutoSave/CheckButton
 @onready var show_char_count = $TabBar/BASIC/Margin/VBox/CharCount/CheckButton
 @onready var line_wrap = $TabBar/BASIC/Margin/VBox/WrapLine/CheckButton
+@onready var line_number = $TabBar/BASIC/Margin/VBox/LineNumber/CheckButton
 @onready var font_size_slider = $TabBar/BASIC/Margin/VBox/FontSize/HSlider
 @onready var font_size_label = $TabBar/BASIC/Margin/VBox/FontSize/Label
 @onready var highlight_line = $TabBar/BASIC/Margin/VBox/HighlightLine/CheckButton
@@ -17,9 +18,10 @@ extends Control
 @onready var open_setting_key = $TabBar/KEY/Margin/VBox/OpenSetting/Button
 
 # 特效设置相关节点
-@onready var effect_level = $TabBar/EFFECT/Margin/VBox/Level/Control/HSlider
+@onready var effect_level = $TabBar/EFFECT/Margin/VBox/Level/Control/CheckButton
+@onready var effect_mask = $TabBar/EFFECT/Margin/VBox/EndSep/ColorRect
 @onready var combo_effect = $TabBar/EFFECT/Margin/VBox/Combo/CheckButton
-@onready var transparent = $TabBar/EFFECT/Margin/VBox/Transparent/CheckButton
+@onready var combo_shot = $TabBar/EFFECT/Margin/VBox/ComboShot/CheckButton
 @onready var audio = $TabBar/EFFECT/Margin/VBox/Audio/CheckButton
 @onready var screen_shake = $TabBar/EFFECT/Margin/VBox/ScreenShake/CheckButton
 @onready var char_effect = $TabBar/EFFECT/Margin/VBox/CharEffect/CheckButton
@@ -53,6 +55,7 @@ func _ready():
     auto_save.toggled.connect(_on_auto_save_toggled)
     show_char_count.toggled.connect(_on_show_char_count_toggled)
     line_wrap.toggled.connect(_on_line_wrap_toggled)
+    line_number.toggled.connect(_on_line_number_toggled)
     highlight_line.toggled.connect(_on_highlight_line_toggled)
     font_size_slider.value_changed.connect(_on_font_size_changed)
     reset.pressed.connect(_on_reset_pressed)
@@ -68,9 +71,9 @@ func _ready():
     reset_key.pressed.connect(_on_reset_key_pressed)
     
     # 连接特效设置信号
-    effect_level.value_changed.connect(_on_effect_level_changed)
+    effect_level.toggled.connect(_on_effect_level_toggled)
     combo_effect.toggled.connect(_on_combo_effect_toggled)
-    transparent.toggled.connect(_on_transparent_toggled)
+    combo_shot.toggled.connect(_on_combo_shot_toggled)
     audio.toggled.connect(_on_audio_toggled)
     screen_shake.toggled.connect(_on_screen_shake_toggled)
     char_effect.toggled.connect(_on_char_effect_toggled)
@@ -94,6 +97,7 @@ func load_current_settings():
     auto_save.button_pressed = SettingManager.get_setting("basic", "auto_save")
     show_char_count.button_pressed = SettingManager.get_setting("basic", "show_char_count")
     line_wrap.button_pressed = SettingManager.get_setting("basic", "line_wrap")
+    line_number.button_pressed = SettingManager.get_setting("basic", "line_number")
     font_size_slider.value = SettingManager.get_setting("basic", "font_size")
     font_size_label.text = _get_font_size_label(font_size_slider.value)
     highlight_line.button_pressed =  SettingManager.get_setting("basic", "highlight_line")
@@ -107,9 +111,12 @@ func load_current_settings():
     open_setting_key.text = _get_key_shown(SettingManager.get_setting("shortcut", "open_setting"))
 
     # 加载特效设置
-    effect_level.value = SettingManager.get_setting("effect", "level")
+    effect_level.button_pressed = SettingManager.get_setting("effect", "level")
+    effect_mask.visible = !effect_level.button_pressed
+
+
     combo_effect.button_pressed = SettingManager.get_setting("effect", "combo")
-    transparent.button_pressed = SettingManager.get_setting("effect", "transparent")
+    combo_shot.button_pressed = SettingManager.get_setting("effect", "combo_shot")
     audio.button_pressed = SettingManager.get_setting("effect", "audio")
     screen_shake.button_pressed = SettingManager.get_setting("effect", "screen_shake")
     char_effect.button_pressed = SettingManager.get_setting("effect", "char_effect")
@@ -166,6 +173,8 @@ func _on_show_char_count_toggled(button_pressed: bool):
 
 func _on_line_wrap_toggled(button_pressed: bool):
     SettingManager.set_setting("basic", "line_wrap", button_pressed)
+func _on_line_number_toggled(button_pressed: bool):
+    SettingManager.set_setting("basic", "line_number", button_pressed)
 func _on_highlight_line_toggled(button_pressed: bool):
     SettingManager.set_setting("basic", "highlight_line", button_pressed)
 
@@ -209,18 +218,19 @@ func _on_open_setting_pressed():
         open_setting_key.text = _get_key_shown(key)
         SettingManager.set_setting("shortcut", "open_setting", key)
     open_setting_key.release_focus()
+
 func _get_key_shown(key):
     return SettingManager.get_key_shown(key)
 
 # 特效设置回调
-func _on_effect_level_changed(value: float):
-    SettingManager.set_setting("effect", "level", value)
+func _on_effect_level_toggled(button_pressed: bool):
+    SettingManager.set_setting("effect", "level", button_pressed)
+    effect_mask.visible = !button_pressed
 
 func _on_combo_effect_toggled(button_pressed: bool):
     SettingManager.set_setting("effect", "combo", button_pressed)
-
-func _on_transparent_toggled(button_pressed: bool):
-    SettingManager.set_setting("effect", "transparent", button_pressed)
+func _on_combo_shot_toggled(button_pressed: bool):
+    SettingManager.set_setting("effect", "combo_shot", button_pressed)
 
 func _on_audio_toggled(button_pressed: bool):
     SettingManager.set_setting("effect", "audio", button_pressed)

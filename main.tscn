@@ -6,9 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://cpgmiqm77p2cq" path="res://scenes/settings.tscn" id="5_5262d"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5xe6"]
-content_margin_left = 80.0
+content_margin_left = 30.0
 content_margin_top = 0.0
-content_margin_right = 10.0
 content_margin_bottom = 10.0
 bg_color = Color(0.165656, 0.165656, 0.165656, 1)
 
@@ -67,8 +66,9 @@ caret_multiple = false
 highlight_current_line = true
 
 [node name="BottomPanel" type="ColorRect" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(25, 25)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
+mouse_filter = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel"]
@@ -76,6 +76,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 5.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 1
@@ -99,14 +100,14 @@ horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="IMEButton" type="Button" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer"]
-custom_minimum_size = Vector2(25, 25)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 tooltip_text = "输入法"
 focus_mode = 0
 text = "EN"
 
 [node name="SettingButton" type="Button" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer"]
-custom_minimum_size = Vector2(25, 25)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 tooltip_text = "设置"
 focus_mode = 0

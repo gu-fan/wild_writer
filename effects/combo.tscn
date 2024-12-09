@@ -1,9 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://c1rv1uts7tb4u"]
+[gd_scene load_steps=4 format=3 uid="uid://c1rv1uts7tb4u"]
 
 [ext_resource type="Script" path="res://effects/combo.gd" id="1_e78g7"]
 [ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="4_ril4g"]
 
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_0cflo"]
+blend_mode = 1
+
 [node name="Node2D" type="Control"]
+z_index = 30
+z_as_relative = false
 texture_filter = 1
 custom_minimum_size = Vector2(500, 90)
 layout_mode = 3
@@ -30,6 +35,19 @@ offset_bottom = 2.0
 grow_horizontal = 0
 scale = Vector2(2, 2)
 pivot_offset = Vector2(240, 0)
+theme_override_fonts/font = ExtResource("4_ril4g")
+theme_override_font_sizes/font_size = 32
+text = "combo x9999"
+horizontal_alignment = 2
+
+[node name="Label3" type="Label" parent="Label"]
+modulate = Color(1.88557, 1.35563, 0.609976, 1)
+texture_filter = 1
+material = SubResource("CanvasItemMaterial_0cflo")
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 1
+offset_right = 240.0
+offset_bottom = 42.0
 theme_override_fonts/font = ExtResource("4_ril4g")
 theme_override_font_sizes/font_size = 32
 text = "combo x9999"
