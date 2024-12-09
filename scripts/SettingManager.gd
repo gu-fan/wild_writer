@@ -46,8 +46,8 @@ var _default_settings = {
         "show_icon": 1,
         "page_size": 5,
         "switch_key": "Shift+Escape",
-        "prev_page_key": "[",
-        "next_page_key": "]"
+        "prev_page_key": "BracketLeft",
+        "next_page_key": "BracketRight"
     },
 }
 
@@ -297,3 +297,20 @@ static func get_key_shown_shift(key_string: String) -> String:
                         result.append(p_l)
     
     return "+".join(result)
+
+func is_match_shortcut(k: String, sec: String, key: String) -> bool:
+    if k.is_empty():
+        return false
+    
+    # Get the configured shortcut from settings
+    var shortcut = get_setting(sec, key)
+    if shortcut == null:
+        return false
+    
+    # Convert both strings to lowercase for case-insensitive comparison
+    return k.to_lower() == shortcut.to_lower()
+
+func is_match_key(k: String, key: String) -> bool:
+    if k.is_empty(): return false
+    if key.is_empty(): return false
+    return k.to_lower() == key.to_lower()

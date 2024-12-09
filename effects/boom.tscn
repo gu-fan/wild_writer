@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://c4rdv4wkukc5g"]
+[gd_scene load_steps=37 format=3 uid="uid://c4rdv4wkukc5g"]
 
 [ext_resource type="AudioStream" uid="uid://b6841f7osi4rh" path="res://effects/boom.wav" id="2"]
 [ext_resource type="Texture2D" uid="uid://rdjlgvpwtijc" path="res://effects/boom.png" id="2_74u5k"]
@@ -81,6 +81,42 @@ region = Rect2(672, 96, 96, 96)
 atlas = ExtResource("2_74u5k")
 region = Rect2(768, 96, 96, 96)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_6prht"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(0, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7pt55"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(96, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vhod6"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(192, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yyl0v"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(288, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p86yc"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(384, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ut3sh"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(480, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0uh77"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(576, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kd1km"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(672, 480, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t1d1t"]
+atlas = ExtResource("2_74u5k")
+region = Rect2(768, 480, 96, 96)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_ld5tu"]
 animations = [{
 "frames": [{
@@ -149,11 +185,43 @@ animations = [{
 "loop": false,
 "name": &"2",
 "speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6prht")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7pt55")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vhod6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yyl0v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p86yc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ut3sh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0uh77")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kd1km")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t1d1t")
+}],
+"loop": false,
+"name": &"3",
+"speed": 24.0
 }]
 
 [sub_resource type="Gradient" id="Gradient_bn6jm"]
-offsets = PackedFloat32Array(0, 0.350746, 1)
-colors = PackedColorArray(1, 0.211762, 0.16814, 1, 1, 1, 0.67451, 1, 1, 1, 1, 0)
+offsets = PackedFloat32Array(0, 0.456, 1)
+colors = PackedColorArray(1, 0.14902, 0, 1, 0, 0.947333, 0.98, 0.921569, 0.08, 0.908, 1, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_ppm80"]
 gradient = SubResource("Gradient_bn6jm")
@@ -177,12 +245,11 @@ script = ExtResource("4")
 scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_ld5tu")
 animation = &"2"
-frame = 8
-frame_progress = 1.0
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("2")
 volume_db = -26.0
+pitch_scale = 1.6
 autoplay = true
 
 [node name="Timer" type="Timer" parent="."]

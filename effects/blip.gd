@@ -31,6 +31,8 @@ func _ready():
         gpu_particle_2d.emitting = true
         gpu_particle_2d.process_material.scale_min = 4 * extra_scale
         gpu_particle_2d.process_material.scale_max = 4 * extra_scale
+        gpu_particle_2d.process_material.initial_velocity_min = 300 + 25 * font_size
+        gpu_particle_2d.process_material.initial_velocity_max = 400 + 25 * font_size
 
         TwnLite.at(animated_sprite_2d).tween({
             prop='modulate:a',

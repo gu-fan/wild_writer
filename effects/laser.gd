@@ -33,11 +33,11 @@ const SIZE_POSITION = {
     5: 600,
 }
 const SIZE_MIN = {
-    1: 300,
-    2: 500,
-    3: 700,
-    4: 900,
-    5: 900,
+    1: 400,
+    2: 600,
+    3: 800,
+    4: 1000,
+    5: 1200,
 }
 
 static func can_finish_combo(n: int):
@@ -97,7 +97,6 @@ func _ready():
         to=0,
         dur=0.4,
     }).callee(line_2d.hide)
-
 
     TwnLite.at(animated_sprite_2d).tween({
         prop='scale',

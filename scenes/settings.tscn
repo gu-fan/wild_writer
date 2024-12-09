@@ -26,10 +26,9 @@ offset_right = 180.0
 offset_bottom = 205.0
 grow_horizontal = 2
 grow_vertical = 2
-current_tab = 3
+current_tab = 0
 
 [node name="BASIC" type="Control" parent="TabBar"]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -441,6 +440,7 @@ grow_horizontal = 2
 color = Color(0, 0, 0, 0.286275)
 
 [node name="INPUT" type="Control" parent="TabBar"]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 3
 

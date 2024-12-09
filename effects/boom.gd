@@ -20,18 +20,22 @@ func _ready():
         extra_scale = 2
 
     if audio:
+        audio_stream_player.pitch_scale += randf_range(-0.1, 0.1)
         audio_stream_player.play()
     
     animated_sprite_2d.frame = 0
-    animated_sprite_2d.play("2")
+    animated_sprite_2d.play("1")
     animated_sprite_2d.scale = Vector2(3, 3) * extra_scale
     timer.start()
     label.text = '←'
-    gpu_particle_2d.emitting = true
     gpu_particle_2d.process_material.scale_min = 4 * extra_scale
     gpu_particle_2d.process_material.scale_max = 4 * extra_scale
+    gpu_particle_2d.process_material.initial_velocity_min = 700  + 40 * font_size
+    gpu_particle_2d.process_material.initial_velocity_max = 1000 +40 * font_size
 
-    var clr_to =Color.from_hsv(-0.1 + Rnd.rangef(0.2), 0.8, 1.0)
+    gpu_particle_2d.emitting = true
+
+    var clr_to = Color.from_hsv(0.0 + Rnd.rangef(-0.05, 0.05), 0.8, 1.0)
     TwnLite.at(label).tween({
         prop='modulate',
         from=clr_to,

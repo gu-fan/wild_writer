@@ -41,8 +41,12 @@ var ime_button
 var setting_button
 var bottom_label
 var editor_main
+var font_size = 0 # the setting in basic
 
 func init():
+
+    editor_main = get_tree().current_scene
+
     ime_display = preload("res://scenes/ime_display.tscn").instantiate()
     ime_display.hide()
     add_child(ime_display)
@@ -63,7 +67,6 @@ func init():
     setup_editor([editor])
     # typing.connect(Callable(dock,"_on_typing"))
 
-    editor_main = get_tree().current_scene
 
 func update_ime_position():
     if ime_display and ime_display.visible:
@@ -71,11 +74,21 @@ func update_ime_position():
         var line_height = editor.get_line_height()
         var ime_height = ime_display.size.y
         
-        # 计算默认位置（光标上方）
-        var pos = editor.position + caret_pos + Vector2(0, -line_height - 20)
+        var pos = editor.position + caret_pos + Vector2(0, -line_height)
+        match font_size:
+            0: pos.y += 3
+            1: pos.y -= 6
+            2: pos.y -= 10
+            3: pos.y -= 14
         
         # 如果位置会导致 IME 超出顶部，则将其放在光标下方
-        if pos.y < 10: pos.y = editor.position.y + caret_pos.y + line_height
+        if pos.y < -15: 
+            pos.y = editor.position.y + caret_pos.y + line_height
+            match font_size:
+                0: pos.y += 38
+                1: pos.y += 45
+                2: pos.y += 50
+                3: pos.y += 55
             
         # 确保不会超出右边界
         var editor_width = editor.size.x
@@ -115,14 +128,31 @@ func gui_input(event):
         last_key = OS.get_keycode_string(event.get_keycode_with_modifiers())
 
         is_single_letter = true
-        if last_key == 'Shift+Escape':
+        if SettingManager.is_match_shortcut(last_key, 'ime', 'switch_key'):
             ime.toggle_ime()
             get_viewport().set_input_as_handled()
-        elif last_key == 'Ctrl+S':
+        elif SettingManager.is_match_key(last_key, 'Ctrl+C'):
+            var selected = editor.get_selected_text()
+            DisplayServer.clipboard_set(selected)
+            DisplayServer.clipboard_set_primary(selected)
+            _show_char_force(last_key)
             get_viewport().set_input_as_handled()
-        elif last_key == 'Ctrl+O':
+        elif SettingManager.is_match_key(last_key, 'Ctrl+A'):
+            editor.select_all()
+            _show_char_force(last_key)
             get_viewport().set_input_as_handled()
-        elif last_key == 'Ctrl+N':
+        elif SettingManager.is_match_key(last_key, 'Ctrl+Z'):
+            editor.undo()
+            editors[editor]["text"] = editor.text
+            _show_char_force(last_key)
+            get_viewport().set_input_as_handled()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'new_file'): 
+            get_viewport().set_input_as_handled()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'open_file'): 
+            get_viewport().set_input_as_handled()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'save_file'): 
+            get_viewport().set_input_as_handled()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'open_setting'): 
             get_viewport().set_input_as_handled()
 
 # -------------------------------------------
@@ -186,7 +216,7 @@ func _text_changed(textedit: TextEdit):
         if timer > 0.1 and len_d < 0:
             is_text_updated = true
             timer = 0.0
-            decr_combo(abs(len_d))
+            decr_combo(abs(len_d)*3)
             
             if effects.delete:
                 # Draw the thing
@@ -205,10 +235,11 @@ func _text_changed(textedit: TextEdit):
         if timer > 0.02 and len_d > 0:
             is_text_updated = true
             timer = 0.0
-            if is_single_letter:
-                incr_combo(len_d)
-            else:
-                incr_combo(len_d*3) # average is 4
+            if last_key != 'Ctrl+V' and last_key != 'Ctrl+Y':
+                if is_single_letter:
+                    incr_combo(len_d)
+                else:
+                    incr_combo(len_d*3) # average is 4
             
             # Draw the thing
             if effects.chars: 
@@ -244,6 +275,25 @@ func _text_changed(textedit: TextEdit):
     if is_text_updated: editors[textedit]["text"] = textedit.text
     editors[textedit]["line"] = textedit.get_caret_line()
     _update_gutter()
+# ---------------------
+func _show_char_force(t):
+    var line_height = editor.get_line_height()
+    var pos = editor.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
+    
+    # Draw the thing
+    if effects.chars: 
+        var thing = Blip.instantiate()
+        thing.pitch_increase = pitch_increase
+        pitch_increase += 1.0
+        pitch_increase = min(pitch_increase, 999)
+        thing.position = pos
+        thing.destroy = true
+        thing.audio = effects.audio
+        thing.last_key = t
+        editor.add_child(thing)
+    
+    if effects.shake:
+        shake_screen(0.05, 6)
 
 # ---------------------
 func _update_edit_cache():

@@ -6,10 +6,32 @@ signal feed_ime_input(text)
 @onready var pinyin_label = $PinyinLabel
 @onready var candidates_container: HBoxContainer = $Panel/CandidatesContainer
 @onready var panel = $Panel
+var font_size = 0  : 
+    set(v):
+        font_size = v
+        match font_size:
+            0: 
+                _font_size_actual = 20
+                panel.size.y = 55
+                pinyin_label.position.y = 25
+            1: 
+                _font_size_actual = 24
+                panel.size.y = 60
+                pinyin_label.position.y = 30
+            2: 
+                _font_size_actual = 28
+                panel.size.y = 65
+                pinyin_label.position.y = 35
+            3: 
+                _font_size_actual = 32
+                panel.size.y = 70
+                pinyin_label.position.y = 40
+
+var _font_size_actual = 20
 
 func _ready():
     ime.ime_text_changed.connect(_on_ime_text_changed)
-    pinyin_label.set("theme_override_font_sizes/font_size", 20)
+    pinyin_label.set("theme_override_font_sizes/font_size", _font_size_actual)
 
 func _process(_delta):
     var state = ime.get_current_state()
@@ -35,7 +57,7 @@ func update_candidates_display(candidates: Array) -> void:
         label.text = "%d.%s" % [display_number, candidates[i]]
         label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         label.custom_minimum_size = Vector2(40, 30)
-        label.set("theme_override_font_sizes/font_size", 20)
+        label.set("theme_override_font_sizes/font_size", _font_size_actual)
         candidates_container.add_child(label)
 
     # Add navigation indicator if needed
@@ -44,7 +66,7 @@ func update_candidates_display(candidates: Array) -> void:
         prev_label.text = "["
         prev_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         prev_label.custom_minimum_size = Vector2(10, 30)
-        prev_label.set("theme_override_font_sizes/font_size", 20)
+        prev_label.set("theme_override_font_sizes/font_size", _font_size_actual)
         candidates_container.add_child(prev_label)
     
     # Add next page indicator if needed
@@ -53,7 +75,7 @@ func update_candidates_display(candidates: Array) -> void:
         next_label.text = "]"
         next_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         next_label.custom_minimum_size = Vector2(10, 30)
-        next_label.set("theme_override_font_sizes/font_size", 20)
+        next_label.set("theme_override_font_sizes/font_size", _font_size_actual)
         candidates_container.add_child(next_label)
 
 func _on_ime_text_changed(text: String) -> void:

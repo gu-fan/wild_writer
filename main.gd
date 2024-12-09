@@ -60,6 +60,7 @@ func _ready():
     
     # 监听设置变化
     SettingManager.setting_changed.connect(_on_setting_changed)
+    DisplayServer.window_set_drop_files_callback(_on_files_dropped)
 
 
 func load_settings(is_init=false):
@@ -170,9 +171,10 @@ func _on_setting_changed():
         2: editor_man.editor.set("theme_override_font_sizes/font_size", 32)
         3: editor_man.editor.set("theme_override_font_sizes/font_size", 96)
     editor_man._update_gutter()
+    editor_man.font_size = font_size
+    editor_man.ime_display.font_size = font_size
 
     # 更新快捷键
-    _update_shortcuts()
     _update_editor_effects()
     _update_input_settings()
 
@@ -189,40 +191,43 @@ func _unhandled_input(event):
         if settings.visible: _toggle_setting()
 
 func _input(event: InputEvent) -> void:
-    if event.is_action_pressed("save"):
-        get_viewport().set_input_as_handled()
-        if current_file_path == '':
-            file_manager.show_save_dialog()
-            current_file_path = await file_manager.file_selected
-            if current_file_path:
-                SettingManager.set_recent(current_file_path)
-                _update_backup()
-            else:
-                return
-        file_manager.save_file(editor, current_file_path)
-        is_dirty = false
-        _update_title()
-        show_hint(':saved %s' % current_file_path)
-    elif event.is_action_pressed("open"):
-        get_viewport().set_input_as_handled()
-        file_manager.show_open_dialog(current_file_path)
-        var file_path = await file_manager.file_selected
-        if file_path:
-            file_manager.open_file(editor, file_path)
-            current_file_path = file_path
-            show_hint(':opened %s' % current_file_path)
-            SettingManager.set_recent(current_file_path)
-            _update_backup()
-            editor_man._update_edit_cache()
+    if event is InputEventKey and event.pressed:
+        event = event as InputEventKey
+        var last_key = OS.get_keycode_string(event.get_keycode_with_modifiers())
+        if SettingManager.is_match_shortcut(last_key, 'shortcut', 'save_file'):
+            get_viewport().set_input_as_handled()
+            if current_file_path == '':
+                file_manager.show_save_dialog()
+                current_file_path = await file_manager.file_selected
+                if current_file_path:
+                    SettingManager.set_recent(current_file_path)
+                    _update_backup()
+                else:
+                    return
+            file_manager.save_file(editor, current_file_path)
             is_dirty = false
             _update_title()
-            _update_char()
-    elif event.is_action_pressed("new"):
-        _new_file()
-    elif event.is_action_pressed("setting"):
-        # settings.show()
-        _toggle_setting()
-        get_viewport().set_input_as_handled()
+            show_hint(':saved %s' % current_file_path)
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'open_file'):
+            get_viewport().set_input_as_handled()
+            file_manager.show_open_dialog(current_file_path)
+            var file_path = await file_manager.file_selected
+            if file_path:
+                file_manager.open_file(editor, file_path)
+                current_file_path = file_path
+                show_hint(':opened %s' % current_file_path)
+                SettingManager.set_recent(current_file_path)
+                _update_backup()
+                editor_man._update_edit_cache()
+                is_dirty = false
+                _update_title()
+                _update_char()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'new_file'):
+            _new_file()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'open_setting'):
+            # settings.show()
+            _toggle_setting()
+            get_viewport().set_input_as_handled()
 
 func _new_file():
     get_viewport().set_input_as_handled()
@@ -322,45 +327,20 @@ func _update_char():
     char_label.text = '%dC' % editor_man.editor.text.length() 
 
 # --------------------------------
+func _on_files_dropped(files: PackedStringArray) -> void:
+    var is_failed = true
+    for file_path in files:
+        # Check if the file is an txt
+        if file_path.get_extension().to_lower() in ["txt", "md", "rst", "py", "json", "text", "ini", "js", "gd"]:
+            current_file_path = file_path
+            file_manager.open_file(editor, file_path)
+            show_hint(':open dropped %s' % current_file_path)
+            SettingManager.set_recent(current_file_path)
+            _update_backup()
+            editor_man._update_edit_cache()
+            is_dirty = false
+            _update_title()
+            _update_char()
+            return
 
-# 更新所有快捷键
-func _update_shortcuts():
-    for setting_key in ACTIONS:
-        var action = ACTIONS[setting_key]
-        # 清除现有的快捷键绑定
-        InputMap.action_erase_events(action)
-        
-        # 获取新的快捷键设置
-        var shortcut = SettingManager.get_setting("shortcut", setting_key)
-        if shortcut.is_empty():
-            continue
-            
-        # 创建新的快捷键事件
-        var event = _create_input_event_from_string(shortcut)
-        if event:
-            InputMap.action_add_event(action, event)
-
-# 将快捷键字符串转换为InputEvent
-func _create_input_event_from_string(key_string: String) -> InputEventKey:
-    if key_string.is_empty():
-        return null
-        
-    var event = InputEventKey.new()
-    var parts = key_string.split("+")
-    
-    # 设置修饰键
-    for part in parts:
-        match part.to_lower():
-            "ctrl":
-                event.ctrl_pressed = true
-            "shift":
-                event.shift_pressed = true
-            "alt":
-                event.alt_pressed = true
-            "meta", "cmd", "command", "super":
-                event.meta_pressed = true
-            _:
-                # 最后一个部分是主键
-                event.keycode = OS.find_keycode_from_string(part)
-    
-    return event
+    show_hint(':failed to open file, not txt extension')

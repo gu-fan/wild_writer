@@ -112,18 +112,19 @@ func handle_key_input(event: InputEventKey) -> void:
                     update_candidates()
                 get_viewport().set_input_as_handled()
                 return
-        "BracketLeft":  # < 键，上一页
-            if !pinyin_buffer.is_empty():
-                get_viewport().set_input_as_handled()
-            if current_page > 0:
-                current_page -= 1
-                return
-        "BracketRight":  # > 键，下一页
-            if !pinyin_buffer.is_empty():
-                get_viewport().set_input_as_handled()
-            if (current_page + 1) * page_size < candidates.size():
-                current_page += 1
-                return
+
+    if SettingManager.is_match_shortcut(key_string, 'ime', 'prev_page_key'):
+        if !pinyin_buffer.is_empty():
+            get_viewport().set_input_as_handled()
+        if current_page > 0:
+            current_page -= 1
+            return
+    if SettingManager.is_match_shortcut(key_string, 'ime', 'next_page_key'):
+        if !pinyin_buffer.is_empty():
+            get_viewport().set_input_as_handled()
+        if (current_page + 1) * page_size < candidates.size():
+            current_page += 1
+            return
     
     # Handle number keys for selection (1-5)
     if candidates.size() > 0 and key_string.is_valid_int():
