@@ -39,6 +39,7 @@ var _default_settings = {
         "audio": 1,
         "screen_shake": 1,
         "char_effect": 1,
+        "char_particle": 1,
         "enter_effect": 1,
         "delete_effect":1 
     },

@@ -25,6 +25,7 @@ extends Control
 @onready var audio = $TabBar/EFFECT/Margin/VBox/Audio/CheckButton
 @onready var screen_shake = $TabBar/EFFECT/Margin/VBox/ScreenShake/CheckButton
 @onready var char_effect = $TabBar/EFFECT/Margin/VBox/CharEffect/CheckButton
+@onready var char_particle = $TabBar/EFFECT/Margin/VBox/CharParticle/CheckButton
 @onready var enter_effect = $TabBar/EFFECT/Margin/VBox/EnterEffect/CheckButton
 @onready var delete_effect = $TabBar/EFFECT/Margin/VBox/DeleteEffect/CheckButton
 
@@ -37,6 +38,9 @@ extends Control
 
 @onready var reset = $TabBar/BASIC/Margin/VBox/Reset/Button
 @onready var reset_key = $TabBar/KEY/Margin/VBox/Reset/Button
+
+@onready var about = $TabBar/ABOUT/Margin/VBox/RichTextLabel
+@onready var tips = $TabBar/BASIC/Margin/VBox/RichTextLabel
 
 var editor_main
 
@@ -77,6 +81,7 @@ func _ready():
     audio.toggled.connect(_on_audio_toggled)
     screen_shake.toggled.connect(_on_screen_shake_toggled)
     char_effect.toggled.connect(_on_char_effect_toggled)
+    char_particle.toggled.connect(_on_char_particle_toggled)
     enter_effect.toggled.connect(_on_enter_effect_toggled)
     delete_effect.toggled.connect(_on_delete_effect_toggled)
     
@@ -86,6 +91,7 @@ func _ready():
     switch_key.pressed.connect(_on_switch_key_pressed)
     prev_page_key.pressed.connect(_on_prev_page_key_pressed)
     next_page_key.pressed.connect(_on_next_page_key_pressed)
+    about.meta_clicked.connect(_richtextlabel_on_meta_clicked)
     
     # 加载当前设置
     load_current_settings()
@@ -120,6 +126,7 @@ func load_current_settings():
     audio.button_pressed = SettingManager.get_setting("effect", "audio")
     screen_shake.button_pressed = SettingManager.get_setting("effect", "screen_shake")
     char_effect.button_pressed = SettingManager.get_setting("effect", "char_effect")
+    char_particle.button_pressed = SettingManager.get_setting("effect", "char_particle")
     enter_effect.button_pressed = SettingManager.get_setting("effect", "enter_effect")
     delete_effect.button_pressed = SettingManager.get_setting("effect", "delete_effect")
     
@@ -225,6 +232,9 @@ func _on_screen_shake_toggled(button_pressed: bool):
 func _on_char_effect_toggled(button_pressed: bool):
     SettingManager.set_setting("effect", "char_effect", button_pressed)
 
+func _on_char_particle_toggled(button_pressed: bool):
+    SettingManager.set_setting("effect", "char_particle", button_pressed)
+
 func _on_enter_effect_toggled(button_pressed: bool):
     SettingManager.set_setting("effect", "enter_effect", button_pressed)
 
@@ -243,3 +253,8 @@ func _on_document_dir_pressed():
         SettingManager.set_basic_setting("document_dir", file_path)
         document_dir.text =  file_path
         document_dir.tooltip_text = document_dir.text
+
+func _richtextlabel_on_meta_clicked(meta):
+    # `meta` is not guaranteed to be a String, so convert it to a String
+    # to avoid script errors at run-time.
+    OS.shell_open(str(meta))

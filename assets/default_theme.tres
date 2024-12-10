@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=17 format=3 uid="uid://07kcvj2gqhbo"]
+[gd_resource type="Theme" load_steps=19 format=3 uid="uid://07kcvj2gqhbo"]
 
 [ext_resource type="FontVariation" uid="uid://r045b8gwnt3k" path="res://assets/fonts/agave_fixed.tres" id="1_26vv4"]
 [ext_resource type="Texture2D" uid="uid://bpwhum17yikfj" path="res://assets/themes/checkbutton_unchecked.png" id="2_7i37d"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://d2fepkqof34q5" path="res://assets/themes/slider_tick_count.png" id="2_ya87t"]
 [ext_resource type="Texture2D" uid="uid://dgbqyicxvebnf" path="res://assets/themes/checkbutton_disabled.png" id="3_2yeyj"]
 [ext_resource type="FontFile" uid="uid://dcjd24t3fpryt" path="res://assets/fonts/NotoSans/NotoSansSC-Regular.ttf" id="6_ao213"]
+[ext_resource type="FontFile" uid="uid://b5n65c1fx4c2t" path="res://assets/fonts/Agave/AgaveNerdFontMono-Regular.ttf" id="7_mngft"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_td3mu"]
 bg_color = Color(0.4, 0.4, 0.4, 1)
@@ -54,8 +55,12 @@ border_color = Color(0.0666667, 0.0666667, 0.0666667, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l2qp6"]
 
+[sub_resource type="FontVariation" id="FontVariation_tw53u"]
+fallbacks = Array[Font]([ExtResource("7_mngft")])
+base_font = ExtResource("6_ao213")
+
 [resource]
-default_font = ExtResource("6_ao213")
+default_font = SubResource("FontVariation_tw53u")
 Button/colors/font_color = Color(0.6, 0.6, 0.6, 1)
 Button/fonts/font = ExtResource("1_26vv4")
 Button/styles/focus = SubResource("StyleBoxFlat_td3mu")

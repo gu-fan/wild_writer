@@ -51,14 +51,10 @@ theme_override_constants/caret_width = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_s5xe6")
 theme_override_styles/focus = SubResource("StyleBoxFlat_s5xe6")
 theme_override_styles/read_only = SubResource("StyleBoxFlat_s5xe6")
-placeholder_text = "Wild Writer 0.0.1
+placeholder_text = "                          
+							Wild Writer    0.0.2
 
-<c-o> open file
-<c-s> save file
-<c-n> new file
-<esc> options
-
-by xianrenak.itch.io
+							你可以直接开始打字了
 "
 wrap_mode = 1
 caret_blink = true

@@ -2,6 +2,8 @@ class_name FileManager extends Node
 
 signal file_selected(path)
 
+const TXT_FILES =  ['*.txt,*.text,*.md,*.rst;TextFiles', '*.c,*.cpp,*.py,*.gd,*.json;CodeFiles', '*.html,*.css,*.js;WebFiles', '*.ini,*.dat;DataFiles']
+
 func show_save_dialog() -> void:
     var file_dialog = FileDialog.new()
     get_tree().root.add_child(file_dialog)
@@ -13,7 +15,9 @@ func show_save_dialog() -> void:
     file_dialog.access = FileDialog.ACCESS_FILESYSTEM
     file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
     file_dialog.size = Vector2(700, 400)
+    file_dialog.filters = TXT_FILES
     file_dialog.popup_centered()
+
 
     if DirAccess.dir_exists_absolute(dir):
         if dir.right(1) != '/':
@@ -51,6 +55,7 @@ func show_open_dialog(file_path='') -> void:
     file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
     file_dialog.size = Vector2(700, 400)
     file_dialog.popup_centered()
+    file_dialog.filters = TXT_FILES
 
     if DirAccess.dir_exists_absolute(dir):
         if dir.right(1) != '/':

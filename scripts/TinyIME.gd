@@ -3,6 +3,7 @@ extends Node
 signal ime_text_changed(text: String)
 signal ime_state_changed(v)
 
+
 var pinyin_buffer: String = ""
 var candidates: Array = []
 var candidates_matched_lengths: Array = []
@@ -176,7 +177,7 @@ func _get_segment_matches(buffer: String) -> Array:
                                         best_freq = freq
                                         best_char = char
                             
-                            if best_freq > 2000.0:
+                            if best_freq > 1000.0:
                                 matched_chars.append(best_char)
                                 total_freq += best_freq
                                 current_pos += length
@@ -192,7 +193,7 @@ func _get_segment_matches(buffer: String) -> Array:
     if matched_chars.size() > 0:
         var combined = "".join(matched_chars)
         var avg_freq = total_freq / matched_chars.size()
-        if avg_freq > 2000.0:
+        if avg_freq > 1000.0:
             segment_candidates.append({
                 "char": combined,
                 "freq": avg_freq,
@@ -228,7 +229,7 @@ func _get_prefix_matches(buffer: String) -> Array:
                         var freq = 0.0
                         if char in char_frequencies and key in char_frequencies[char]:
                             freq = char_frequencies[char][key]
-                        if freq > 1000.0:
+                        if freq > 750.0:
                             prefix_candidates.append({
                                 "char": char,
                                 "freq": freq,
@@ -267,7 +268,11 @@ func update_candidates() -> void:
         candidates_with_freq.sort_custom(func(a, b): return a["freq"] > b["freq"])
     
     # 提取排序后的汉字和对应的匹配长度
+    var _filled = []
     for item in candidates_with_freq:
+        if item["char"] in _filled:
+            continue
+        _filled.append(item["char"])
         candidates.append(item["char"])
         candidates_matched_lengths.append(item["matched_length"])
 

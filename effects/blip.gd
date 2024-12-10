@@ -6,11 +6,13 @@ var pitch_increase: float = 0.0
 var audio: bool = true
 var blips: bool = true
 
-@onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
+@onready var audio_stream_player: AudioStreamPlayer2D = $AudioStreamPlayer
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var gpu_particle_2d: GPUParticles2D = $GPUParticles2D
 @onready var timer: Timer = $Timer
 @onready var label: Label = $Label
+
+var char_offset: Vector2 = Vector2.ZERO
 
 func _ready():
 
@@ -56,6 +58,7 @@ func _ready():
     else:
         label.text = SettingManager.get_key_shown_shift(last_key)
 
+
     var clr_to =Color.from_hsv(0.4 + Rnd.rangef(0.2), 0.8, 1.0)
     TwnLite.at(label).tween({
         prop='modulate',
@@ -71,8 +74,8 @@ func _ready():
         parallel=true,
     }).tween({
         prop='position',
-        from=Vector2(-35+20, -60),
-        to=Vector2(-35-100, -110)*extra_scale if !move_right else Vector2(-35+140, -110)*extra_scale,
+        from=Vector2(-35+20, -60) + char_offset,
+        to=Vector2(-35-100, -110)*extra_scale + char_offset if !move_right else Vector2(-35+140, -110)*extra_scale + char_offset,
         dur=0.6,
         parallel=true,
         ease=Tween.EASE_OUT,

@@ -97,7 +97,7 @@ sprite_frames = SubResource("SpriteFrames_g4ki7")
 frame = 7
 frame_progress = 1.0
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_any3y")
 volume_db = -12.0
 

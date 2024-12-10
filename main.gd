@@ -2,6 +2,7 @@ extends Node2D
 
 var file_manager: FileManager
 
+
 @onready var ime = TinyIME
 
 @onready var bottom_label: Label = $CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer/Label
@@ -18,7 +19,32 @@ var current_file_path = ''
 
 const AUTOSAVE_INTERVAL = 60.0  # 自动保存间隔（秒）
 const BACKUP_INTERVAL = 5.0     # 备份间隔（秒）
+const WRITER_PLACEHOLDER = """
+                        Wild Writer         0.0.2
 
+                        你可以直接开始打字， 也可以
+                        新建文件 {new}
+                        打开文件 {open}
+                        保存文件 {save}
+                        打开设置 {setting}
+"""
+
+const WRITER_TIPS = [
+"""[color=888888]小提示：
+连续打字不要超过一个小时，
+如果感到头晕目眩或不适，可以停下来休息一下[/color]
+""",
+"""[color=888888]小提示： 
+如果需要居中显示当前行，可以在当前行下插入空行[/color]
+""",
+"""[color=888888]小提示：
+Ctrl+A全选，Ctrl+C复制，Ctrl+V粘贴
+Ctrl+Z撤销，Ctrl+Y重做[/color]
+""",
+"""[color=888888]小提示：
+可以将文本文件拖拽到窗口里来打开[/color]
+""",
+]
 var autosave_timer: Timer
 var backup_timer: Timer
 
@@ -62,12 +88,15 @@ func _ready():
     SettingManager.setting_changed.connect(_on_setting_changed)
     DisplayServer.window_set_drop_files_callback(_on_files_dropped)
 
+    # show caret
+    editor_man.editor.grab_focus()
+
 
 func load_settings(is_init=false):
     if is_init:
         _load_auto_open_file()
         _init_gutter()
-        editor_man._update_edit_cache()
+        editor_man._update_editor_stats()
 
     _on_setting_changed()
 
@@ -83,6 +112,7 @@ func _update_editor_effects():
         "level": effect_level,
         "shake": effect_level and SettingManager.get_effect_setting("screen_shake"),
         "chars": effect_level and SettingManager.get_effect_setting("char_effect"),
+        "particles": effect_level and SettingManager.get_effect_setting("char_particle"),
         "newline": effect_level and SettingManager.get_effect_setting("enter_effect"),
         "combo": effect_level and SettingManager.get_effect_setting("combo"),
         "combo_shot": effect_level and SettingManager.get_effect_setting("combo_shot"),
@@ -177,12 +207,21 @@ func _on_setting_changed():
     # 更新快捷键
     _update_editor_effects()
     _update_input_settings()
+    _update_placeholder()
 
 func _update_input_settings():
 
     ime.page_size =  SettingManager.get_ime_setting('page_size')
     ime_button.visible = SettingManager.get_ime_setting('show_icon')
 
+func _update_placeholder():
+    editor_man.editor.placeholder_text = WRITER_PLACEHOLDER.format({
+            new= '%-10s' % SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "new_file")),
+            open= '%-10s' % SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "open_file")),
+            save= '%-10s' % SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "save_file")),
+            setting= '%-10s' %  SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "open_setting")),
+        })
+    
 
 # --------------------------
 
@@ -218,7 +257,7 @@ func _input(event: InputEvent) -> void:
                 show_hint(':opened %s' % current_file_path)
                 SettingManager.set_recent(current_file_path)
                 _update_backup()
-                editor_man._update_edit_cache()
+                editor_man._update_editor_stats()
                 is_dirty = false
                 _update_title()
                 _update_char()
@@ -264,7 +303,7 @@ func _create_new_file():
     show_hint(':created new file: untitled')
     SettingManager.set_recent(current_file_path)
     _update_backup()
-    editor_man._update_edit_cache()
+    editor_man._update_editor_stats()
 
 func set_title(file_path):
     DisplayServer.window_set_title(file_path)
@@ -281,6 +320,7 @@ func _toggle_setting():
         ime.disabled = true
         editor_man.editor.editable = false
         editor_man.editor.release_focus()
+        settings.tips.text = Rnd.pick(WRITER_TIPS)
     else:
         ime.disabled = false
         editor_man.editor.editable = true
@@ -337,7 +377,7 @@ func _on_files_dropped(files: PackedStringArray) -> void:
             show_hint(':open dropped %s' % current_file_path)
             SettingManager.set_recent(current_file_path)
             _update_backup()
-            editor_man._update_edit_cache()
+            editor_man._update_editor_stats()
             is_dirty = false
             _update_title()
             _update_char()

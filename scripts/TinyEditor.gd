@@ -25,6 +25,7 @@ var effects = {
     chars=1,
     delete=1,
     newline=1,
+    particles=1,
 }
 
 var shake: float = 0.0
@@ -126,8 +127,8 @@ func gui_input(event):
     if event is InputEventKey and event.pressed:
         event = event as InputEventKey
         last_key = OS.get_keycode_string(event.get_keycode_with_modifiers())
-
         is_single_letter = true
+        skip_effect = false
         if SettingManager.is_match_shortcut(last_key, 'ime', 'switch_key'):
             ime.toggle_ime()
             get_viewport().set_input_as_handled()
@@ -136,6 +137,13 @@ func gui_input(event):
             DisplayServer.clipboard_set(selected)
             DisplayServer.clipboard_set_primary(selected)
             _show_char_force(last_key)
+            get_viewport().set_input_as_handled()
+        elif SettingManager.is_match_key(last_key, 'Ctrl+X'):
+            var selected = editor.get_selected_text()
+            DisplayServer.clipboard_set(selected)
+            DisplayServer.clipboard_set_primary(selected)
+            _show_char_force(last_key)
+            editor.backspace()
             get_viewport().set_input_as_handled()
         elif SettingManager.is_match_key(last_key, 'Ctrl+A'):
             editor.select_all()
@@ -161,16 +169,25 @@ var caret_col = 0
 var caret_line = 0
 var is_single_letter = true
 func _on_text_changed():
+    if skip_effect: return
     # this is before shake to get the current typed word by ime
     var old_caret_line = caret_line
     var old_caret_col = caret_col
     caret_line = editor.get_caret_line()
     caret_col =  editor.get_caret_column()
     last_line = editor.get_line(caret_line)
-    if last_key == '': 
+    if last_key == '' or last_key == 'Unknown': 
         if caret_line == old_caret_line:
             is_single_letter = false
             last_key = last_line.substr(old_caret_col, caret_col - old_caret_col)
+            # Split the multiple keys
+            _show_multi_char(last_key)
+            _incr_multi_combo(last_key)
+            emit_signal('typing')
+            _update_editor_stats()
+            last_key = ''
+            skip_effect = true
+            
 
 func _process(delta):
     
@@ -202,7 +219,7 @@ func text_changed(textedit : TextEdit):
     _text_changed.call_deferred(textedit)
 
 func _text_changed(textedit: TextEdit):
-
+    if skip_effect: return 
     var line_height = textedit.get_line_height()
     var pos = textedit.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
     emit_signal("typing")
@@ -220,16 +237,16 @@ func _text_changed(textedit: TextEdit):
             
             if effects.delete:
                 # Draw the thing
-                if effects.chars: 
-                    var thing = Boom.instantiate()
-                    thing.position = pos
-                    thing.destroy = true
-                    thing.last_key = last_key
-                    thing.audio = effects.audio
-                    textedit.add_child(thing)
+                var thing = Boom.instantiate()
+                thing.position = pos
+                thing.destroy = true
+                thing.last_key = last_key
+                thing.audio = effects.audio
+                thing.blips = effects.particles
+                textedit.add_child(thing)
                     
                 if effects.shake:
-                    shake_screen(0.3, 9)
+                    shake_screen(0.2, 12)
         
         # Typing
         if timer > 0.02 and len_d > 0:
@@ -240,6 +257,7 @@ func _text_changed(textedit: TextEdit):
                     incr_combo(len_d)
                 else:
                     incr_combo(len_d*3) # average is 4
+
             
             # Draw the thing
             if effects.chars: 
@@ -250,6 +268,7 @@ func _text_changed(textedit: TextEdit):
                 thing.position = pos
                 thing.destroy = true
                 thing.audio = effects.audio
+                thing.blips = effects.particles
                 thing.last_key = last_key
                 textedit.add_child(thing)
             
@@ -270,15 +289,62 @@ func _text_changed(textedit: TextEdit):
 
                 finish_combo(pos)
             if effects.shake:
-                shake_screen(0.05, 12)
+                shake_screen(0.08, 12)
     
     if is_text_updated: editors[textedit]["text"] = textedit.text
     editors[textedit]["line"] = textedit.get_caret_line()
     _update_gutter()
 # ---------------------
-func _show_char_force(t):
+func _incr_multi_combo(s, mul=3):
+    var n = s.length()
+    var len = n
+    var total_time = 0.18
+    match len:
+        1: total_time = 0.18
+        2: total_time = 0.22
+        3: total_time = 0.26
+        4: total_time = 0.30
+        5: total_time = 0.34
+        _: total_time = 0.38
+
+    var split_time = total_time / len
+
+    var i = 0
+    for k in s:
+        if _is_ascii(k):
+            incr_combo(1, split_time * i)
+        else:
+            incr_combo(mul, split_time * i)
+        i += 1
+
+func _show_multi_char(s):
+    var len = s.length()
+    var total_time = 0.18
+    match len:
+        1: total_time = 0.18
+        2: total_time = 0.22
+        3: total_time = 0.26
+        4: total_time = 0.30
+        5: total_time = 0.34
+        _: total_time = 0.38
+
+    var split_time = total_time / len
+    # current pos is not changed, so should consider the total char length
+    # each char shift right 
     var line_height = editor.get_line_height()
-    var pos = editor.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
+    var total_x = len * line_height * 0.5
+    var split_x = total_x / len
+    var pos = editor.get_caret_draw_pos() + Vector2(0,-line_height/2.0) + Vector2(total_x, 0)
+    var i = 0
+    for k in s:
+        _show_char_force(k, split_time * i, -total_x+split_x*i, pos)
+        i += 1
+
+func _show_char_force(t, delay=0.0, off_x=0, pos=Vector2.ZERO):
+    if pos == Vector2.ZERO:
+        var line_height = editor.get_line_height()
+        pos = editor.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
+    if delay: await get_tree().create_timer(delay).timeout
     
     # Draw the thing
     if effects.chars: 
@@ -287,8 +353,15 @@ func _show_char_force(t):
         pitch_increase += 1.0
         pitch_increase = min(pitch_increase, 999)
         thing.position = pos
+        thing.char_offset = Vector2(off_x, 0)
         thing.destroy = true
-        thing.audio = effects.audio
+        if delay:
+            # thing.audio = false
+            thing.audio = effects.audio
+            thing.blips = false
+        else:
+            thing.audio = effects.audio
+            thing.blips = effects.particles
         thing.last_key = t
         editor.add_child(thing)
     
@@ -296,15 +369,24 @@ func _show_char_force(t):
         shake_screen(0.05, 6)
 
 # ---------------------
-func _update_edit_cache():
-    editors[editor]["text"] = editor.text
-    editors[editor]["line"] = editor.get_caret_line()
 
 # ---------------------
+var skip_effect = false
 func feed_ime_input(key):
-    last_key = key
-    is_single_letter = false
+    skip_effect = true
+    last_key = ''
+    _show_multi_char(key)
+    _incr_multi_combo(key)
+
     editor.insert_text_at_caret(key)
+    emit_signal('typing')
+    _update_editor_stats()
+
+func _update_editor_stats():
+    # update editor
+    editors[editor]["text"] = editor.text
+    editors[editor]["line"] = editor.get_caret_line()
+    _update_gutter()
 # ---------------------
 func create_combo_node_if_null():
     if combo_node == null or !is_instance_valid(combo_node):
@@ -315,7 +397,8 @@ func create_combo_node_if_null():
         editor.add_child(thing)
         combo_node = thing
 
-func incr_combo(n=1):
+func incr_combo(n=1, delay=0):
+    if delay: await get_tree().create_timer(delay).timeout
     if effects.combo:
         create_combo_node_if_null()
         combo_node.incr(n)
@@ -388,3 +471,6 @@ func _update_gutter():
             for line in editor.get_line_count():
                 editor.set_line_gutter_text(line, 0, '')
             _line_number_setted = 0
+
+func _is_ascii(c):
+    return c.unicode_at(0) <= 127

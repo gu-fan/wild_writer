@@ -3,14 +3,17 @@ extends Node2D
 var destroy = false
 var last_key = ""
 var audio: bool = true
+var blips: bool = true
 
-@onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
+@onready var audio_stream_player: AudioStreamPlayer2D = $AudioStreamPlayer
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var timer: Timer = $Timer
 @onready var label: Label = $Label
 @onready var gpu_particle_2d: GPUParticles2D = $GPUParticles2D
 
 func _ready():
+
+    timer.start()
 
     var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
@@ -23,18 +26,19 @@ func _ready():
         audio_stream_player.pitch_scale += randf_range(-0.1, 0.1)
         audio_stream_player.play()
     
-    animated_sprite_2d.frame = 0
-    animated_sprite_2d.play("1")
-    animated_sprite_2d.scale = Vector2(3, 3) * extra_scale
-    timer.start()
+
+    if blips:
+        gpu_particle_2d.process_material.scale_min = 4 * extra_scale
+        gpu_particle_2d.process_material.scale_max = 4 * extra_scale
+        gpu_particle_2d.process_material.initial_velocity_min = 700  + 40 * font_size
+        gpu_particle_2d.process_material.initial_velocity_max = 1000 +40 * font_size
+        gpu_particle_2d.emitting = true
+        animated_sprite_2d.show()
+        animated_sprite_2d.frame = 0
+        animated_sprite_2d.play("1")
+        animated_sprite_2d.scale = Vector2(3, 3) * extra_scale
+
     label.text = '←'
-    gpu_particle_2d.process_material.scale_min = 4 * extra_scale
-    gpu_particle_2d.process_material.scale_max = 4 * extra_scale
-    gpu_particle_2d.process_material.initial_velocity_min = 700  + 40 * font_size
-    gpu_particle_2d.process_material.initial_velocity_max = 1000 +40 * font_size
-
-    gpu_particle_2d.emitting = true
-
     var clr_to = Color.from_hsv(0.0 + Rnd.rangef(-0.05, 0.05), 0.8, 1.0)
     TwnLite.at(label).tween({
         prop='modulate',

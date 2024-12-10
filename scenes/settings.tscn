@@ -13,7 +13,7 @@ mouse_filter = 2
 script = ExtResource("1_6as7x")
 
 [node name="TabBar" type="TabContainer" parent="."]
-custom_minimum_size = Vector2(380, 520)
+custom_minimum_size = Vector2(380, 500)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -21,9 +21,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -285.0
+offset_top = -300.0
 offset_right = 180.0
-offset_bottom = 205.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 current_tab = 0
@@ -160,14 +160,33 @@ layout_mode = 2
 text = "~/Documents"
 text_overrun_behavior = 1
 
-[node name="Sep" type="ColorRect" parent="TabBar/BASIC/Margin/VBox"]
+[node name="Sep2" type="Control" parent="TabBar/BASIC/Margin/VBox"]
+visible = false
+custom_minimum_size = Vector2(6, 60)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Sep3" type="ColorRect" parent="TabBar/BASIC/Margin/VBox"]
 custom_minimum_size = Vector2(1, 1)
 layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
 
-[node name="Sep2" type="Control" parent="TabBar/BASIC/Margin/VBox"]
-custom_minimum_size = Vector2(6, 6)
+[node name="RichTextLabel" type="RichTextLabel" parent="TabBar/BASIC/Margin/VBox"]
 layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+bbcode_enabled = true
+text = "[color=888888]小提示：
+连续打字不要超过一个小时，
+如果感到头晕目眩或不适，可以停下来休息一下[/color]
+"
+context_menu_enabled = true
+selection_enabled = true
+
+[node name="Sep" type="ColorRect" parent="TabBar/BASIC/Margin/VBox"]
+custom_minimum_size = Vector2(1, 1)
+layout_mode = 2
+color = Color(0.165656, 0.165656, 0.165656, 1)
 
 [node name="Reset" type="HBoxContainer" parent="TabBar/BASIC/Margin/VBox"]
 layout_mode = 2
@@ -265,14 +284,15 @@ custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
 text = "Ctrl+'"
 
+[node name="Sep2" type="Control" parent="TabBar/KEY/Margin/VBox"]
+custom_minimum_size = Vector2(6, 120)
+layout_mode = 2
+size_flags_vertical = 3
+
 [node name="Sep3" type="ColorRect" parent="TabBar/KEY/Margin/VBox"]
 custom_minimum_size = Vector2(1, 1)
 layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
-
-[node name="Sep2" type="Control" parent="TabBar/KEY/Margin/VBox"]
-custom_minimum_size = Vector2(6, 6)
-layout_mode = 2
 
 [node name="Reset" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
 layout_mode = 2
@@ -392,9 +412,21 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "字符效果"
+text = "字符"
 
 [node name="CheckButton" type="CheckButton" parent="TabBar/EFFECT/Margin/VBox/CharEffect"]
+layout_mode = 2
+
+[node name="CharParticle" type="HBoxContainer" parent="TabBar/EFFECT/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/EFFECT/Margin/VBox/CharParticle"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "字符粒子"
+
+[node name="CheckButton" type="CheckButton" parent="TabBar/EFFECT/Margin/VBox/CharParticle"]
 layout_mode = 2
 
 [node name="EnterEffect" type="HBoxContainer" parent="TabBar/EFFECT/Margin/VBox"]
@@ -563,7 +595,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
+theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="TabBar/ABOUT/Margin"]
@@ -572,22 +604,23 @@ layout_mode = 2
 [node name="RichTextLabel" type="RichTextLabel" parent="TabBar/ABOUT/Margin/VBox"]
 custom_minimum_size = Vector2(200, 360)
 layout_mode = 2
+size_flags_vertical = 3
 focus_mode = 2
 bbcode_enabled = true
-text = "[center][shake]wild writer 0.02[/shake]
-by xianrenak
-[/center]
+text = "[center][shake][font s=22]wild writer 0.02[/font][/shake]
+by xianrenak[/center]
 
-Bilibili:
-space.bilibili.com/589805968
+Web版:
+[url]http://xianrenak.itch.io/wildwriter[/url]
+[url]http://xianrenak.github.io/wildwriter[/url]
 
-Web:
-xianrenak.itch.io/wildwriter
-xianrenak.github.io/wildwriter
+下载（Win, Linux）:
+[url]http://xianrenak.itch.io/wildwriter[/url]
+[url]http://github.com/xianrenak/wildwriter[/url]
 
-Download:
-xianrenak.itch.io/wildwriter
-github.com/xianrenak/wildwriter
+B站空间 （会发布更新日志）:
+[url]http://space.bilibili.com/589805968[/url]
+
 
 "
 context_menu_enabled = true
