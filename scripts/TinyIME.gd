@@ -24,66 +24,40 @@ var current_page: int = 0
 var pinyin_dict_cache = {}
 
 func _ready():
-    load_pinyin_dict()
-    build_pinyin_cache()
+    _lpd()
+    _bpc()
 
-func load_pinyin_dict():
-    var file = FileAccess.open("res://scripts/google_pinyin.txt", FileAccess.READ)
-    if not file:
-        print("Failed to load pinyin dictionary")
-        return
-    
-    while !file.eof_reached():
-        var line = file.get_line().strip_edges()
-        if line.is_empty() or line.begins_with("#"):
-            continue
-            
-        var parts = line.split(" ", false, 3)
-        if parts.size() < 4:
-            continue
-            
-        var char = parts[0]          # 汉字
-        var freq = parts[1].to_float() # 频率
-        var is_rare = parts[2] == "1" # 是否罕见
-        var pinyin = parts[3]         # 拼音
-        
-        if is_rare:
-            continue
+func _lpd():
+    var f=FileAccess.open("res://scripts/google_pinyin.txt",FileAccess.READ)
+    if!f:print("Failed to load pinyin dictionary");return
+    while!f.eof_reached():
+        var l=f.get_line().strip_edges()
+        if l.is_empty() or l.begins_with("#"):continue
+        var p=l.split(" ",false,3)
+        if p.size()<4:continue
+        var c=p[0]
+        var q=p[1].to_float()
+        if p[2]=="1":continue
+        var y=p[3].replace(" ","")
+        if!char_frequencies.has(c):char_frequencies[c]={}
+        char_frequencies[c][y]=q
+        if!pinyin_dict.has(y):pinyin_dict[y]=[]
+        pinyin_dict[y].append(c)
 
-        # 移除拼音中的空格
-        pinyin = pinyin.replace(" ", "")
-        
-        # 存储汉字在特定拼音下的频率
-        if not char_frequencies.has(char):
-            char_frequencies[char] = {}
-        char_frequencies[char][pinyin] = freq
-        
-        # 添加到字典
-        if not pinyin_dict.has(pinyin):
-            pinyin_dict[pinyin] = []
-        pinyin_dict[pinyin].append(char)
-
-func build_pinyin_cache():
-    # 初始化26个字母的缓存
-    for ascii in range(97, 123):  # a-z的ASCII码
-        var letter = char(ascii)
-        pinyin_dict_cache[letter] = []
-    
-    # 将拼音按首字母分类
-    for pinyin in pinyin_dict:
-        var first_letter = pinyin[0]
-        if first_letter in pinyin_dict_cache:
-            pinyin_dict_cache[first_letter].append(pinyin)
+func _bpc():
+    for i in range(97,123):pinyin_dict_cache[char(i)]=[]
+    for y in pinyin_dict:
+        var c=y[0]
+        if c in pinyin_dict_cache:pinyin_dict_cache[c].append(y)
 
 func _input(event: InputEvent) -> void:
     if disabled: return
     if not is_ime_active:
         return
         
-    if event is InputEventKey and event.pressed:
-        handle_key_input(event)
+    if event is InputEventKey and event.pressed: _hki(event)
 
-func handle_key_input(event: InputEventKey) -> void:
+func _hki(event: InputEventKey) -> void:
     var key_string = OS.get_keycode_string(event.get_keycode_with_modifiers())
     
     # 处理特殊键
@@ -97,9 +71,9 @@ func handle_key_input(event: InputEventKey) -> void:
                 if candidates.size() > 0:
                     # 有候选词时输入第一个
                     # emit_signal("ime_text_changed", candidates[0])
-                    handle_candidate_selection(0)
+                    _hcs(0)
                 else:
-                    # 没有候选词时直接输入拼音
+                    # 没有候选词时直接入拼音
                     emit_signal("ime_text_changed", pinyin_buffer)
                     reset_ime()
                 get_viewport().set_input_as_handled()
@@ -110,7 +84,7 @@ func handle_key_input(event: InputEventKey) -> void:
                 if pinyin_buffer.length() == 0:
                     reset_ime()
                 else:
-                    update_candidates()
+                    _uc()
                 get_viewport().set_input_as_handled()
                 return
 
@@ -133,148 +107,119 @@ func handle_key_input(event: InputEventKey) -> void:
         var actual_index = current_page * page_size + num
         if num >= 0 and num < page_size and actual_index < candidates.size():
             # emit_signal("ime_text_changed", candidates[actual_index])
-            handle_candidate_selection(actual_index)
+            _hcs(actual_index)
             # reset_ime()
             get_viewport().set_input_as_handled()
             return
     
     # 处理拼音输入
     if key_string.length() == 1 and key_string.is_valid_identifier():
-        pinyin_buffer += key_string.to_lower()
-        update_candidates()
+        if pinyin_buffer.length() < 15:
+            pinyin_buffer += key_string.to_lower()
+            _uc()
         get_viewport().set_input_as_handled()
 
-func _get_segment_matches(buffer: String) -> Array:
-    var segment_candidates = []
-    
-    # 只从开始位置尝试匹配，不再遍历所有位置
-    var matched_chars = []
-    var total_freq = 0.0
-    var current_pos = 0
-    var matched_length = 0
-    
-    # 尝试从当前位置开始匹配
-    while current_pos < buffer.length():
-        var found = false
-        for length in range(6, 0, -1):  # 从最长的可能拼音开始尝试
-            if current_pos + length > buffer.length():
-                continue
-                
-            var segment = buffer.substr(current_pos, length)
-            
-            if segment.length() > 0:
-                var first_letter = segment[0]
-                if first_letter in pinyin_dict_cache:
-                    for possible_pinyin in pinyin_dict_cache[first_letter]:
-                        if possible_pinyin == segment and segment in pinyin_dict:
-                            # 找到最高频率的字符
-                            var best_char = ""
-                            var best_freq = 0.0
-                            for char in pinyin_dict[segment]:
-                                if char in char_frequencies and segment in char_frequencies[char]:
-                                    var freq = char_frequencies[char][segment]
-                                    if freq > best_freq:
-                                        best_freq = freq
-                                        best_char = char
-                            
-                            if best_freq > 1000.0:
-                                matched_chars.append(best_char)
-                                total_freq += best_freq
-                                current_pos += length
-                                matched_length = current_pos
-                                found = true
+func _gsm(b:String)->Array:
+    var s=[]
+    var m=[]
+    var f=0.0
+    var p=0
+    var l=0
+    while p<b.length():
+        var h=0
+        for i in range(6,0,-1):
+            if p+i>b.length():continue
+            var g=b.substr(p,i)
+            if g.length()>0:
+                var c=g[0]
+                if c in pinyin_dict_cache:
+                    for y in pinyin_dict_cache[c]:
+                        if y==g and g in pinyin_dict:
+                            var x=""
+                            var q=0.0
+                            for r in pinyin_dict[g]:
+                                if r in char_frequencies and g in char_frequencies[r]:
+                                    var w=char_frequencies[r][g]
+                                    if w>q:q=w;x=r
+                            if q>1e3:
+                                m.append(x)
+                                f+=q
+                                p+=i
+                                l=p
+                                h=1
                                 break
-                    if found:
-                        break
-        if not found:
-            break  # 如果没有找到匹配，直接退出
-    
-    # 如果找到了有效的分段匹配
-    if matched_chars.size() > 0:
-        var combined = "".join(matched_chars)
-        var avg_freq = total_freq / matched_chars.size()
-        if avg_freq > 1000.0:
-            segment_candidates.append({
-                "char": combined,
-                "freq": avg_freq,
-                "matched_length": matched_length
-            })
-    
-    return segment_candidates
+                    if h:break
+        if!h:break
+    if m.size()>0:
+        var j="".join(m)
+        var a=f/m.size()
+        if a>1e3:s.append({"char":j,"freq":a,"matched_length":l})
+    return s
 
-func _get_exact_matches(buffer: String) -> Array:
-    var exact_candidates = []
-    if buffer in pinyin_dict:
-        for char in pinyin_dict[buffer]:
-            var freq = 0.0
-            if char in char_frequencies and buffer in char_frequencies[char]:
-                freq = char_frequencies[char][buffer]
-            exact_candidates.append({
-                "char": char,
-                "freq": freq,
-                "matched_length": buffer.length()
-            })
-    return exact_candidates
+func _gem(b:String)->Array:
+    var e=[]
+    if b in pinyin_dict:
+        for c in pinyin_dict[b]:
+            var f=0.0
+            if c in char_frequencies and b in char_frequencies[c]:
+                f=char_frequencies[c][b]
+            e.append({"char":c,"freq":f,"matched_length":b.length()})
+    return e
 
-func _get_prefix_matches(buffer: String) -> Array:
-    var prefix_candidates = []
-    if buffer.length() > 0:
-        var first_letter = buffer[0]
-        if first_letter in pinyin_dict_cache:
-            for key in pinyin_dict_cache[first_letter]:
-                if prefix_candidates.size() >= 10:
-                    break
-                if key.begins_with(buffer) and key != buffer:
-                    for char in pinyin_dict[key]:
-                        var freq = 0.0
-                        if char in char_frequencies and key in char_frequencies[char]:
-                            freq = char_frequencies[char][key]
-                        if freq > 750.0:
-                            prefix_candidates.append({
-                                "char": char,
-                                "freq": freq,
-                                "matched_length": buffer.length()
-                            })
-    return prefix_candidates
+func _gpm(b:String)->Array:
+    var p=[]
+    if b.length()>0:
+        var c=b[0]
+        if c in pinyin_dict_cache:
+            for k in pinyin_dict_cache[c]:
+                if p.size()>=10:break
+                if k.begins_with(b)and k!=b:
+                    for h in pinyin_dict[k]:
+                        var f=0.0
+                        if h in char_frequencies and k in char_frequencies[h]:
+                            f=char_frequencies[h][k]
+                        if f>750.0:
+                            p.append({"char":h,"freq":f,"matched_length":b.length()})
+    return p
 
-func update_candidates() -> void:
+func _uc()->void:
     candidates.clear()
     candidates_matched_lengths.clear()
-    current_selection = 0
-    current_page = 0
-    
-    var candidates_with_freq = []
-    
-    # 获取各种匹配结果
-    var exact_matches = _get_exact_matches(pinyin_buffer)
-    var segment_matches = _get_segment_matches(pinyin_buffer)
-    var prefix_matches = _get_prefix_matches(pinyin_buffer)
-    
-    # 如果有精确匹配，优先添加精确匹配的结果
-    if exact_matches.size() > 0:
-        # 对精确匹配结果按频率排序
-        exact_matches.sort_custom(func(a, b): return a["freq"] > b["freq"])
-        candidates_with_freq.append_array(exact_matches)
-        
-        # 只有在没有足够的精确匹配时才添加其他匹配
-        if exact_matches.size() < page_size:
-            candidates_with_freq.append_array(segment_matches)
-            candidates_with_freq.append_array(prefix_matches)
+    current_selection=0
+    current_page=0
+    var c=[]
+    var s={}
+    var e=_gem(pinyin_buffer)
+    var g=_gsm(pinyin_buffer)
+    var p=_gpm(pinyin_buffer)
+    if e.size()>0:
+        e.sort_custom(func(a,b):return a["freq"]>b["freq"])
+        for m in e:
+            if!s.has(m["char"]):
+                c.append(m)
+                s[m["char"]]=1
+        if e.size()<page_size:
+            for m in g:
+                if!s.has(m["char"]):
+                    c.append(m)
+                    s[m["char"]]=1
+            for m in p:
+                if!s.has(m["char"]):
+                    c.append(m)
+                    s[m["char"]]=1
     else:
-        # 没有精确匹配时，添加所有其他匹配
-        candidates_with_freq.append_array(segment_matches)
-        candidates_with_freq.append_array(prefix_matches)
-        # 对所有结果按频率排序
-        candidates_with_freq.sort_custom(func(a, b): return a["freq"] > b["freq"])
-    
-    # 提取排序后的汉字和对应的匹配长度
-    var _filled = []
-    for item in candidates_with_freq:
-        if item["char"] in _filled:
-            continue
-        _filled.append(item["char"])
-        candidates.append(item["char"])
-        candidates_matched_lengths.append(item["matched_length"])
+        for m in g:
+            if!s.has(m["char"]):
+                c.append(m)
+                s[m["char"]]=1
+        for m in p:
+            if!s.has(m["char"]):
+                c.append(m)
+                s[m["char"]]=1
+        c.sort_custom(func(a,b):return a["freq"]>b["freq"])
+    for i in c:
+        candidates.append(i["char"])
+        candidates_matched_lengths.append(i["matched_length"])
 
 func reset_ime() -> void:
     pinyin_buffer = ""
@@ -298,7 +243,7 @@ func get_current_state() -> Dictionary:
         "page_size": page_size
     }
 
-func handle_candidate_selection(index: int) -> void:
+func _hcs(index: int) -> void:
     if index >= candidates.size() or index >= candidates_matched_lengths.size():
         reset_ime()
         return
@@ -306,7 +251,7 @@ func handle_candidate_selection(index: int) -> void:
     var selected_char = candidates[index]
     var matched_length = candidates_matched_lengths[index]
     
-    # 如果还有未匹配的拼音，保留在buffer中
+    # 如果还有未匹配的拼音，留在buffer中
     if matched_length < pinyin_buffer.length():
         # 保留未匹配的部分
         var remaining = pinyin_buffer.substr(matched_length)
@@ -315,7 +260,7 @@ func handle_candidate_selection(index: int) -> void:
             emit_signal("ime_text_changed", selected_char)
             var temp_buffer = remaining
             pinyin_buffer = temp_buffer
-            update_candidates()  # 更新候选列表
+            _uc()  # 更新候选列表
             return
     
     # 如果是完全匹配或没有剩余部分

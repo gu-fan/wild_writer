@@ -23,10 +23,10 @@ const WRITER_PLACEHOLDER = """
                         Wild Writer         0.0.2
 
                         你可以直接开始打字， 也可以
-                        新建文件 {new}
-                        打开文件 {open}
-                        保存文件 {save}
-                        打开设置 {setting}
+                        新建文件    {new}
+                        打开文件    {open}
+                        保存文件    {save}
+                        打开设置    {setting}
 """
 
 const WRITER_TIPS = [
@@ -96,7 +96,7 @@ func load_settings(is_init=false):
     if is_init:
         _load_auto_open_file()
         _init_gutter()
-        editor_man._update_editor_stats()
+        editor_man.update_editor_stats()
 
     _on_setting_changed()
 
@@ -142,8 +142,8 @@ func _load_auto_open_file():
                     _update_title()
                     _update_char()
                     show_hint(':opened backup of %s' % current_file_path)
-                    editor_man.editor.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
-                    editor_man.editor.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
+                    editor_man.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
+                    editor_man.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
 
                 else:
                     # 原文件更新，加载原文件
@@ -169,8 +169,8 @@ func _load_auto_open_file():
             _update_title()
             _update_char()
             show_hint(':opened last untitled')
-            editor_man.editor.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
-            editor_man.editor.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
+            editor_man.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
+            editor_man.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
     else:
         current_file_path = ''
         is_dirty = false
@@ -200,7 +200,7 @@ func _on_setting_changed():
         1: editor_man.editor.set("theme_override_font_sizes/font_size", 24)
         2: editor_man.editor.set("theme_override_font_sizes/font_size", 32)
         3: editor_man.editor.set("theme_override_font_sizes/font_size", 96)
-    editor_man._update_gutter()
+    editor_man.update_gutter()
     editor_man.font_size = font_size
     editor_man.ime_display.font_size = font_size
 
@@ -257,7 +257,7 @@ func _input(event: InputEvent) -> void:
                 show_hint(':opened %s' % current_file_path)
                 SettingManager.set_recent(current_file_path)
                 _update_backup()
-                editor_man._update_editor_stats()
+                editor_man.update_editor_stats()
                 is_dirty = false
                 _update_title()
                 _update_char()
@@ -303,7 +303,7 @@ func _create_new_file():
     show_hint(':created new file: untitled')
     SettingManager.set_recent(current_file_path)
     _update_backup()
-    editor_man._update_editor_stats()
+    editor_man.update_editor_stats()
 
 func set_title(file_path):
     DisplayServer.window_set_title(file_path)
@@ -377,7 +377,7 @@ func _on_files_dropped(files: PackedStringArray) -> void:
             show_hint(':open dropped %s' % current_file_path)
             SettingManager.set_recent(current_file_path)
             _update_backup()
-            editor_man._update_editor_stats()
+            editor_man.update_editor_stats()
             is_dirty = false
             _update_title()
             _update_char()
