@@ -14,14 +14,12 @@ var combo_count : float = 0 :
 # 定义颜色阶段
 const C = {
     0:   Color(0.5, 1, 0.5),
-    8:   Color(0.3, 1, 0.3),
-    15:  Color(0, 1, 0),
-    30:  Color(1, 1, 0),
-    45:  Color(1, 0.7, 0),
-    60:  Color(1, 0.5, 0),
-    80:  Color(1, 0.2, 0),
-    100: Color(1, 0, 0),
-    150: Color(1, 0, 0.5),
+    10:  Color(0.3, 1, 0.3),
+    20:  Color(0, 1, 0),
+    40:  Color(1, 1, 0),
+    80:  Color(1, 0.5, 0),
+    120: Color(1, 0, 0),
+    160: Color(1, 0, 0.5),
     200: Color(1, 0, 1),
 }
 
@@ -86,7 +84,7 @@ func _cl():
         e = 2
     var g = _gs(e)
     var t = _gt()
-    TwnLite.at(l,true,'_twn_scale').tween({prop='scale',from=Vector2(1.6,1.6)*randf_range(1.05,1.1)*g,to=Vector2(2,2)*e,dur=.25*t,trans=1})
+    TwnLite.at(l,true,'_twn_scale').tween({prop='scale',from=Vector2(1.6,1.6)*randf_range(1.05,1.15)*g,to=Vector2(2,2)*e,dur=.25*t,trans=1})
     TwnLite.at(l).tween({prop='self_modulate:a',from=1,to=0,dur=2*t,trans=1,ease=1}).callee(_rc)
     TwnLite.at(l3).tween({prop='self_modulate:a',from=1,to=0,dur=2*t,trans=1,ease=1})
     TwnLite.at(l2).tween({prop='modulate:a',from=2,to=0,dur=.3,parallel=true,trans=1}).tween({prop='scale',from=Vector2(1.6,1.6)*1.1*g,to=Vector2(2,2)*e,dur=.2*t,parallel=true,trans=1})

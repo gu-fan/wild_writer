@@ -598,11 +598,17 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 20
 
-[node name="VBox" type="VBoxContainer" parent="TabBar/ABOUT/Margin"]
+[node name="ScrollContainer" type="ScrollContainer" parent="TabBar/ABOUT/Margin"]
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="TabBar/ABOUT/Margin/VBox"]
-custom_minimum_size = Vector2(200, 360)
+[node name="VBox" type="VBoxContainer" parent="TabBar/ABOUT/Margin/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
+custom_minimum_size = Vector2(200, 320)
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
@@ -614,14 +620,28 @@ Web版:
 [url]http://xianrenak.itch.io/wildwriter[/url]
 [url]http://xianrenak.github.io/wildwriter[/url]
 
-下载（Win, Linux）:
+下载（Win, Linux, Mac）:
 [url]http://xianrenak.itch.io/wildwriter[/url]
 [url]http://github.com/xianrenak/wildwriter[/url]
 
-B站空间 （会发布更新日志）:
+B站 （会发布更新）:
 [url]http://space.bilibili.com/589805968[/url]
 
-
 "
+fit_content = true
+context_menu_enabled = true
+selection_enabled = true
+
+[node name="Sep" type="ColorRect" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
+custom_minimum_size = Vector2(1, 1)
+layout_mode = 2
+color = Color(0.165656, 0.165656, 0.165656, 1)
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+bbcode_enabled = true
+fit_content = true
 context_menu_enabled = true
 selection_enabled = true

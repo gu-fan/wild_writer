@@ -22,11 +22,6 @@ func _ready():
     if audio:s.pitch_scale=1.0+pitch_increase*.01;s.play()
     if blips:
         n.frame=0;n.play("default")
-        g.emitting=1
-        g.process_material.scale_min=4*e
-        g.process_material.scale_max=4*e
-        g.process_material.initial_velocity_min=300+25*f
-        g.process_material.initial_velocity_max=400+25*f
         TwnLite.at(n).tween({prop='modulate:a',from=1.0,to=0.0,dur=0.2,delay=0.2,ease=1,trans=1})
     t.start()
     var r=last_key=='Enter'

@@ -32,19 +32,11 @@ func _ready():
             match font_size:
                 2: animated_sprite_2d.position.x = -90
                 3: animated_sprite_2d.position.x = -120
-        if caret_col <= 0:
-            match font_size:
-                0: animated_sprite_2d.position.y = 13
-                1: animated_sprite_2d.position.y = 20
-                2: animated_sprite_2d.position.y = 25
-                3: animated_sprite_2d.position.y = 72
-        else:
             match font_size:
                 0: animated_sprite_2d.position.y = 3
-                1: animated_sprite_2d.position.y = 3
-                2: animated_sprite_2d.position.y = 3
-                3: animated_sprite_2d.position.y = 3
-
+                1: animated_sprite_2d.position.y = 4
+                2: animated_sprite_2d.position.y = 4
+                3: animated_sprite_2d.position.y = 8
 
 
     timer.start()

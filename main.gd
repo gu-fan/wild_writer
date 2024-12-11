@@ -19,32 +19,6 @@ var current_file_path = ''
 
 const AUTOSAVE_INTERVAL = 60.0  # 自动保存间隔（秒）
 const BACKUP_INTERVAL = 5.0     # 备份间隔（秒）
-const WRITER_PLACEHOLDER = """
-                        Wild Writer         0.0.2
-
-                        你可以直接开始打字， 也可以
-                        新建文件    {new}
-                        打开文件    {open}
-                        保存文件    {save}
-                        打开设置    {setting}
-"""
-
-const WRITER_TIPS = [
-"""[color=888888]小提示：
-连续打字不要超过一个小时，
-如果感到头晕目眩或不适，可以停下来休息一下[/color]
-""",
-"""[color=888888]小提示： 
-如果需要居中显示当前行，可以在当前行下插入空行[/color]
-""",
-"""[color=888888]小提示：
-Ctrl+A全选，Ctrl+C复制，Ctrl+V粘贴
-Ctrl+Z撤销，Ctrl+Y重做[/color]
-""",
-"""[color=888888]小提示：
-可以将文本文件拖拽到窗口里来打开[/color]
-""",
-]
 var autosave_timer: Timer
 var backup_timer: Timer
 
@@ -97,6 +71,7 @@ func load_settings(is_init=false):
         _load_auto_open_file()
         _init_gutter()
         editor_man.update_editor_stats()
+        _update_about_and_logs()
 
     _on_setting_changed()
 
@@ -215,13 +190,16 @@ func _update_input_settings():
     ime_button.visible = SettingManager.get_ime_setting('show_icon')
 
 func _update_placeholder():
-    editor_man.editor.placeholder_text = WRITER_PLACEHOLDER.format({
+    editor_man.editor.placeholder_text = G.WRITER_PLACEHOLDER.format({
             new= '%-10s' % SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "new_file")),
             open= '%-10s' % SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "open_file")),
             save= '%-10s' % SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "save_file")),
             setting= '%-10s' %  SettingManager.get_key_shown(SettingManager.get_setting("shortcut", "open_setting")),
         })
     
+func _update_about_and_logs():
+    settings.about.text = G.WRITER_ABOUT
+    settings.logs.text = "".join(G.WRITER_LOGS)
 
 # --------------------------
 
@@ -320,7 +298,7 @@ func _toggle_setting():
         ime.disabled = true
         editor_man.editor.editable = false
         editor_man.editor.release_focus()
-        settings.tips.text = Rnd.pick(WRITER_TIPS)
+        settings.tips.text = Rnd.pick(G.WRITER_TIPS)
     else:
         ime.disabled = false
         editor_man.editor.editable = true

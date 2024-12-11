@@ -39,8 +39,9 @@ extends Control
 @onready var reset = $TabBar/BASIC/Margin/VBox/Reset/Button
 @onready var reset_key = $TabBar/KEY/Margin/VBox/Reset/Button
 
-@onready var about = $TabBar/ABOUT/Margin/VBox/RichTextLabel
 @onready var tips = $TabBar/BASIC/Margin/VBox/RichTextLabel
+@onready var about = $TabBar/ABOUT/Margin/ScrollContainer/VBox/RichTextLabel
+@onready var logs = $TabBar/ABOUT/Margin/ScrollContainer/VBox/RichTextLabel2
 
 var editor_main
 

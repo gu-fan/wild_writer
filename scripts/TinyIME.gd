@@ -52,13 +52,13 @@ func _bpc():
 
 func _input(event: InputEvent) -> void:
     if disabled: return
-    if not is_ime_active:
-        return
+    if not is_ime_active: return
         
     if event is InputEventKey and event.pressed: _hki(event)
 
 func _hki(event: InputEventKey) -> void:
     var key_string = OS.get_keycode_string(event.get_keycode_with_modifiers())
+    var unicode = event.keycode
     
     # 处理特殊键
     match key_string:
@@ -113,11 +113,12 @@ func _hki(event: InputEventKey) -> void:
             return
     
     # 处理拼音输入
-    if key_string.length() == 1 and key_string.is_valid_identifier():
-        if pinyin_buffer.length() < 15:
-            pinyin_buffer += key_string.to_lower()
+    if key_string.length()==1 and key_string.is_valid_identifier():
+        if pinyin_buffer.length()<15:
+            pinyin_buffer+=key_string.to_lower()
             _uc()
         get_viewport().set_input_as_handled()
+
 
 func _gsm(b:String)->Array:
     var s=[]
@@ -266,3 +267,8 @@ func _hcs(index: int) -> void:
     # 如果是完全匹配或没有剩余部分
     emit_signal("ime_text_changed", selected_char)
     reset_ime()
+
+func h2f(u):
+    return String.chr(u + 0xfee0)
+func f2h(u):
+    return String.chr(u - 0xfee0)

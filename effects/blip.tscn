@@ -102,10 +102,11 @@ stream = ExtResource("3_any3y")
 volume_db = -12.0
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+visible = false
 emitting = false
 amount = 15
 process_material = SubResource("ParticleProcessMaterial_5k50n")
-lifetime = 0.8
+lifetime = 0.5
 one_shot = true
 explosiveness = 1.0
 

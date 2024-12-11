@@ -220,8 +220,8 @@ animations = [{
 }]
 
 [sub_resource type="Gradient" id="Gradient_bn6jm"]
-offsets = PackedFloat32Array(0, 0.176, 0.253333, 1)
-colors = PackedColorArray(1, 0.14902, 0, 1, 0.915668, 0, 0.462012, 1, 0, 0.947, 0.98, 1, 0.08, 0.908, 1, 0)
+offsets = PackedFloat32Array(0, 0.194667, 0.266667, 0.570667, 1)
+colors = PackedColorArray(1, 0.14902, 0, 1, 0.915668, 0, 0.462012, 1, 0, 0.947, 0.98, 1, 0.0196, 0.93198, 0.98, 0.94902, 0.08, 0.908, 1, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_ppm80"]
 gradient = SubResource("Gradient_bn6jm")
