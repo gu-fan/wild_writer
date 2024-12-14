@@ -45,6 +45,8 @@ func _ready():
             ease=Tween.EASE_OUT,
             trans=Tween.TRANS_QUAD,
         })
+	else:
+		animated_sprite_2d.hide()
     
     timer.start()
 

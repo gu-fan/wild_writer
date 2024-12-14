@@ -13,7 +13,7 @@ mouse_filter = 2
 script = ExtResource("1_6as7x")
 
 [node name="TabBar" type="TabContainer" parent="."]
-custom_minimum_size = Vector2(380, 500)
+custom_minimum_size = Vector2(400, 500)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -284,6 +284,25 @@ custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
 text = "Ctrl+'"
 
+[node name="Sep4" type="ColorRect" parent="TabBar/KEY/Margin/VBox"]
+custom_minimum_size = Vector2(1, 1)
+layout_mode = 2
+color = Color(0.165656, 0.165656, 0.165656, 1)
+
+[node name="SwitchEffect" type="HBoxContainer" parent="TabBar/KEY/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TabBar/KEY/Margin/VBox/SwitchEffect"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "切换特效开关"
+
+[node name="Button" type="Button" parent="TabBar/KEY/Margin/VBox/SwitchEffect"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+text = "Ctrl+/"
+
 [node name="Sep2" type="Control" parent="TabBar/KEY/Margin/VBox"]
 custom_minimum_size = Vector2(6, 120)
 layout_mode = 2
@@ -412,7 +431,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "字符"
+text = "字符动画"
 
 [node name="CheckButton" type="CheckButton" parent="TabBar/EFFECT/Margin/VBox/CharEffect"]
 layout_mode = 2
@@ -424,7 +443,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "字符粒子"
+text = "字符特效"
 
 [node name="CheckButton" type="CheckButton" parent="TabBar/EFFECT/Margin/VBox/CharParticle"]
 layout_mode = 2
@@ -459,14 +478,13 @@ layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
 
 [node name="ColorRect" type="ColorRect" parent="TabBar/EFFECT/Margin/VBox/EndSep"]
-visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -177.0
-offset_top = -251.0
-offset_right = 177.0
+offset_left = -187.0
+offset_top = -289.0
+offset_right = 189.0
 offset_bottom = -5.0
 grow_horizontal = 2
 color = Color(0, 0, 0, 0.286275)
@@ -608,7 +626,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 8
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
-custom_minimum_size = Vector2(200, 320)
+custom_minimum_size = Vector2(200, 260)
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
@@ -616,26 +634,24 @@ bbcode_enabled = true
 text = "[center][shake][font s=22]wild writer 0.02[/font][/shake]
 by xianrenak[/center]
 
-Web版:
-[url]http://xianrenak.itch.io/wildwriter[/url]
-[url]http://xianrenak.github.io/wildwriter[/url]
-
-下载（Win, Linux, Mac）:
+下载（Win, Linux, Mac, Web）:
 [url]http://xianrenak.itch.io/wildwriter[/url]
 [url]http://github.com/xianrenak/wildwriter[/url]
 
-B站 （会发布更新）:
-[url]http://space.bilibili.com/589805968[/url]
-
-"
+B站 （发布更新）:
+[url]http://space.bilibili.com/589805968[/url]"
 fit_content = true
 context_menu_enabled = true
 selection_enabled = true
 
-[node name="Sep" type="ColorRect" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
+[node name="Sep2" type="ColorRect" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
 custom_minimum_size = Vector2(1, 1)
 layout_mode = 2
 color = Color(0.165656, 0.165656, 0.165656, 1)
+
+[node name="Sep" type="Control" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
+custom_minimum_size = Vector2(1, 20)
+layout_mode = 2
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="TabBar/ABOUT/Margin/ScrollContainer/VBox"]
 layout_mode = 2

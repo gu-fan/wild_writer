@@ -30,7 +30,8 @@ var _default_settings = {
         "new_file": "Ctrl+N",
         "open_file": "Ctrl+O",
         "save_file": "Ctrl+S",
-        "open_setting": "Ctrl+Apostrophe"
+        "open_setting": "Ctrl+Apostrophe",
+        "switch_effect": "Ctrl+Slash"
     },
     "effect": {
         "level": 1,
@@ -46,7 +47,7 @@ var _default_settings = {
     "ime": {
         "show_icon": 1,
         "page_size": 5,
-        "switch_key": "Shift+Escape",
+        "switch_ime_key": "Shift+Escape",
         "prev_page_key": "BracketLeft",
         "next_page_key": "BracketRight"
     },

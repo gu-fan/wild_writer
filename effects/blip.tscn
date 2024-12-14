@@ -94,12 +94,12 @@ script = ExtResource("1_tp8nq")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(5, 5)
 sprite_frames = SubResource("SpriteFrames_g4ki7")
-frame = 7
-frame_progress = 1.0
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_any3y")
-volume_db = -12.0
+volume_db = 1.0
+max_distance = 20000.0
+attenuation = 0.12
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 visible = false

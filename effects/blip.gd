@@ -23,6 +23,8 @@ func _ready():
     if blips:
         n.frame=0;n.play("default")
         TwnLite.at(n).tween({prop='modulate:a',from=1.0,to=0.0,dur=0.2,delay=0.2,ease=1,trans=1})
+    else:
+        n.hide()
     t.start()
     var r=last_key=='Enter'
     if last_key=='Space':l.text='_'

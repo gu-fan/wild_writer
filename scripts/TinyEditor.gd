@@ -143,7 +143,7 @@ func gui_input(event):
         last_key = OS.get_keycode_string(event.get_keycode_with_modifiers())
         is_single_letter = true
         skip_effect = false
-        if SettingManager.is_match_shortcut(last_key, 'ime', 'switch_key'):
+        if SettingManager.is_match_shortcut(last_key, 'ime', 'switch_ime_key'):
             ime.toggle_ime()
             get_viewport().set_input_as_handled()
         elif last_key.to_lower() in ['up', 'down', 'right', 'left']:

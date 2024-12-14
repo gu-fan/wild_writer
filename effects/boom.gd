@@ -24,11 +24,11 @@ func _ready():
         g.process_material.initial_velocity_min=700+50*f
         g.process_material.initial_velocity_max=1000+50*f
         g.emitting=1
-    n.show()
-    n.frame=0
-    n.play("1")
-    n.scale=Vector2(3,3)*e
-    TwnLite.at(n).tween({prop='modulate:a',from=1.0,to=0.0,dur=0.29+randf_range(-0.04,0.04),ease=0,trans=2})
+        n.show()
+        n.frame=0
+        n.play("1")
+        n.scale=Vector2(3,3)*e
+        TwnLite.at(n).tween({prop='modulate:a',from=1.0,to=0.0,dur=0.29+randf_range(-0.04,0.04),ease=0,trans=2})
 
     if chars:
         l.text = last_key

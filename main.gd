@@ -2,7 +2,6 @@ extends Node2D
 
 var file_manager: FileManager
 
-
 @onready var ime = TinyIME
 
 @onready var bottom_label: Label = $CanvasLayer/Control/MarginContainer/VBoxContainer/BottomPanel/HBoxContainer/Label
@@ -242,8 +241,10 @@ func _input(event: InputEvent) -> void:
         elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'new_file'):
             _new_file()
         elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'open_setting'):
-            # settings.show()
             _toggle_setting()
+            get_viewport().set_input_as_handled()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'switch_effect'):
+            _toggle_effect()
             get_viewport().set_input_as_handled()
 
 func _new_file():
@@ -303,6 +304,17 @@ func _toggle_setting():
         ime.disabled = false
         editor_man.editor.editable = true
         editor_man.editor.grab_focus()
+func _toggle_effect():
+    var efx = SettingManager.get_setting('effect', 'level')
+    if efx:
+        # editor_man._scf('VFX:off')
+        await get_tree().process_frame
+        SettingManager.set_setting('effect', 'level', 0)
+        settings.effect_level.button_pressed = false
+    else:
+        SettingManager.set_setting('effect', 'level', 1)
+        settings.effect_level.button_pressed = true
+        # editor_man._scf('VFX:on')
 
 func _on_typing():
     is_dirty = true

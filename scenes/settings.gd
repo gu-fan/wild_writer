@@ -16,6 +16,7 @@ extends Control
 @onready var open_file_key = $TabBar/KEY/Margin/VBox/OpenFile/Button
 @onready var save_file_key = $TabBar/KEY/Margin/VBox/SaveFile/Button
 @onready var open_setting_key = $TabBar/KEY/Margin/VBox/OpenSetting/Button
+@onready var switch_effect_key = $TabBar/KEY/Margin/VBox/SwitchEffect/Button
 
 # 特效设置相关节点
 @onready var effect_level = $TabBar/EFFECT/Margin/VBox/Level/Control/CheckButton
@@ -32,7 +33,7 @@ extends Control
 # 输入法设置相关节点
 @onready var bottom_icon = $TabBar/INPUT/Margin/VBox/bottom_icon/CheckButton
 @onready var page_size = $TabBar/INPUT/Margin/VBox/PageSize/LineEdit
-@onready var switch_key = $TabBar/INPUT/Margin/VBox/SwitchKey/Button
+@onready var switch_ime_key = $TabBar/INPUT/Margin/VBox/SwitchKey/Button
 @onready var prev_page_key = $TabBar/INPUT/Margin/VBox/PrevPage/Button
 @onready var next_page_key = $TabBar/INPUT/Margin/VBox/NextPage/Button
 
@@ -72,6 +73,7 @@ func _ready():
     open_file_key.pressed.connect(_on_open_file_pressed)
     save_file_key.pressed.connect(_on_save_file_pressed)
     open_setting_key.pressed.connect(_on_open_setting_pressed)
+    switch_effect_key.pressed.connect(_on_switch_effect_pressed)
 
     reset_key.pressed.connect(_on_reset_key_pressed)
     
@@ -89,7 +91,7 @@ func _ready():
     # 连接输入法设置信号
     bottom_icon.toggled.connect(_on_bottom_icon_toggled)
     page_size.value_changed.connect(_on_page_size_changed)
-    switch_key.pressed.connect(_on_switch_key_pressed)
+    switch_ime_key.pressed.connect(_on_switch_ime_key_pressed)
     prev_page_key.pressed.connect(_on_prev_page_key_pressed)
     next_page_key.pressed.connect(_on_next_page_key_pressed)
     about.meta_clicked.connect(_richtextlabel_on_meta_clicked)
@@ -116,11 +118,11 @@ func load_current_settings():
     open_file_key.text = _get_key_shown(SettingManager.get_setting("shortcut", "open_file"))
     save_file_key.text = _get_key_shown(SettingManager.get_setting("shortcut", "save_file"))
     open_setting_key.text = _get_key_shown(SettingManager.get_setting("shortcut", "open_setting"))
+    switch_effect_key.text = _get_key_shown(SettingManager.get_setting("shortcut", "switch_effect"))
 
     # 加载特效设置
     effect_level.button_pressed = SettingManager.get_setting("effect", "level")
     effect_mask.visible = !effect_level.button_pressed
-
 
     combo_effect.button_pressed = SettingManager.get_setting("effect", "combo")
     combo_shot.button_pressed = SettingManager.get_setting("effect", "combo_shot")
@@ -134,7 +136,7 @@ func load_current_settings():
     # 加载输入法设置
     bottom_icon.button_pressed = SettingManager.get_ime_setting("show_icon")
     page_size.value = SettingManager.get_ime_setting("page_size")
-    switch_key.text = _get_key_shown(SettingManager.get_ime_setting("switch_key"))
+    switch_ime_key.text = _get_key_shown(SettingManager.get_ime_setting("switch_ime_key"))
     prev_page_key.text = _get_key_shown(SettingManager.get_ime_setting("prev_page_key"))
     next_page_key.text = _get_key_shown(SettingManager.get_ime_setting("next_page_key"))
 
@@ -160,8 +162,8 @@ func _on_font_size_changed(value: float):
     font_size_label.text = _get_font_size_label(font_size_slider.value)
 
 # 快捷键设置
-func _on_switch_key_pressed():
-    _setup_shortcut_by_capture(switch_key, "ime", "switch_key")
+func _on_switch_ime_key_pressed():
+    _setup_shortcut_by_capture(switch_ime_key, "ime", "switch_ime_key")
 
 func _on_prev_page_key_pressed():
     _setup_shortcut_by_capture(prev_page_key, "ime", "prev_page_key")
@@ -210,6 +212,8 @@ func _on_save_file_pressed():
     _setup_shortcut_by_capture(save_file_key, "shortcut", "save_file")
 func _on_open_setting_pressed():
     _setup_shortcut_by_capture(open_setting_key, "shortcut", "open_setting")
+func _on_switch_effect_pressed():
+    _setup_shortcut_by_capture(switch_effect_key, "shortcut", "switch_effect")
 
 func _get_key_shown(key):
     return SettingManager.get_key_shown(key)
