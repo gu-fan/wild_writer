@@ -236,8 +236,9 @@ func caret_changed(textedit):
 
 func text_changed(textedit : TextEdit):
     textedit.center_viewport_to_caret()
+    # _tc.call_deferred(textedit)
     await get_tree().process_frame
-    _tc.call_deferred(textedit)
+    _tc(textedit)
 
 func _tc(t:TextEdit):
     if skip_effect:return 

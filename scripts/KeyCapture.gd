@@ -67,7 +67,11 @@ class KeyCaptureDialog extends Window:
                 key_string += "Shift+"
             if event.alt_pressed:
                 key_string += "Alt+"
-
+            if event.meta_pressed:
+                if OS.get_name() == 'macOS':
+                    key_string += "Command+"
+                else:
+                    key_string += "Windows+"
                 
             # 添加主键
             var keycode = OS.get_keycode_string(event.keycode)
@@ -77,7 +81,8 @@ class KeyCaptureDialog extends Window:
                     'Shift': return
                     'Ctrl': return
                     'Alt': return
-                    'Win': return
+                    'Windows': return
+                    'Command': return
                     _: key_string += keycode
             
             emit_signal('key_captured', key_string)
