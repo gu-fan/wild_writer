@@ -5,6 +5,7 @@ signal typing
 
 @onready var ime = TinyIME
 @onready var editor: TextEdit = $Control/MarginContainer/VBoxContainer/TextEdit
+@onready var pad: Control = $Control/MarginContainer/VBoxContainer/Padding
 
 const Boom: PackedScene = preload("res://effects/boom.tscn")
 const Combo: PackedScene = preload("res://effects/combo.tscn")
@@ -237,7 +238,8 @@ func caret_changed(textedit):
     caret_col = textedit.get_caret_column()
 
 func text_changed(textedit : TextEdit):
-    textedit.center_viewport_to_caret()
+    
+    center_viewport_to_caret()
     # _tc.call_deferred(textedit)
     await get_tree().process_frame
     _tc(textedit)
@@ -245,7 +247,7 @@ func text_changed(textedit : TextEdit):
 func _tc(textedit:TextEdit):
     if skip_effect: return 
     var line_height = textedit.get_line_height()
-    var pos = textedit.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
+    var pos = _gfcp() + Vector2(0,-line_height/2.0)
     emit_signal("typing")
     
     var is_text_updated = false
@@ -483,8 +485,62 @@ func _gfcp():
     var lh = editor.get_line_height()
     if caret_col == 0 and caret_line != 0: cp.y += lh * 0.45
     return cp
+# func _gfcp() -> Vector2:
+#     # Get the rect for current caret position
+#     caret_line = editor.get_caret_line()
+#     caret_col = editor.get_caret_column()
+#     var rect = editor.get_rect_at_line_column(caret_line, caret_col)
+#     var pos = rect.position
+#     var pos2 = editor.get_pos_at_line_column(caret_line, caret_col)
+    
+#     # Add vertical offset for empty lines
+#     var line_height = editor.get_line_height()
+#     if caret_col == 0:
+#         if caret_line != 0:
+#             pos.y += line_height * 0.45
+#         else:
+#             print('draw')
+#             pos = editor.get_caret_draw_pos()
+        
+#     prints('pos> ', pos, pos2, caret_line, caret_col)
+#     # Ensure position is within visible area
+#     # var visible_rect = editor.get_visible_rect()
+#     # pos.x = clamp(pos.x, visible_rect.position.x, visible_rect.position.x + visible_rect.size.x)
+#     # pos.y = clamp(pos.y, visible_rect.position.y, visible_rect.position.y + visible_rect.size.y)
+#     # print('pos< ', pos)
+    
+#     return pos2
 
 func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
         # print('note ime:', DisplayServer.ime_get_text())
         pass
+
+func center_viewport_to_caret():
+    # Get current caret line with wrap
+    var caret_line = editor.get_caret_line() + editor.get_caret_wrap_index()
+    
+    # Calculate lines below caret
+    var visible_lines = editor.get_visible_line_count()
+    var first_visible = editor.get_first_visible_line()
+    var lines_below_caret = visible_lines - (caret_line - first_visible) - 1
+    
+    # Calculate remaining lines in file
+    var total_lines = editor.get_line_count()
+    var lines_remaining = total_lines - (caret_line + 1)
+    var required_empty_lines = 3
+    
+    # Adjust padding if near file end
+    if lines_remaining < required_empty_lines:
+        var line_height = editor.get_line_height()
+        var extra_padding = (required_empty_lines - lines_remaining - 1) * line_height
+        pad.custom_minimum_size = Vector2(10, extra_padding)
+    else:
+        pad.custom_minimum_size = Vector2(10, 0)
+    
+    # Only scroll if less than 3 lines below caret
+    if lines_below_caret < required_empty_lines:
+        # Calculate target line to be 2 lines from bottom
+        var target_line = caret_line - (visible_lines - required_empty_lines)
+        target_line = maxi(0, target_line)
+        editor.set_line_as_first_visible(target_line)

@@ -297,4 +297,3 @@ func _replace_syllable(input: String, syllables: Array, index: int, new_syllable
     var result = syllables.duplicate()
     result[index] = new_syllable
     return "".join(result)
-

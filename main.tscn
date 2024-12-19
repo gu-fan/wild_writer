@@ -57,9 +57,13 @@ placeholder_text = "
 							你可以直接开始打字了
 "
 wrap_mode = 1
+minimap_draw = true
 caret_blink = true
 caret_multiple = false
 highlight_current_line = true
+
+[node name="Padding" type="Control" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+layout_mode = 2
 
 [node name="BottomPanel" type="ColorRect" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(32, 32)
