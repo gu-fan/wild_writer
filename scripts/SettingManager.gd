@@ -46,6 +46,7 @@ var _default_settings = {
     },
     "ime": {
         "show_icon": 1,
+        "shuangpin": 0,
         "page_size": 5,
         "switch_ime_key": "Shift+Escape",
         "prev_page_key": "BracketLeft",
@@ -92,6 +93,49 @@ const KEY_DISPLAY_MAP = {
     "shift+bracketleft": "{",
     "shift+bracketright": "}",
     "shift+quoteleft": "~",
+}
+
+# 设置配置
+const SETTINGS_CONFIG = {
+    "basic": {
+        # "auto_open_recent": {
+        #     "type": "bool",
+        #     "default": true,
+        #     "label": "自动打开最近的文件"
+        # },
+        # "auto_save": {
+        #     "type": "bool", 
+        #     "default": true,
+        #     "label": "自动保存"
+        # },
+        # ... 其他基本设置
+    },
+    "ime": {
+        # "show_icon": {
+        #     "type": "bool",
+        #     "default": true,
+        #     "label": "底部图标"
+        # },
+        # "page_size": {
+        #     "type": "int",
+        #     "default": 5,
+        #     "min": 3,
+        #     "max": 9,
+        #     "label": "每页字数"
+        # },
+        "shuangpin": {
+            "type": "bool",
+            "default": false,
+            "label": "启用双拼"
+        },
+        # "switch_ime_key": {
+        #     "type": "shortcut",
+        #     "default": "Shift+Escape",
+        #     "label": "中英文切换"
+        # },
+        # ... 其他输入法设置
+    },
+    # ... 其他设置类别
 }
 
 func _ready():
@@ -258,7 +302,7 @@ static func get_key_shown(key_string: String) -> String:
             "meta", "cmd", "command", "super":
                 result.append("Cmd")
             _:
-                # 查找映射表中的显示名称
+                # 查找映射表中的��示名称
                 # var p_c = part.capitalize()
                 var p_l = part.to_lower()
                 if SettingManager.KEY_DISPLAY_MAP.has(p_l):

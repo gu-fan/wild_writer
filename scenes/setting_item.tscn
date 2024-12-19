@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://c5cl274yacd8g"]
+
+[node name="SettingItem" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+
+[node name="Label" type="Label" parent="."]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+vertical_alignment = 1

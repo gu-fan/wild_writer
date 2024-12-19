@@ -185,8 +185,9 @@ func _on_setting_changed():
 
 func _update_input_settings():
 
-    ime.page_size = SettingManager.get_ime_setting('page_size')
+    # ime.page_size = SettingManager.get_ime_setting('page_size')
     ime_button.visible = SettingManager.get_ime_setting('show_icon')
+    ime.update_settings(SettingManager.get_section_settings('ime'))
 
 func _update_placeholder():
     editor_man.editor.placeholder_text = G.WRITER_PLACEHOLDER.format({

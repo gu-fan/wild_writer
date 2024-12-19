@@ -99,6 +99,16 @@ func _ready():
     # 加载当前设置
     load_current_settings()
 
+    # 使用SettingsBuilder自动生成设置UI
+    var basic_container = $TabBar/BASIC/Margin/VBox
+    var ime_container = $TabBar/INPUT/Margin/VBox
+    
+    # 构建基本设置
+    SettingsBuilder.build_settings(basic_container, SettingManager.SETTINGS_CONFIG.basic, "basic")
+    
+    # 构建输入法设置
+    SettingsBuilder.build_settings(ime_container, SettingManager.SETTINGS_CONFIG.ime, "ime")
+
 
 func load_current_settings():
     # 加载基本设置

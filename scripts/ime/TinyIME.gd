@@ -66,3 +66,10 @@ func get_page_size() -> int:
 func toggle_shuangpin() -> void:
     matcher.shuangpin_enabled = not matcher.shuangpin_enabled
     context.reset()
+
+# 更新设置
+func update_settings(settings: Dictionary) -> void:
+    if "page_size" in settings:
+        set_page_size(settings.page_size)
+    if "shuangpin" in settings:
+        matcher.shuangpin_enabled = settings.shuangpin
