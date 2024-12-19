@@ -33,12 +33,11 @@ func _ready():
 
 
 func _bpc():
-    # 初始化26个字母的缓存
-    for ascii in range(97, 123):  # a-z的ASCII码
+    # Pre-categorizes all pinyin by first letter
+    for ascii in range(97, 123):  
         var letter = char(ascii)
         pinyin_dict_cache[letter] = []
     
-    # 将拼音按首字母分类
     for pinyin in pinyin_dict:
         var first_letter = pinyin[0]
         if first_letter in pinyin_dict_cache:
@@ -73,7 +72,7 @@ func _hki(event: InputEventKey) -> void:
                     reset_ime()
                 get_viewport().set_input_as_handled()
                 return
-        "Backspace":  # 删除字符
+        "Backspace":  # 除字符
             if pinyin_buffer.length() > 0:
                 pinyin_buffer = pinyin_buffer.substr(0, pinyin_buffer.length() - 1)
                 if pinyin_buffer.length() == 0:
@@ -138,7 +137,7 @@ func _get_segment_matches(buffer:String)->Array:
                 if first_letter in pinyin_dict_cache:
                     for possible_pinyin in pinyin_dict_cache[first_letter]:
                         if possible_pinyin == segment and segment in pinyin_dict:
-                            # 找到最高频率的字符
+                            # 找到最高���率的字符
                             var best_char = ""
                             var best_freq = 0.0
                             for char in pinyin_dict[segment]:

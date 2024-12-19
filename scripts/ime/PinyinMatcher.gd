@@ -65,59 +65,34 @@ func update_candidates(context: CompositionContext) -> void:
         context.candidates_matched_lengths.clear()
         return
     
-    # 搜索匹配的字符
+    print("\n=== Debug for input:", context.buffer, " ===")
+    
     var matches = []
-    var matched_lengths = []  # 存储每个匹配的长度
+    var matched_lengths = []
+    var seen_chars = {}
     
-    # 1. 精确匹配
-    var exact_matches = trie.search(context.buffer)
-    for match in exact_matches:
-        matches.append(match)
-        matched_lengths.append(context.buffer.length())
+    # 1. 尝试完整匹配（包括多字词组）
+    var full_matches = trie.search(context.buffer)
+    print("Full matches:", full_matches.map(func(m): return m.char))
+    for match in full_matches:
+        if not match.char in seen_chars:
+            print("  Adding full match:", match.char, "length:", context.buffer.length())
+            matches.append(match)
+            matched_lengths.append(context.buffer.length())
+            seen_chars[match.char] = true
     
-    # 2. 前缀匹配 - 进一步优化版本
-    if context.buffer.length() > 0:
-        var first_letter = context.buffer[0]
-        if first_letter in first_letter_cache:
-            var cache = first_letter_cache[first_letter]
-            var count = 0
-            
-            # First check if input is a common prefix
-            if context.buffer in cache.prefix:
-                # Match against full pinyins starting with this prefix
-                for entry in cache.full:
-                    if count >= 10:
-                        break
-                    if entry.pinyin.begins_with(context.buffer):
-                        var match = {
-                            "char": entry.char,
-                            "freq": entry.freq * 0.9,  # Lower priority for prefix matches
-                            "pinyin": entry.pinyin
-                        }
-                        if not _contains_char(matches, match.char):
-                            matches.append(match)
-                            matched_lengths.append(context.buffer.length())  # 只匹配输入的长度
-                            count += 1
-    
-    # 3. 分段匹配 - 优化版本
-    var segment_matches = trie.segment_match(context.buffer)
-    for segment in segment_matches:
-        if segment.matches.size() > 0:
-            var best_match = segment.matches[0]
-            if not _contains_char(matches, best_match.char):
-                # Boost frequency for longer matches
-                var length_boost = segment.length / context.buffer.length()
-                best_match.freq *= (1.0 + length_boost)
-                matches.append(best_match)
-                matched_lengths.append(segment.length)  # 使用实际匹配的长度
-    
-    # 4. 模糊音匹配
-    var fuzzy_matches = _get_fuzzy_matches(context.buffer)
-    for item in fuzzy_matches:
-        if not _contains_char(matches, item.char):
-            item.freq *= 0.8
-            matches.append(item)
-            matched_lengths.append(item.get("matched_length", context.buffer.length()))
+    # 2. 尝试前缀的完整匹配
+    # 从最长的可能前缀开始尝试
+    for length in range(context.buffer.length(), 0, -1):
+        var prefix = context.buffer.substr(0, length)
+        var prefix_matches = trie.search(prefix)
+        print("Prefix matches for %s:" % prefix, prefix_matches.map(func(m): return m.char))
+        for match in prefix_matches:
+            if not match.char in seen_chars:
+                print("  Adding prefix match:", match.char, "length:", prefix.length())
+                matches.append(match)
+                matched_lengths.append(prefix.length())
+                seen_chars[match.char] = true
     
     # 最终排序：优先考虑匹配长度，然后是频率
     var sorted_indices = range(matches.size())
@@ -128,7 +103,7 @@ func update_candidates(context: CompositionContext) -> void:
         # 如果长度不同，优先选择更长的匹配
         if a_len != b_len:
             return a_len > b_len
-            
+        
         # 长度相同时，按频率排序
         return matches[a].freq > matches[b].freq
     )
@@ -142,7 +117,7 @@ func update_candidates(context: CompositionContext) -> void:
     
     # 更新上下文
     context.candidates = sorted_matches.map(func(m): return m.char)
-    context.candidates_matched_lengths = sorted_lengths  # 直接使用匹配长度数组
+    context.candidates_matched_lengths = sorted_lengths
     context.current_selection = 0
     context.current_page = 0
 
@@ -180,7 +155,7 @@ func _generate_fuzzy_variants(input: String) -> Array:
                 var new_input = _replace_syllable(input, syllables, i, new_syllable)
                 variants.append(new_input)
         
-        # 处理韵母模��音
+        # 处理韵母模糊音
         if final in fuzzy_rules.finals:
             for variant in fuzzy_rules.finals[final]:
                 var new_syllable = initial + variant
@@ -230,7 +205,7 @@ func _split_syllables(input: String) -> Array:
     # TODO: 实现拼音分割逻辑
     return [input]
 
-# 辅助函数：获取声母
+# 辅助函数：取声母
 func _get_initial(syllable: String) -> String:
     # 简单实现，需要完善
     for i in ["zh", "ch", "sh"]:

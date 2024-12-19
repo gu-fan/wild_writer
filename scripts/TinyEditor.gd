@@ -486,4 +486,5 @@ func _gfcp():
 
 func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
-        print('note ime:', DisplayServer.ime_get_text())
+        # print('note ime:', DisplayServer.ime_get_text())
+        pass

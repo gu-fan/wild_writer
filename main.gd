@@ -296,12 +296,12 @@ func _toggle_setting():
     settings.visible = !settings.visible
     if settings.visible:
         ime.reset()
-        ime.disabled = true
+        ime.is_disabled = true
         editor_man.editor.editable = false
         editor_man.editor.release_focus()
         settings.tips.text = Rnd.pick(G.WRITER_TIPS)
     else:
-        ime.disabled = false
+        ime.is_disabled = false
         editor_man.editor.editable = true
         editor_man.editor.grab_focus()
 func _toggle_effect():

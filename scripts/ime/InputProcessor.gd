@@ -15,6 +15,10 @@ func process_key(event: InputEventKey) -> bool:
     if not event.pressed:
         return false
         
+    # 检查修饰键
+    if event.ctrl_pressed or event.alt_pressed:
+        return false
+        
     var key_string = OS.get_keycode_string(event.get_keycode_with_modifiers())
     
     # 处理特殊键
@@ -25,13 +29,29 @@ func process_key(event: InputEventKey) -> bool:
             return _handle_enter()
         "Backspace":
             return _handle_backspace()
+        "Space":
+            if context.has_candidates():
+                return _handle_number_selection("1")  # 选择第一个候选词
+            return false
     
     # 处理数字键选择
     if _handle_number_selection(key_string):
         return true
     
-    # 处理翻页
-    if _handle_page_keys(key_string):
+    # 处理翻页 - 使用SettingManager的快捷键设置
+    if SettingManager.is_match_shortcut(key_string, 'ime', 'prev_page_key'):
+        if context.current_page > 0:
+            context.current_page -= 1
+            context.current_selection = 0
+            emit_signal("composition_updated")
+        return true
+            
+    if SettingManager.is_match_shortcut(key_string, 'ime', 'next_page_key'):
+        var total_pages = ceil(float(context.candidates.size()) / context.page_size)
+        if context.current_page < total_pages - 1:
+            context.current_page += 1
+            context.current_selection = 0
+            emit_signal("composition_updated")
         return true
     
     # 处理拼音输入
@@ -117,24 +137,6 @@ func _handle_number_selection(key: String) -> bool:
         emit_signal("composition_updated")
     
     return true
-
-# 处理翻页键
-func _handle_page_keys(key: String) -> bool:
-    match key:
-        "," , "-", "Page_Up":  # 上一页
-            if context.current_page > 0:
-                context.current_page -= 1
-                context.current_selection = 0
-                emit_signal("composition_updated")
-                return true
-        "." , "=", "Page_Down":  # 下一页
-            var total_pages = ceil(float(context.candidates.size()) / context.page_size)
-            if context.current_page < total_pages - 1:
-                context.current_page += 1
-                context.current_selection = 0
-                emit_signal("composition_updated")
-                return true
-    return false
 
 # 处理拼音输入
 func _handle_pinyin_input(key: String) -> bool:
