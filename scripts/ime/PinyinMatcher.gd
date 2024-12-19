@@ -65,8 +65,6 @@ func update_candidates(context: CompositionContext) -> void:
         context.candidates_matched_lengths.clear()
         return
     
-    print("\n=== Debug for input:", context.buffer, " ===")
-    
     var matches = []
     var matched_lengths = []
     var seen_chars = {}
@@ -76,7 +74,6 @@ func update_candidates(context: CompositionContext) -> void:
         var first_letter = context.buffer[0]
         if first_letter in first_letter_cache:
             var cache_entries = first_letter_cache[first_letter].full
-            print("First letter matches:", cache_entries.map(func(e): return e.char))
             for entry in cache_entries:
                 # 只添加单字
                 if not entry.char in seen_chars and entry.char.length() == 1:
@@ -90,10 +87,8 @@ func update_candidates(context: CompositionContext) -> void:
     else:
         # 2. 尝试完整匹配（包括多字词组）
         var full_matches = trie.search(context.buffer)
-        print("Full matches:", full_matches.map(func(m): return m.char))
         for match in full_matches:
             if not match.char in seen_chars:
-                print("  Adding full match:", match.char, "length:", context.buffer.length())
                 matches.append(match)
                 matched_lengths.append(context.buffer.length())
                 seen_chars[match.char] = true
@@ -103,10 +98,8 @@ func update_candidates(context: CompositionContext) -> void:
         for length in range(context.buffer.length(), 0, -1):
             var prefix = context.buffer.substr(0, length)
             var prefix_matches = trie.search(prefix)
-            print("Prefix matches for %s:" % prefix, prefix_matches.map(func(m): return m.char))
             for match in prefix_matches:
                 if not match.char in seen_chars:
-                    print("  Adding prefix match:", match.char, "length:", prefix.length())
                     matches.append(match)
                     matched_lengths.append(prefix.length())
                     seen_chars[match.char] = true
@@ -114,10 +107,8 @@ func update_candidates(context: CompositionContext) -> void:
         # 4. 添加模糊音匹配
         if not fuzzy_rules.is_empty():  # 只在启用模糊音时执行
             var fuzzy_matches = _get_fuzzy_matches(context.buffer)
-            print("Fuzzy matches:", fuzzy_matches.map(func(m): return m.char))
             for match in fuzzy_matches:
                 if not match.char in seen_chars:
-                    print("  Adding fuzzy match:", match.char, "length:", context.buffer.length())
                     matches.append(match)
                     matched_lengths.append(context.buffer.length())
                     seen_chars[match.char] = true
@@ -192,7 +183,7 @@ func _generate_fuzzy_variants(input: String) -> Array:
     
     return variants
 
-# 初始化模糊音规则
+# 初��化模糊音规则
 func _init_fuzzy_rules() -> void:
     fuzzy_rules = {
         "initials": {
@@ -241,7 +232,7 @@ func _get_initial(syllable: String) -> String:
             return i
     return syllable[0] if not syllable.is_empty() else ""
 
-# 辅助函数：获取韵母
+# ��助函数：获取韵母
 func _get_final(syllable: String) -> String:
     # 简单实现，需要完善
     var initial = _get_initial(syllable)

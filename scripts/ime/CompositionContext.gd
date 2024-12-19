@@ -35,3 +35,7 @@ func get_state() -> Dictionary:
         "current_page": current_page,
         "page_size": page_size
     }
+
+# 检查是否有候选词
+func has_candidates() -> bool:
+    return not candidates.is_empty()

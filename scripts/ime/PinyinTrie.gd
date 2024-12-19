@@ -106,12 +106,10 @@ func _collect_words(node: TrieNode, pinyin: String, results: Array) -> void:
 
 # 分段匹配
 func segment_match(text: String, max_len: int = 6) -> Array:
-    print("\n=== Segment Match Debug for:", text, " ===")
     var results = []
     var current_pos = 0
     
     while current_pos < text.length():
-        print("\nTrying at position:", current_pos)
         # 尝试从当前位置找最长匹配
         var found_match = null
         var found_len = 0
@@ -119,11 +117,9 @@ func segment_match(text: String, max_len: int = 6) -> Array:
         # 从最长可能的拼音开始尝试
         for l in range(min(max_len, text.length() - current_pos), 0, -1):
             var segment = text.substr(current_pos, l)
-            print("  Testing segment:", segment)
             var node = _find_node(segment)
             # 只接受完整的拼音节点（is_end为true的节点）
             if node and node.is_end:
-                print("    Found valid pinyin:", segment)
                 var matches = search(segment)  # 这里返回的是按频率排序的结果
                 if matches.size() > 0:
                     # 选择频率最高的匹配
@@ -143,32 +139,23 @@ func segment_match(text: String, max_len: int = 6) -> Array:
                         "best_match": best_match
                     }
                     found_len = l
-                    print("    Matched with chars:", matches.map(func(m): return m.char))
-                    print("    Selected best match:", best_match.char)
                     break
-            else:
-                print("    Not a valid pinyin")
         
         if found_match == null:
-            print("  No match found at position", current_pos, ", stopping")
             break
             
-        print("  Adding match:", found_match.segment, "->", found_match.best_match.char)
         results.append(found_match)
         current_pos += found_len
     
-    print("\nFinal results:", results.map(func(r): return r.best_match.char))
     return results
 
 # 词组匹配
 func phrase_match(text: String) -> Array:
-    print("\n=== Phrase Match Debug for:", text, " ===")
     var results = []
     var seen_chars = {}  # 用于去重
     
     # 1. 尝试整个字符串匹配
     var full_matches = search(text)
-    print("Full matches:", full_matches.map(func(m): return m.char))
     for match in full_matches:
         if not match.char in seen_chars:
             results.append(match)
@@ -176,12 +163,10 @@ func phrase_match(text: String) -> Array:
     
     # 如果有精确匹配，就不需要尝试拼凑了
     if full_matches.size() > 0:
-        print("Found exact matches, skipping segment matching")
         return results
     
     # 2. 只有在没有精确匹配时才尝试分段匹配组合
     var segments = segment_match(text)
-    print("Segment matches:", segments.map(func(s): return s.best_match.char))
     
     if segments.size() > 0:
         # 检查是否是连续的分段
@@ -191,19 +176,13 @@ func phrase_match(text: String) -> Array:
         var total_len = 0
         
         for seg in segments:
-            print("  Checking segment at pos", seg.start, ":", seg.segment)
             if seg.start != expected_pos:
-                print("    Not continuous, expected", expected_pos, "got", seg.start)
                 is_continuous = false
                 break
             if seg.matches.size() > 0:
                 chars.append(seg.best_match.char)
                 total_len += seg.length
                 expected_pos += seg.length
-                print("    Added char:", seg.best_match.char)
-        
-        print("Is continuous:", is_continuous)
-        print("Chars:", chars)
         
         # 只有连续的分段才添加组合结果
         if is_continuous and chars.size() > 1:
@@ -216,5 +195,4 @@ func phrase_match(text: String) -> Array:
                 })
                 seen_chars[combined_char] = true
     
-    print("Final results:", results.map(func(r): return r.char))
     return results
