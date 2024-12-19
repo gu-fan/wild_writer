@@ -61,3 +61,8 @@ func set_page_size(size: int) -> void:
 # 获取页面大小
 func get_page_size() -> int:
     return context.get_page_size()
+
+# 切换双拼模式
+func toggle_shuangpin() -> void:
+    matcher.shuangpin_enabled = not matcher.shuangpin_enabled
+    context.reset()

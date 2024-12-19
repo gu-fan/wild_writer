@@ -4,6 +4,7 @@ class_name PinyinMatcher
 var trie: PinyinTrie
 var fuzzy_rules: Dictionary
 var first_letter_cache = {}
+var shuangpin_enabled: bool = false
 
 func _init():
     trie = PinyinTrie.new()
@@ -69,9 +70,15 @@ func update_candidates(context: CompositionContext) -> void:
     var matched_lengths = []
     var seen_chars = {}
     
+    # 如果启用了双拼，先转换为全拼
+    var search_text = context.buffer
+    if shuangpin_enabled:
+        var pinyin_array = ShuangpinScheme.convert_to_pinyin(context.buffer)
+        search_text = "".join(pinyin_array)
+    
     # 1. 如果是单个字母，使用first_letter_cache并只匹配单字
-    if context.buffer.length() == 1:
-        var first_letter = context.buffer[0]
+    if search_text.length() == 1:
+        var first_letter = search_text[0]
         if first_letter in first_letter_cache:
             var cache_entries = first_letter_cache[first_letter].full
             for entry in cache_entries:
@@ -85,8 +92,8 @@ func update_candidates(context: CompositionContext) -> void:
                     matched_lengths.append(1)
                     seen_chars[entry.char] = true
     else:
-        # 2. 尝试完整匹配（包括多字词组）
-        var full_matches = trie.search(context.buffer)
+        # 2. 尝试完整匹配
+        var full_matches = trie.search(search_text)
         for match in full_matches:
             if not match.char in seen_chars:
                 matches.append(match)
@@ -183,7 +190,7 @@ func _generate_fuzzy_variants(input: String) -> Array:
     
     return variants
 
-# 初��化模糊音规则
+# 初始化模糊音规则
 func _init_fuzzy_rules() -> void:
     fuzzy_rules = {
         "initials": {
@@ -232,7 +239,7 @@ func _get_initial(syllable: String) -> String:
             return i
     return syllable[0] if not syllable.is_empty() else ""
 
-# ��助函数：获取韵母
+# 辅助函数：获取韵母
 func _get_final(syllable: String) -> String:
     # 简单实现，需要完善
     var initial = _get_initial(syllable)
