@@ -73,3 +73,5 @@ func update_settings(settings: Dictionary) -> void:
         set_page_size(settings.page_size)
     if "shuangpin" in settings:
         matcher.shuangpin_enabled = settings.shuangpin
+    if "fuzzy" in settings:
+        matcher.fuzzy_enabled = settings.fuzzy

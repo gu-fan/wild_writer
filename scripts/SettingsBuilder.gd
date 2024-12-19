@@ -25,11 +25,14 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
     # 设置标签
     item.get_node("Label").text = config.get("label", key)
     
+    # 获取当前值
+    var current_value = SettingManager.get_setting(section, key)
+    
     # 根据类型创建控制器
     match config.type:
         "bool":
             var checkbox = CheckButton.new()
-            checkbox.button_pressed = config.default
+            checkbox.button_pressed = current_value  # 使用当前值
             checkbox.toggled.connect(
                 func(pressed): SettingManager.set_setting(section, key, pressed)
             )
@@ -39,7 +42,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             var spinbox = SpinBox.new()
             spinbox.min_value = config.get("min", 0)
             spinbox.max_value = config.get("max", 100)
-            spinbox.value = config.default
+            spinbox.value = current_value  # 使用当前值
             spinbox.value_changed.connect(
                 func(value): SettingManager.set_setting(section, key, value)
             )
@@ -47,7 +50,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             
         "shortcut":
             var button = Button.new()
-            button.text = config.default
+            button.text = SettingManager.get_key_shown(current_value)  # 使用当前值
             button.custom_minimum_size.x = 100
             button.pressed.connect(
                 func(): _setup_shortcut(button, section, key)

@@ -50,7 +50,8 @@ var _default_settings = {
         "page_size": 5,
         "switch_ime_key": "Shift+Escape",
         "prev_page_key": "BracketLeft",
-        "next_page_key": "BracketRight"
+        "next_page_key": "BracketRight",
+        "fuzzy": 0,
     },
 }
 
@@ -127,6 +128,11 @@ const SETTINGS_CONFIG = {
             "type": "bool",
             "default": false,
             "label": "启用双拼"
+        },
+        "fuzzy": {
+            "type": "bool",
+            "default": false,
+            "label": "启用模糊音"
         },
         # "switch_ime_key": {
         #     "type": "shortcut",

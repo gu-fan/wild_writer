@@ -5,6 +5,7 @@ var trie: PinyinTrie
 var fuzzy_rules: Dictionary
 var first_letter_cache = {}
 var shuangpin_enabled: bool = false
+var fuzzy_enabled: bool = false # 添加模糊音开关
 
 func _init():
     trie = PinyinTrie.new()
@@ -112,8 +113,8 @@ func update_candidates(context: CompositionContext) -> void:
                     seen_chars[match.char] = true
         
         # 4. 添加模糊音匹配
-        if not fuzzy_rules.is_empty():  # 只在启用模糊音时执行
-            var fuzzy_matches = _get_fuzzy_matches(context.buffer)
+        if fuzzy_enabled and not fuzzy_rules.is_empty():  # 只在启用模糊音且有规则时执行
+            var fuzzy_matches = _get_fuzzy_matches(search_text)
             for match in fuzzy_matches:
                 if not match.char in seen_chars:
                     matches.append(match)
@@ -151,18 +152,67 @@ func update_candidates(context: CompositionContext) -> void:
 func _contains_char(matches: Array, char: String) -> bool:
     return matches.any(func(m): return m.char == char)
 
-# 获取模糊音匹配
+# 改进模糊音匹配
 func _get_fuzzy_matches(input: String) -> Array:
     var matches = []
     var variants = _generate_fuzzy_variants(input)
     
+    # 对每个变体按权重排序
     for variant in variants:
         var fuzzy_matches = trie.search(variant)
+        
         for item in fuzzy_matches:
-            item.freq *= 0.8  # 降低模糊音匹配的权重
+            item.freq *= 0.8
             matches.append(item)
     
     return matches
+
+func _split_syllables(input: String) -> Array:
+    var syllables = []
+    var pos = 0
+    
+    while pos < input.length():
+        # 尝试匹配最长的可能音节
+        var found = false
+        for len in range(6, 0, -1):  # 从最长的可能拼音开始尝试
+            if pos + len > input.length():
+                continue
+                
+            var segment = input.substr(pos, len)
+            # 检查是否是有效拼音
+            if _is_valid_syllable(segment):
+                syllables.append(segment)
+                pos += len
+                found = true
+                break
+        
+        if not found:
+            # 如果没找到有效音节，移动到下一个位置
+            pos += 1
+    
+    return syllables
+
+
+# 检查是否是有效拼音音节
+func _is_valid_syllable(syllable: String) -> bool:
+    var initial = _get_initial(syllable)
+    var final = _get_final(syllable)
+    
+    # 检查声母和韵母组合是否有效
+    return _is_valid_initial(initial) and _is_valid_final(final)
+
+# 检查声母是否有效
+func _is_valid_initial(initial: String) -> bool:
+    var valid_initials = ["b", "p", "m", "f", "d", "t", "n", "l", "g", "k", "h", 
+                         "j", "q", "x", "zh", "ch", "sh", "r", "z", "c", "s", "y", "w"]
+    return initial.is_empty() or initial in valid_initials
+
+# 检查韵母是否有效
+func _is_valid_final(final: String) -> bool:
+    var valid_finals = ["a", "o", "e", "i", "u", "v", "ai", "ei", "ui", "ao", "ou", 
+                       "iu", "ie", "ve", "er", "an", "en", "in", "un", "vn", "ang", 
+                       "eng", "ing", "ong", "ian", "uan", "van", "iang", "uang", "iong"]
+    return final in valid_finals
 
 # 生成模糊音变体
 func _generate_fuzzy_variants(input: String) -> Array:
@@ -194,19 +244,21 @@ func _generate_fuzzy_variants(input: String) -> Array:
 func _init_fuzzy_rules() -> void:
     fuzzy_rules = {
         "initials": {
+            # 声母模糊音规则
             "z": ["zh"],
             "zh": ["z"],
             "c": ["ch"],
             "ch": ["c"],
             "s": ["sh"],
             "sh": ["s"],
-            "l": ["n"],
+            "l": ["n"],  # 南北方差异
             "n": ["l"],
             "r": ["l"],
             "h": ["f"],
-            "f": ["h"]
+            "f": ["h"],
         },
         "finals": {
+            # 韵母模糊音规则
             "an": ["ang"],
             "ang": ["an"],
             "en": ["eng"],
@@ -216,7 +268,7 @@ func _init_fuzzy_rules() -> void:
             "ian": ["iang"],
             "iang": ["ian"],
             "uan": ["uang"],
-            "uang": ["uan"]
+            "uang": ["uan"],
         }
     }
 
@@ -225,11 +277,6 @@ func get_state() -> Dictionary:
     return {
         "fuzzy_enabled": not fuzzy_rules.is_empty()
     }
-
-# 辅助函数：拼音分割（需要实现）
-func _split_syllables(input: String) -> Array:
-    # TODO: 实现拼音分割逻辑
-    return [input]
 
 # 辅助函数：取声母
 func _get_initial(syllable: String) -> String:
@@ -250,3 +297,4 @@ func _replace_syllable(input: String, syllables: Array, index: int, new_syllable
     var result = syllables.duplicate()
     result[index] = new_syllable
     return "".join(result)
+
