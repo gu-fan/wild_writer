@@ -147,36 +147,36 @@ func gui_input(event):
             ime.toggle_ime()
             get_viewport().set_input_as_handled()
         elif last_key.to_lower() in ['up', 'down', 'right', 'left']:
-            _scf(last_key)
+            _show_char_force(last_key)
             pitch_increase -= 1.0
         elif last_key.to_lower() in ['ctrl+c', 'cmd+c']:
             var selected = editor.get_selected_text()
             DisplayServer.clipboard_set(selected)
             if OS.get_name() == 'Linux':
                 DisplayServer.clipboard_set_primary(selected)
-            _scf(last_key)
+            _show_char_force(last_key)
             get_viewport().set_input_as_handled()
         elif last_key.to_lower() in ['ctrl+x', 'cmd+x']:
             var selected = editor.get_selected_text()
             DisplayServer.clipboard_set(selected)
             if OS.get_name() == 'Linux':
                 DisplayServer.clipboard_set_primary(selected)
-            _scf(last_key)
+            _show_char_force(last_key)
             editor.backspace()
             get_viewport().set_input_as_handled()
         elif last_key.to_lower() in ['ctrl+v', 'cmd+v']:
             editor.insert_text_at_caret(DisplayServer.clipboard_get())
-            _scf(last_key)
+            _show_char_force(last_key)
             skip_effect = true
             get_viewport().set_input_as_handled()
         elif last_key.to_lower() in ['ctrl+a', 'cmd+a']:
             editor.select_all()
-            _scf(last_key)
+            _show_char_force(last_key)
             get_viewport().set_input_as_handled()
         elif last_key.to_lower() in ['ctrl+z', 'cmd+z']:
             editor.undo()
             editors[editor]["text"] = editor.text
-            _scf(last_key)
+            _show_char_force(last_key)
             get_viewport().set_input_as_handled()
         elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'new_file'): 
             get_viewport().set_input_as_handled()
@@ -199,8 +199,8 @@ func _otc():
         if caret_line==o:
             is_single_letter=false
             last_key=last_line.substr(p,caret_col-p)
-            _smc(last_key)
-            _imc(last_key)
+            _show_multi_char(last_key)
+            _incr_multi_combo(last_key)
             emit_signal('typing')
             update_editor_stats()
             last_key=''
@@ -214,6 +214,8 @@ func _process(delta):
     else:
         editor.position = Vector2.ZERO
     
+    # var ime_text = DisplayServer.ime_get_text()
+    # print('ime', ime_text)
     timer += delta
     b_timer += delta
     if (pitch_increase > 0.0):
@@ -240,52 +242,89 @@ func text_changed(textedit : TextEdit):
     await get_tree().process_frame
     _tc(textedit)
 
-func _tc(t:TextEdit):
-    if skip_effect:return 
-    var l=t.get_line_height()
-    var p=_gfcp()+Vector2(0,-l/2.0)
+func _tc(textedit:TextEdit):
+    if skip_effect: return 
+    var line_height = textedit.get_line_height()
+    var pos = textedit.get_caret_draw_pos() + Vector2(0,-line_height/2.0)
     emit_signal("typing")
-    var u=0
-    if editors.has(t):
-        var d=len(t.text)-len(editors[t]["text"])
-        if b_timer>.1 and d<0:
-            u=1;b_timer=0;_dc(abs(d)*3)
+    
+    var is_text_updated = false
+    if editors.has(textedit):
+
+        var len_d = len(textedit.text) - len(editors[textedit]["text"])
+
+        # Deleting
+        if b_timer > 0.1 and len_d < 0:
+            is_text_updated = true
+            b_timer = 0.0
+            _dc(abs(len_d)*3)
+            
             if effects.delete:
-                var b=Boom.instantiate()
-                b.position=p;b.destroy=1;b.last_key=last_key
-                b.audio=effects.audio;b.blips=effects.particles
-                b.chars=effects.chars
-                t.add_child(b)
-                if effects.shake:_ss(.2,12)
-        if timer>.02 and d>0:
-            u=1;timer=0
-            if last_key!='Ctrl+V'and last_key!='Ctrl+Y':
-                _ic(d*(3 if!is_single_letter else 1))
-            if effects.chars:
-                var b=Blip.instantiate()
-                b.pitch_increase=pitch_increase
-                pitch_increase=min(pitch_increase+1,999)
-                b.position=p;b.destroy=1;b.last_key=last_key
-                b.audio=effects.audio;b.blips=effects.particles
-                t.add_child(b)
+                # Draw the thing
+                var thing = Boom.instantiate()
+                thing.position = pos
+                thing.destroy = true
+                thing.last_key = last_key
+                thing.audio = effects.audio
+                thing.blips = effects.particles
+                textedit.add_child(thing)
+                    
+                if effects.shake:
+                    _ss(0.2, 12)
+        
+        # Typing
+        if timer > 0.02 and len_d > 0:
+            is_text_updated = true
+            timer = 0.0
+            if last_key != 'Ctrl+V' and last_key != 'Ctrl+Y':
+                if is_single_letter:
+                    _ic(len_d)
+                else:
+                    _ic(len_d*3) # average is 4
+
+            
+            # Draw the thing
+            if effects.chars: 
+                var thing = Blip.instantiate()
+                thing.pitch_increase = pitch_increase
+                pitch_increase += 1.0
+                pitch_increase = min(pitch_increase, 999)
+                thing.position = pos
+                thing.destroy = true
+                thing.audio = effects.audio
+                thing.blips = effects.particles
+                thing.last_key = last_key
+                textedit.add_child(thing)
+            
             if effects.shake:
                 match font_size:
+					# _ss(0.05, 6)
                     0: _ss(0.04, 3)
                     1: _ss(0.04, 4)
                     2: _ss(0.05, 5)
                     3: _ss(0.05, 6)
-        if t.get_caret_line()!=editors[t]["line"]:
-            u=1
+            
+        # Newline
+        if textedit.get_caret_line() != editors[textedit]["line"]:
+            is_text_updated = true
+            # Draw the thing
             if effects.newline:
-                var n=Newline.instantiate()
-                n.position=p;n.destroy=1;n.caret_col=caret_col
-                n.last_key=last_key;t.add_child(n);_fc(p)
-            if effects.shake:_ss(.08,8)
-    if u:editors[t]["text"]=t.text
-    editors[t]["line"]=t.get_caret_line()
+                var thing = Newline.instantiate()
+                thing.position = pos 
+                thing.destroy = true
+                thing.caret_col = caret_col
+                thing.last_key = last_key
+                textedit.add_child(thing)
+
+                _fc(pos)
+            if effects.shake:
+                _ss(0.08, 8)
+    
+    if is_text_updated: editors[textedit]["text"] = textedit.text
+    editors[textedit]["line"] = textedit.get_caret_line()
     update_gutter()
 # ---------------------
-func _imc(s, mul=3):
+func _incr_multi_combo(s, mul=3):
     var n = s.length()
     var t = 0.18 + (0.34 if n > 7 else n * 0.04)
     var i = 0
@@ -293,7 +332,7 @@ func _imc(s, mul=3):
         _ic(1 if _is_ascii(k) else mul, t * i / n)
         i += 1
 
-func _smc(s: String, f: bool = false) -> void:
+func _show_multi_char(s: String, f: bool = false) -> void:
     var l = s.length()
     var t = 0.18 + (0.34 if l > 7 else l * 0.04)
     var h = editor.get_line_height() * 0.25
@@ -301,10 +340,10 @@ func _smc(s: String, f: bool = false) -> void:
     var o = []
     for c in s: x += h * (2 if c.unicode_at(0) > 127 else 1); o.append(x)
     var p = editor.get_caret_draw_pos() + Vector2(0, -editor.get_line_height()/2.0) + Vector2(x, 0) if f else Vector2.ZERO
-    for i in l: _scf(s[i], t * i / l, -x + o[i], p)
+    for i in l: _show_char_force(s[i], t * i / l, -x + o[i], p)
 
 
-func _scf(t, d=0.0, x=0, p=Vector2.ZERO):
+func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO):
     await get_tree().process_frame
     if p == Vector2.ZERO:
         var line_height = editor.get_line_height()
@@ -344,9 +383,8 @@ func feed_ime_input(key):
 
     editor.insert_text_at_caret(key)
     await get_tree().process_frame
-    # _smc(key, true)
-    _smc(key)
-    _imc(key)
+    _show_multi_char(key)
+    _incr_multi_combo(key)
     emit_signal('typing')
     update_editor_stats()
 
@@ -445,3 +483,7 @@ func _gfcp():
     var lh = editor.get_line_height()
     if caret_col == 0 and caret_line != 0: cp.y += lh * 0.45
     return cp
+
+func _notification(what):
+    if what == NOTIFICATION_OS_IME_UPDATE:
+        print('note ime:', DisplayServer.ime_get_text())

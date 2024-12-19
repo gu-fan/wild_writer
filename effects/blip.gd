@@ -1,36 +1,105 @@
 extends Node2D
 
-var destroy=false
-var last_key=""
-var pitch_increase=0.0
-var audio=true
-var blips=true
+var destroy: bool = false
+var last_key: String = ""
+var pitch_increase: float = 0.0
+var audio: bool = true
+var blips: bool = true
 
-@onready var s=$AudioStreamPlayer
-@onready var n=$AnimatedSprite2D
-@onready var g=$GPUParticles2D
-@onready var t=$Timer
-@onready var l=$Label
+@onready var audio_stream_player: AudioStreamPlayer2D = $AudioStreamPlayer
+@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
+@onready var gpu_particle_2d: GPUParticles2D = $GPUParticles2D
+@onready var timer: Timer = $Timer
+@onready var label: Label = $Label
 
-var char_offset=Vector2.ZERO
+var char_offset: Vector2 = Vector2.ZERO
 
 func _ready():
-    var f=SettingManager.get_basic_setting("font_size")
-    var e=1
-    if f==2:e=1.5
-    elif f==3:e=2
-    if audio:s.pitch_scale=1.0+pitch_increase*.01;s.play()
-    if blips:
-        n.frame=0;n.play("default")
-        TwnLite.at(n).tween({prop='modulate:a',from=1.0,to=0.0,dur=0.2,delay=0.2,ease=1,trans=1})
-    else:
-        n.hide()
-    t.start()
-    var r=last_key=='Enter'
-    if last_key=='Space':l.text='_'
-    elif last_key=='Enter':l.text='Enter'
-    else:l.text=SettingManager.get_key_shown_shift(last_key)
-    var c=Color.from_hsv(0.4+Rnd.rangef(0.2),0.8,1.0)
-    TwnLite.at(l).tween({prop='modulate',from=c,to=Color('FFFFFF'),dur=0.4,parallel=true}).tween({prop='scale',from=Vector2(1,1)*e,to=Vector2(3,3)*e,dur=0.3,parallel=true}).tween({prop='position',from=Vector2(-35+20,-60)+char_offset,to=Vector2(-35+140,-110)*e+char_offset if r else Vector2(-35-100,-110)*e+char_offset,dur=0.6,parallel=true,ease=1,trans=1}).tween({target=n,prop='scale',from=Vector2(1,1)*e,to=Vector2(5,5)*e,dur=0.6,parallel=true}).tween({prop='modulate',from=Color.WHITE,to=Color('FFFFFF00'),dur=0.4,parallel=true,delay=0.55})
 
-func _on_Timer_timeout():if destroy:queue_free()
+    var font_size = SettingManager.get_basic_setting("font_size")
+    var extra_scale = 1
+    if font_size == 2: 
+        extra_scale = 1.5
+    elif font_size == 3: 
+        extra_scale = 2
+
+    if audio:
+        audio_stream_player.pitch_scale = 1.0 + pitch_increase * 0.01
+        audio_stream_player.play()
+    
+    if blips:
+        animated_sprite_2d.frame = 0
+        animated_sprite_2d.play("default")
+        gpu_particle_2d.emitting = true
+        gpu_particle_2d.process_material.scale_min = 4 * extra_scale
+        gpu_particle_2d.process_material.scale_max = 4 * extra_scale
+        gpu_particle_2d.process_material.initial_velocity_min = 300 + 25 * font_size
+        gpu_particle_2d.process_material.initial_velocity_max = 400 + 25 * font_size
+
+        TwnLite.at(animated_sprite_2d).tween({
+            prop='modulate:a',
+            from=1.0,
+            to=0.0,
+            dur=0.2,
+            delay=0.2,
+            ease=Tween.EASE_OUT,
+            trans=Tween.TRANS_QUAD,
+        })
+    else:
+        animated_sprite_2d.hide()
+    
+    timer.start()
+
+    var move_right = false
+    if last_key == 'Enter': 
+        move_right = true
+    if last_key == 'Space':
+        label.text = '_'
+    elif last_key == 'Enter':
+        label.text = 'Enter'
+    else:
+        label.text = SettingManager.get_key_shown_shift(last_key)
+
+    label.set("theme_override_font_sizes/font_size", 96)
+
+    var clr_to =Color.from_hsv(0.4 + Rnd.rangef(0.2), 0.8, 1.0)
+    TwnLite.at(label).tween({
+        prop='modulate',
+        from=clr_to,
+        to=Color('FFFFFF'),
+        dur=0.4,
+        parallel=true,
+    }).tween({
+        prop='scale',
+        from=Vector2(.3, .3)*extra_scale,
+        to=Vector2(1, 1)*extra_scale,
+        dur=0.3,
+        parallel=true,
+    }).tween({
+        prop='position',
+        from=Vector2(-35+20, -60) + char_offset,
+        to=Vector2(-35-120, -110)*extra_scale + char_offset if !move_right else Vector2(-35+160, -110)*extra_scale + char_offset,
+        dur=0.8,
+        parallel=true,
+        ease=Tween.EASE_OUT,
+        trans=Tween.TRANS_SINE,
+    }).tween({
+        target=animated_sprite_2d,
+        prop='scale',
+        from=Vector2(1, 1)*extra_scale,
+        to=Vector2(5, 5)*extra_scale,
+        dur=0.6,
+        parallel=true,
+    }).tween({
+        prop='modulate',
+        from=Color.WHITE,
+        to=Color('FFFFFF00'),
+        dur=0.5,
+        parallel=true,
+        delay=0.45,
+    })
+
+
+func _on_Timer_timeout():
+    if destroy:
+        queue_free()

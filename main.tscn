@@ -52,7 +52,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_s5xe6")
 theme_override_styles/focus = SubResource("StyleBoxFlat_s5xe6")
 theme_override_styles/read_only = SubResource("StyleBoxFlat_s5xe6")
 placeholder_text = "                          
-							Wild Writer    0.0.2
+							WildWriter    0.0.2
 
 							你可以直接开始打字了
 "
