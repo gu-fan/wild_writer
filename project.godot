@@ -19,7 +19,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-TinyIME="*res://scripts/TinyIME.gd"
+TinyIME="*res://scripts/ime/TinyIME.gd"
 SettingManager="*res://scripts/SettingManager.gd"
 
 [display]

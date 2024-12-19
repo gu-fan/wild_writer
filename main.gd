@@ -185,7 +185,7 @@ func _on_setting_changed():
 
 func _update_input_settings():
 
-    ime.page_size =  SettingManager.get_ime_setting('page_size')
+    ime.page_size = SettingManager.get_ime_setting('page_size')
     ime_button.visible = SettingManager.get_ime_setting('show_icon')
 
 func _update_placeholder():
@@ -295,7 +295,7 @@ func show_hint(txt):
 func _toggle_setting():
     settings.visible = !settings.visible
     if settings.visible:
-        ime.reset_ime()
+        ime.reset()
         ime.disabled = true
         editor_man.editor.editable = false
         editor_man.editor.release_focus()

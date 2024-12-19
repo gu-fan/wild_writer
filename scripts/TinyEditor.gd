@@ -68,7 +68,7 @@ func init():
     add_child(ime_display)
 
     ime_display.feed_ime_input.connect(feed_ime_input)
-    ime_button.pressed.connect(ime.toggle_ime)
+    ime_button.pressed.connect(ime.toggle)
     ime.ime_state_changed.connect(func(v):
         if v:
             ime_button.text = 'CN'
@@ -144,7 +144,7 @@ func gui_input(event):
         is_single_letter = true
         skip_effect = false
         if SettingManager.is_match_shortcut(last_key, 'ime', 'switch_ime_key'):
-            ime.toggle_ime()
+            ime.toggle()
             get_viewport().set_input_as_handled()
         elif last_key.to_lower() in ['up', 'down', 'right', 'left']:
             _show_char_force(last_key)
@@ -298,7 +298,7 @@ func _tc(textedit:TextEdit):
             
             if effects.shake:
                 match font_size:
-					# _ss(0.05, 6)
+                    # _ss(0.05, 6)
                     0: _ss(0.04, 3)
                     1: _ss(0.04, 4)
                     2: _ss(0.05, 5)

@@ -34,18 +34,18 @@ func _ready():
     pinyin_label.set("theme_override_font_sizes/font_size", _font_size_actual)
 
 func _process(_delta):
-    var state = ime.get_current_state()
-    pinyin_label.text = state.pinyin
+    var state = ime.get_state()
+    pinyin_label.text = state.buffer
     update_candidates_display(state.candidates)
 
-    panel.visible = !state.pinyin.is_empty()
+    panel.visible = !state.buffer.is_empty()
 
 func update_candidates_display(candidates: Array) -> void:
     # Clear existing candidates first
     for child in candidates_container.get_children():
         child.queue_free()
     
-    var state = ime.get_current_state()
+    var state = ime.get_state()
     var start_idx = state.current_page * state.page_size
     var end_idx = min(start_idx + state.page_size, candidates.size())
     
@@ -79,7 +79,4 @@ func update_candidates_display(candidates: Array) -> void:
         candidates_container.add_child(next_label)
 
 func _on_ime_text_changed(text: String) -> void:
-    # 处理选中的文字
-    # print(text)
-    # editor.feed_ime_input()
     emit_signal('feed_ime_input', text)

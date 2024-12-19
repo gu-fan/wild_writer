@@ -23,45 +23,13 @@ var current_page: int = 0
 # 添加字母缓存字典
 var pinyin_dict_cache = {}
 
+# 添加Trie树成员
+var pinyin_trie: PinyinTrie
+
 func _ready():
-    _lpd()
+    pinyin_trie = PinyinTrie.new()
+    _load_pinyin_dict()
     _bpc()
-
-func _lpd():
-    var file = FileAccess.open("res://scripts/google_pinyin.txt", FileAccess.READ)
-    if not file:
-        print("Failed to load pinyin dictionary")
-        return
-    
-    while !file.eof_reached():
-        var line = file.get_line().strip_edges()
-        if line.is_empty() or line.begins_with("#"):
-            continue
-            
-        var parts = line.split(" ", false, 3)
-        if parts.size() < 4:
-            continue
-            
-        var char = parts[0]          # 汉字
-        var freq = parts[1].to_float() # 频率
-        var is_rare = parts[2] == "1" # 是否罕见
-        var pinyin = parts[3]         # 拼音
-        
-        if is_rare:
-            continue
-
-        # 移除拼音中的空格
-        pinyin = pinyin.replace(" ", "")
-        
-        # 存储汉字在特定拼音下的频率
-        if not char_frequencies.has(char):
-            char_frequencies[char] = {}
-        char_frequencies[char][pinyin] = freq
-        
-        # 添加到字典
-        if not pinyin_dict.has(pinyin):
-            pinyin_dict[pinyin] = []
-        pinyin_dict[pinyin].append(char)
 
 
 func _bpc():
@@ -111,7 +79,7 @@ func _hki(event: InputEventKey) -> void:
                 if pinyin_buffer.length() == 0:
                     reset_ime()
                 else:
-                    _uc()
+                    _update_candidates()
                 get_viewport().set_input_as_handled()
                 return
 
@@ -143,11 +111,11 @@ func _hki(event: InputEventKey) -> void:
     if key_string.length()==1 and key_string.is_valid_identifier():
         if pinyin_buffer.length()<15:
             pinyin_buffer+=key_string.to_lower()
-            _uc()
+            _update_candidates()
         get_viewport().set_input_as_handled()
 
 
-func _gsm(buffer:String)->Array:
+func _get_segment_matches(buffer:String)->Array:
     var segment_candidates = []
     
     # 只从开始位置尝试匹配，不再遍历所有位置
@@ -206,7 +174,7 @@ func _gsm(buffer:String)->Array:
     return segment_candidates
 
 
-func _gem(buffer:String)->Array:
+func _get_exact_matches(buffer:String)->Array:
     var exact_candidates = []
     if buffer in pinyin_dict:
         for char in pinyin_dict[buffer]:
@@ -221,7 +189,7 @@ func _gem(buffer:String)->Array:
     return exact_candidates
 
 
-func _gpm(buffer:String)->Array:
+func _get_prefix_matches(buffer:String)->Array:
     var prefix_candidates = []
     if buffer.length() > 0:
         var first_letter = buffer[0]
@@ -242,45 +210,35 @@ func _gpm(buffer:String)->Array:
                             })
     return prefix_candidates
 
-func _uc()->void:
+func _update_candidates()->void:
     candidates.clear()
     candidates_matched_lengths.clear()
     current_selection = 0
     current_page = 0
     
-    var candidates_with_freq = []
+    # 使用Trie树进行查找
+    var exact_matches = pinyin_trie.search(pinyin_buffer)
+    var prefix_matches = pinyin_trie.search_prefix(pinyin_buffer)
+    var segment_matches = pinyin_trie.segment_match(pinyin_buffer)
     
-    # 获取各种匹配结果
-    var exact_matches = _gem(pinyin_buffer)
-    var segment_matches = _gsm(pinyin_buffer)
-    var prefix_matches = _gpm(pinyin_buffer)
+    # 处理精确匹配
+    for match in exact_matches:
+        candidates.append(match["char"])
+        candidates_matched_lengths.append(match["pinyin"].length())
     
-    # 如果有精确匹配，优先添加精确匹配的结果
-    if exact_matches.size() > 0:
-        # 对精确匹配结果按频率排序
-        exact_matches.sort_custom(func(a, b): return a["freq"] > b["freq"])
-        candidates_with_freq.append_array(exact_matches)
-        
-        # 只有在没有足够的精确匹配时才添加其他匹配
-        if exact_matches.size() < page_size:
-            candidates_with_freq.append_array(segment_matches)
-            candidates_with_freq.append_array(prefix_matches)
-    else:
-        # 没有精确匹配时，添加所有其他匹配
-        candidates_with_freq.append_array(segment_matches)
-        candidates_with_freq.append_array(prefix_matches)
-        # 对所有结果按频率排序
-        candidates_with_freq.sort_custom(func(a, b): return a["freq"] > b["freq"])
+    # 处理分段匹配
+    for segment in segment_matches:
+        if segment["matches"].size() > 0:
+            var best_match = segment["matches"][0]
+            if not best_match["char"] in candidates:
+                candidates.append(best_match["char"])
+                candidates_matched_lengths.append(segment["length"])
     
-    # 提取排序后的汉字和对应的匹配长度
-    var _filled = []
-    for item in candidates_with_freq:
-        if item["char"] in _filled:
-            continue
-        _filled.append(item["char"])
-        candidates.append(item["char"])
-        candidates_matched_lengths.append(item["matched_length"])
-
+    # 处理前缀匹配
+    for match in prefix_matches:
+        if not match["char"] in candidates:
+            candidates.append(match["char"])
+            candidates_matched_lengths.append(match["pinyin"].length())
 
 func reset_ime() -> void:
     pinyin_buffer = ""
@@ -321,7 +279,7 @@ func _hcs(index: int) -> void:
             emit_signal("ime_text_changed", selected_char)
             var temp_buffer = remaining
             pinyin_buffer = temp_buffer
-            _uc()  # 更新候选列表
+            _update_candidates()  # 更新候选列表
             return
     
     # 如果是完全匹配或没有剩余部分
@@ -332,3 +290,30 @@ func h2f(u):
     return String.chr(u + 0xfee0)
 func f2h(u):
     return String.chr(u - 0xfee0)
+
+# 修改词典加载函数
+func _load_pinyin_dict():
+    var file = FileAccess.open("res://scripts/google_pinyin.txt", FileAccess.READ)
+    if not file:
+        print("Failed to load pinyin dictionary")
+        return
+    
+    while !file.eof_reached():
+        var line = file.get_line().strip_edges()
+        if line.is_empty() or line.begins_with("#"):
+            continue
+            
+        var parts = line.split(" ", false, 3)
+        if parts.size() < 4:
+            continue
+            
+        var char = parts[0]
+        var freq = parts[1].to_float()
+        var is_rare = parts[2] == "1"
+        var pinyin = parts[3].replace(" ", "")
+        
+        if is_rare:
+            continue
+        
+        # 使用Trie树存储
+        pinyin_trie.insert(pinyin, char, freq)
