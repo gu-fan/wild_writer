@@ -1,0 +1,55 @@
+[gd_scene load_steps=2 format=3 uid="uid://cbcxxvyi6tcc0"]
+
+[ext_resource type="Script" path="res://scripts/editor/EditorView.gd" id="1_editor_view"]
+
+[node name="EditorView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_editor_view")
+
+[node name="SplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PrimaryContainer" type="VBoxContainer" parent="SplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TextEdit" type="CodeEdit" parent="SplitContainer/PrimaryContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+wrap_mode = 1
+minimap_draw = true
+caret_blink = true
+highlight_current_line = true
+
+[node name="SecondaryContainer" type="VBoxContainer" parent="SplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TextEdit" type="CodeEdit" parent="SplitContainer/SecondaryContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+wrap_mode = 1
+minimap_draw = true
+caret_blink = true
+highlight_current_line = true
+
+[node name="StatusBar" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -26.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Ready"

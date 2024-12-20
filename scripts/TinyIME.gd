@@ -316,12 +316,3 @@ func _load_pinyin_dict():
         
         # 使用Trie树存储
         pinyin_trie.insert(pinyin, char, freq)
-
-# 更新设置
-func update_settings(settings: Dictionary) -> void:
-    if "show_icon" in settings:
-        is_icon_visible = settings.show_icon
-    if "page_size" in settings:
-        set_page_size(settings.page_size)
-    if "shuangpin" in settings:
-        matcher.shuangpin_enabled = settings.shuangpin
