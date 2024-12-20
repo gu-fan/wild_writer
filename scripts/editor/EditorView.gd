@@ -15,6 +15,7 @@ var CJK_SEPARATORS = "。，、；：！？''（）【】《》／＼｜～＠�
 @onready var status_bar: Label = $StatusBar
 
 var is_split_view: bool = false
+var is_swapped_view: bool = false
 var current_file_dialog: FileDialog = null  # 添加文件对话框引用
 var current_command_window: CommandWindow = null
 var last_focused_editor: CodeEdit = null  # 添加变量记录上一个焦点编辑器
@@ -66,9 +67,29 @@ var available_commands = {
         "description": "Save file",
         "action": "save"
     },
-    "v": {
+    "vv": {
         "description": "Toggle split view",
         "action": "toggle_split"
+    },
+    "vn": {
+        "description": "Go to next view",
+        "action": "next_view"
+    },
+    "vc": {
+        "description": "close view",
+        "action": "close_view"
+    },
+    "vs": {
+        "description": "swap view",
+        "action": "swap_view"
+    },
+    "v1": {
+        "description": "goto view 1",
+        "action": "goto_view_1"
+    },
+    "v2": {
+        "description": "goto view 2",
+        "action": "goto_view_2"
     },
     "f": {
         "description": "Find in file",
@@ -87,6 +108,9 @@ func _ready():
     # 设置命令处理器和快捷键
     setup_commands()
     setup_key_bindings()
+
+    text_edit.grab_focus()
+    last_focused_editor = text_edit
     
     # 检查是否需要自动打开最近的文件
     if core.config_manager.get_basic_setting("auto_open_recent"):
@@ -122,6 +146,28 @@ func setup_key_bindings() -> void:
         "save",
         "editorFocus"
     )
+
+    core.key_system.add_binding(
+        ["Ctrl+H"],
+        "move_left",
+        "editorFocus"
+    )
+    core.key_system.add_binding(
+        ["Ctrl+J"],
+        "move_down",
+        "editorFocus"
+    )
+    core.key_system.add_binding(
+        ["Ctrl+K"],
+        "move_up",
+        "editorFocus"
+    )
+    core.key_system.add_binding(
+        ["Ctrl+L"],
+        "move_right",
+        "editorFocus"
+    )
+    
     
     # 连接按键系统信号
     core.key_system.sequence_matched.connect(_on_key_sequence_matched)
@@ -137,6 +183,16 @@ func _on_key_sequence_matched(binding: KeySystem.KeyBinding) -> void:
             save_document()
         "toggle_split":
             toggle_split_view()
+        "next_view":
+            next_view()
+        "move_up":
+            move_up()
+        "move_down":
+            move_down()
+        "move_left":
+            move_left()
+        "move_right":
+            move_right()
 
 func show_command_window() -> void:
     # 如果已有窗口，就返回
@@ -177,7 +233,7 @@ func _on_command_executed(command: String) -> void:
     var count = 1
     var action_command = command
     
-    # 使用正则表达式匹配命令格式
+    # 使用正则表达式��配命令格式
     var regex = RegEx.new()
     regex.compile("^s?(\\d+)?([wbjk])$")  # 添加b到命令匹配
     var result = regex.search(command)
@@ -216,6 +272,16 @@ func _on_command_executed(command: String) -> void:
                     move_word_forward(count)
                 "b":
                     move_word_backward(count)
+    else:
+        print('command', command)
+        if command in available_commands:
+            match available_commands[command].action:
+                'toggle_split': toggle_split_view()
+                'next_view': next_view()
+                'close_view': close_view()
+                'swap_view': swap_view()
+                'goto_view_1': goto_view(1)
+                'goto_view_2': goto_view(2)
     
     # 关闭命令窗口
     if current_command_window:
@@ -264,21 +330,60 @@ func setup_commands() -> void:
     core.command_manager.register_command("save", save_document)
     core.command_manager.register_command("open", open_document)
     core.command_manager.register_command("toggle_split", toggle_split_view)
-    # ... 其他命令
 
 # 切换分屏
 func toggle_split_view() -> void:
     is_split_view = !is_split_view
     if is_split_view:
-        secondary_container.show()
-        # 如果主图有文，复制到第二视图
-        if core.document_manager.active_document:
-            text_edit_secondary.text = text_edit.text
+        if secondary_container.visible:
+            primary_container.show()
+            last_focused_editor = text_edit
+        else:
+            secondary_container.show()
+            last_focused_editor = text_edit_secondary
     else:
-        secondary_container.hide()
+        # secondary_container.hide()
+        if last_focused_editor == text_edit:
+            secondary_container.hide()
+        else:
+            primary_container.hide()
     
-    # 添加调试输出
-    print("Toggle split view:", is_split_view)
+
+func next_view() -> void:
+    if is_split_view:
+        if last_focused_editor == text_edit:
+            last_focused_editor = text_edit_secondary
+        else:
+            last_focused_editor = text_edit
+func close_view() -> void:
+    if is_split_view:
+        is_split_view = !is_split_view
+        if last_focused_editor == text_edit:
+            primary_container.hide()
+            last_focused_editor = text_edit_secondary
+        else:
+            secondary_container.hide()
+            last_focused_editor = text_edit
+
+func swap_view() -> void:
+    if is_split_view:
+        # swap the child index of primary_container and secondary_container
+        var secondary_index = secondary_container.get_index()
+        split_container.move_child(primary_container, secondary_index)
+        is_swapped_view = !is_swapped_view
+
+func goto_view(n=1) -> void:
+    if is_split_view:
+        if n == 1:
+            if is_swapped_view:
+                last_focused_editor = text_edit_secondary
+            else:
+                last_focused_editor = text_edit
+        else:
+            if is_swapped_view:
+                last_focused_editor = text_edit
+            else:
+                last_focused_editor = text_edit_secondary
 
 # 处理文档变化
 func _on_document_changed(doc: DocumentManager.Document, target_editor: CodeEdit = text_edit) -> void:
@@ -365,20 +470,20 @@ func _on_editor_gui_input(event: InputEvent, editor: CodeEdit) -> void:
         if event.ctrl_pressed:
             return
             
-        # 直接处理按键输入
-        if event.unicode != 0:
-            editor.insert_text_at_caret(char(event.unicode))
-        else:
-            # 处理特殊按键（如退格、回车等）
-            match event.keycode:
-                KEY_BACKSPACE:
-                    editor.backspace()
-                KEY_ENTER:
-                    editor.insert_text_at_caret("\n")
-                KEY_TAB:
-                    editor.insert_text_at_caret("\t")
-                KEY_DELETE:
-                    editor.delete()
+        # # 直接处理按键输入
+        # if event.unicode != 0:
+        #     editor.insert_text_at_caret(char(event.unicode))
+        # else:
+        #     # 处理特殊按键（如退格、回车等）
+        #     match event.keycode:
+        #         KEY_BACKSPACE:
+        #             editor.backspace()
+        #         KEY_ENTER:
+        #             editor.insert_text_at_caret("\n")
+        #         KEY_TAB:
+        #             editor.insert_text_at_caret("\t")
+        #         KEY_DELETE:
+        #             editor.delete()
 
 # 添加新的命令处理函数
 func close_document() -> void:
@@ -786,3 +891,31 @@ func save_document_as() -> void:
     if file_path:
         current_file_path = file_path
         save_document()
+
+# 添加向左移动函数
+func move_left(count: int = 1) -> void:
+    if last_focused_editor:
+        var current_column = last_focused_editor.get_caret_column()
+        # 在当前行内移动，不跨行
+        current_column = maxi(0, current_column - count)
+        
+        # 更新光标位置
+        last_focused_editor.set_caret_column(current_column)
+        
+        # 确保光标可见
+        last_focused_editor.center_viewport_to_caret()
+
+# 添加向右移动函数
+func move_right(count: int = 1) -> void:
+    if last_focused_editor:
+        var current_column = last_focused_editor.get_caret_column()
+        var line_length = last_focused_editor.get_line(last_focused_editor.get_caret_line()).length()
+        
+        # 在当前行内移动，不跨行
+        current_column = mini(line_length, current_column + count)
+        
+        # 更新光标位置
+        last_focused_editor.set_caret_column(current_column)
+        
+        # 确保光标可见
+        last_focused_editor.center_viewport_to_caret()
