@@ -31,7 +31,8 @@ var _default_settings = {
         "open_file": "Ctrl+O",
         "save_file": "Ctrl+S",
         "open_setting": "Ctrl+Apostrophe",
-        "switch_effect": "Ctrl+Slash"
+        "switch_effect": "Ctrl+Slash",
+        "split_view": "Ctrl+B",
     },
     "effect": {
         "level": 1,

@@ -27,6 +27,10 @@ SettingManager="*res://scripts/SettingManager.gd"
 window/size/viewport_width=1728
 window/size/viewport_height=972
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
 [gui]
 
 theme/custom="res://assets/default_theme.tres"

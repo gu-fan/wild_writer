@@ -4,8 +4,8 @@ extends CanvasLayer
 signal typing
 
 @onready var ime = TinyIME
-@onready var editor: TextEdit = $Control/MarginContainer/VBoxContainer/TextEdit
-@onready var pad: Control = $Control/MarginContainer/VBoxContainer/Padding
+@onready var editor: TextEdit = $Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer/TextEdit
+@onready var pad: Control = $Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer/Padding
 
 const Boom: PackedScene = preload("res://effects/boom.tscn")
 const Combo: PackedScene = preload("res://effects/combo.tscn")
@@ -49,6 +49,12 @@ var caret_col = 0
 var caret_line = 0
 var is_single_letter = true
 
+
+var is_split_view: bool = false
+@onready var editor_secondary: TextEdit = $Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer2/TextEdit
+@onready var pad_secondary: Control = $Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer2/Padding
+@onready var splitter: HSplitContainer = $Control/MarginContainer/VBoxContainer/VSplitContainer
+
 func _ready():
     var b = Boom.instantiate()
     b.audio = false
@@ -82,6 +88,30 @@ func init():
 
     editor.caret_changed.connect(update_ime_position)
     setup_editor([editor])
+    setup_split_container()
+
+
+func setup_split_container():
+    # Create secondary editor when needed
+    # if not editor_secondary:
+        # editor_secondary = editor.duplicate()
+        # editor_secondary.text = editor.text
+        # editor_secondary.hide()
+        # splitter.add_child(editor_secondary)
+    setup_editor([editor_secondary])  # Setup effects and handlers
+
+func toggle_split_view():
+    is_split_view = !is_split_view
+    if is_split_view:
+        # Show split view
+        editor_secondary.show()
+        editor_secondary.text = editor.text
+        # Sync scroll positions
+        editor_secondary.scroll_vertical = editor.scroll_vertical
+        editor_secondary.scroll_horizontal = editor.scroll_horizontal
+    else:
+        # Hide split view
+        editor_secondary.hide()
 
 func update_ime_position():
     if ime_display and ime_display.visible:
@@ -179,6 +209,9 @@ func gui_input(event):
             editors[editor]["text"] = editor.text
             _show_char_force(last_key)
             get_viewport().set_input_as_handled()
+        elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'split_view'): 
+            toggle_split_view()
+            get_viewport().set_input_as_handled()
         elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'new_file'): 
             get_viewport().set_input_as_handled()
         elif SettingManager.is_match_shortcut(last_key, 'shortcut', 'open_file'): 
@@ -239,7 +272,7 @@ func caret_changed(textedit):
 
 func text_changed(textedit : TextEdit):
     
-    center_viewport_to_caret()
+    center_viewport_to_caret(textedit)
     # _tc.call_deferred(textedit)
     await get_tree().process_frame
     _tc(textedit)
@@ -516,31 +549,43 @@ func _notification(what):
         # print('note ime:', DisplayServer.ime_get_text())
         pass
 
-func center_viewport_to_caret():
+func center_viewport_to_caret(textedit:TextEdit):
     # Get current caret line with wrap
-    var caret_line = editor.get_caret_line() + editor.get_caret_wrap_index()
+    var caret_line = textedit.get_caret_line() + textedit.get_caret_wrap_index()
     
     # Calculate lines below caret
-    var visible_lines = editor.get_visible_line_count()
-    var first_visible = editor.get_first_visible_line()
+    var visible_lines = textedit.get_visible_line_count()
+    var first_visible = textedit.get_first_visible_line()
     var lines_below_caret = visible_lines - (caret_line - first_visible) - 1
     
     # Calculate remaining lines in file
-    var total_lines = editor.get_line_count()
+    var total_lines = textedit.get_line_count()
     var lines_remaining = total_lines - (caret_line + 1)
     var required_empty_lines = 3
+
+    var _pad = pad if textedit == editor else pad_secondary
     
     # Adjust padding if near file end
     if lines_remaining < required_empty_lines:
-        var line_height = editor.get_line_height()
+        var line_height = textedit.get_line_height()
         var extra_padding = (required_empty_lines - lines_remaining - 1) * line_height
-        pad.custom_minimum_size = Vector2(10, extra_padding)
+        _pad.custom_minimum_size = Vector2(10, extra_padding)
     else:
-        pad.custom_minimum_size = Vector2(10, 0)
+        _pad.custom_minimum_size = Vector2(10, 0)
     
     # Only scroll if less than 3 lines below caret
     if lines_below_caret < required_empty_lines:
         # Calculate target line to be 2 lines from bottom
         var target_line = caret_line - (visible_lines - required_empty_lines)
         target_line = maxi(0, target_line)
-        editor.set_line_as_first_visible(target_line)
+        textedit.set_line_as_first_visible(target_line)
+
+func _hki(event: InputEventKey) -> void:
+    if event.pressed:
+        var key_string = OS.get_keycode_string(event.get_keycode_with_modifiers())
+        # Get raw keycode for IME comparison
+        var raw_keycode = event.get_keycode()
+        # Check if this is an IME composition key
+        if raw_keycode == KEY_SHIFT or raw_keycode == KEY_CTRL or raw_keycode == KEY_ALT:
+            return
+        # Rest of your existing code...

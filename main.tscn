@@ -43,7 +43,44 @@ theme_override_constants/margin_right = 5
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/MarginContainer"]
 layout_mode = 2
 
-[node name="TextEdit" type="TextEdit" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+[node name="VSplitContainer" type="HSplitContainer" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/VSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TextEdit" type="TextEdit" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer"]
+clip_contents = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/caret_width = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_s5xe6")
+theme_override_styles/focus = SubResource("StyleBoxFlat_s5xe6")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_s5xe6")
+placeholder_text = "                          
+							WildWriter    0.0.2
+
+							你可以直接开始打字了
+"
+wrap_mode = 1
+minimap_draw = true
+minimap_width = 40
+caret_blink = true
+caret_multiple = false
+highlight_current_line = true
+draw_spaces = true
+
+[node name="Padding" type="Control" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/VSplitContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TextEdit" type="TextEdit" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer2"]
 clip_contents = false
 layout_mode = 2
 size_flags_vertical = 3
@@ -62,7 +99,7 @@ caret_blink = true
 caret_multiple = false
 highlight_current_line = true
 
-[node name="Padding" type="Control" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+[node name="Padding" type="Control" parent="CanvasLayer/Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer2"]
 layout_mode = 2
 
 [node name="BottomPanel" type="ColorRect" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]

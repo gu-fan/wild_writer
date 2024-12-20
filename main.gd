@@ -119,6 +119,7 @@ func _load_auto_open_file():
                     editor_man.set_caret_line(SettingManager.get_basic_setting('backup_caret_line'))
                     editor_man.set_caret_column(SettingManager.get_basic_setting('backup_caret_col'))
 
+
                 else:
                     # 原文件更新，加载原文件
                     current_file_path = recent_file
@@ -231,6 +232,7 @@ func _input(event: InputEvent) -> void:
             var file_path = await file_manager.file_selected
             if file_path:
                 file_manager.open_file(editor, file_path)
+                file_manager.open_file(editor_man.editor_secondary, file_path)
                 current_file_path = file_path
                 show_hint(':opened %s' % current_file_path)
                 SettingManager.set_recent(current_file_path)
