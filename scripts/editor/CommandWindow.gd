@@ -12,12 +12,15 @@ var available_commands = {}
 # 添加正则表达式用于匹配数字前缀
 var number_regex: RegEx
 
-func _ready():
+func _ready() -> void:
     # 设置窗口属性
-    title = "Command"
+    title = ""
     size = Vector2(400, 200)
     unresizable = true
     exclusive = true
+    # borderless = true
+
+    # set_ime_active(false)
     
     # 初始化正则表达式
     number_regex = RegEx.new()
@@ -31,7 +34,10 @@ func _ready():
     command_list = $CommandList
     command_list.clear()
     setup_command_list()
-    
+
+    command_list.item_clicked.connect(_on_item_clicked)
+    close_requested.connect(_on_close_requested)
+
     # 确保窗口可以接收输入
     set_process_input(true)
     
@@ -54,32 +60,32 @@ func setup_command_list() -> void:
         command_list.add_item("%s - %s" % [cmd, available_commands[cmd].description])
     update_command_list("")
 
-func update_command_list(filter_text: String) -> void:
-    command_list.clear()
+# func update_command_list(filter_text: String) -> void:
+#     command_list.clear()
     
-    # 检查是否有数字前缀
-    var result = number_regex.search(filter_text)
-    var actual_filter = filter_text
+#     # 检查是否有数字前缀
+#     var result = number_regex.search(filter_text)
+#     var actual_filter = filter_text
     
-    if result:
-        # 保留数字前缀，但使用剩余部分进行过滤
-        var number = result.get_string(1)
-        var command_part = result.get_string(2)
-        actual_filter = command_part
+#     if result:
+#         # 保留数字前缀，但使用剩余部分进行过滤
+#         var number = result.get_string(1)
+#         var command_part = result.get_string(2)
+#         actual_filter = command_part
     
-    for cmd in available_commands:
-        if actual_filter.is_empty() or cmd.begins_with(actual_filter):
-            # 如果有数字前缀，在显示时保留
-            if result:
-                var number = result.get_string(1)
-                command_list.add_item("%s%s - %s" % [number, cmd, available_commands[cmd].description])
-            else:
-                command_list.add_item("%s - %s" % [cmd, available_commands[cmd].description])
+#     for cmd in available_commands:
+#         if actual_filter.is_empty() or cmd.begins_with(actual_filter):
+#             # 如果有数字前缀，在显示时保留
+#             if result:
+#                 var number = result.get_string(1)
+#                 command_list.add_item("%s%s - %s" % [number, cmd, available_commands[cmd].description])
+#             else:
+#                 command_list.add_item("%s - %s" % [cmd, available_commands[cmd].description])
     
-    # 如果有匹配项，选中第一个
-    if command_list.item_count > 0:
-        command_list.select(0)
-        command_list.ensure_current_is_visible()
+#     # 如果有匹配项，选中第一个
+#     if command_list.item_count > 0:
+#         command_list.select(0)
+#         command_list.ensure_current_is_visible()
 
 func _input(event: InputEvent) -> void:
     if not label.has_focus():
@@ -125,4 +131,49 @@ func execute_command() -> void:
         emit_signal("command_executed", command)
     elif not current_text.is_empty():
         emit_signal("command_executed", current_text)
+    queue_free()
+
+func update_command_list(new_text: String) -> void:
+    # Update command list based on input
+    command_list.clear()
+    
+    # If input is empty, show all commands
+    if new_text.is_empty():
+        for command in available_commands:
+            command_list.add_item(command + ": " + available_commands[command]["description"])
+        return
+    
+    # Try to execute the command immediately if it matches exactly
+    if available_commands.has(new_text):
+        command_executed.emit(new_text)
+        hide()
+        return
+    
+    # Check for number prefix commands (e.g., "3j", "s3k")
+    var regex = RegEx.new()
+    regex.compile("^s?(\\d+)?([wbjk])$")
+    var result = regex.search(new_text)
+    if result:
+        command_executed.emit(new_text)
+        hide()
+        return
+    
+    # Filter and show matching commands
+    for command in available_commands:
+        if command.begins_with(new_text):
+            command_list.add_item(command + ": " + available_commands[command]["description"])
+
+    # 如果有匹配项，选中第一个
+    if command_list.item_count > 0:
+        command_list.select(0)
+        command_list.ensure_current_is_visible()
+
+func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: int) -> void:
+    var item_text = command_list.get_item_text(index)
+    var command = item_text.split(":")[0].strip_edges()
+    command_executed.emit(command)
+    hide()
+
+func _on_close_requested() -> void:
+    hide()
     queue_free()

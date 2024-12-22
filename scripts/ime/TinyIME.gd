@@ -16,7 +16,10 @@ func _init():
     processor.text_committed.connect(_on_text_committed)
 
 func _ready():
+    await get_tree().create_timer(0.5)
+    var start_time = Time.get_ticks_msec()
     matcher.load_dictionary("res://scripts/google_pinyin.txt")
+    print("IME dictionary loaded in %d ms" % (Time.get_ticks_msec() - start_time))
 
 # 添加 _input 处理
 func _input(event: InputEvent) -> void:

@@ -21,6 +21,11 @@ config/icon="res://icon.svg"
 
 TinyIME="*res://scripts/ime/TinyIME.gd"
 SettingManager="*res://scripts/SettingManager.gd"
+Global="*res://scripts/autoload/Global.gd"
+
+[debug]
+
+file_logging/enable_file_logging=true
 
 [display]
 

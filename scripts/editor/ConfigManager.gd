@@ -30,6 +30,12 @@ var _default_settings = {
         "open_setting": "Ctrl+Apostrophe",
         "switch_effect": "Ctrl+Slash",
         "split_view": "Ctrl+B",
+    },
+    "network": {
+        "default_port": 7000,
+        "default_host": "127.0.0.1",
+        "auto_accept_duel": false,
+        "show_typing_stats": true
     }
 }
 
@@ -123,3 +129,10 @@ func get_basic_setting(key: String):
 
 func set_basic_setting(key: String, value) -> void:
     set_setting("basic", key, value)
+
+# Network settings convenience methods
+func get_network_setting(key: String):
+    return get_setting("network", key)
+
+func set_network_setting(key: String, value) -> void:
+    set_setting("network", key, value)
