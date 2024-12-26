@@ -7,10 +7,10 @@ signal typing
 @onready var editor: TextEdit = $Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer/TextEdit
 @onready var pad: Control = $Control/MarginContainer/VBoxContainer/VSplitContainer/VBoxContainer/Padding
 
-const Boom: PackedScene = preload("res://effects/boom.tscn")
-const Combo: PackedScene = preload("res://effects/combo.tscn")
-const Laser: PackedScene = preload("res://effects/laser.tscn")
-const Blip: PackedScene = preload("res://effects/blip.tscn")
+const Boom: PackedScene    = preload("res://effects/boom.tscn")
+const Combo: PackedScene   = preload("res://effects/combo.tscn")
+const Laser: PackedScene   = preload("res://effects/laser.tscn")
+const Blip: PackedScene    = preload("res://effects/blip.tscn")
 const Newline: PackedScene = preload("res://effects/newline.tscn")
 
 const PITCH_DECREMENT := 2.0

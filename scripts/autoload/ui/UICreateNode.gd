@@ -85,6 +85,8 @@ static func create_node(params:Dictionary={}, _internal_mode=0)->Node:
         # Try load direct from type
         _nd = type.new()
 
+    _nd.set_meta('ui_params', params.duplicate(true))
+
     __setup_nd_default(_nd, type)
 
     if params.has('preset') or params.has('pre_offset'): 
