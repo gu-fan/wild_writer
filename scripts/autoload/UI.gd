@@ -45,7 +45,7 @@ enum {
 
 # 在文件开头添加预设动画类型
 const TRANS_PRESETS = {
-    # 基础入淡出
+    # 基础动画
     "fade": {
         "prop": "modulate:a",
         "from": 0.0,
@@ -267,236 +267,70 @@ func get_font_color(_nd:Node):
 func set_image(_nd:Node, img_data):
     UISetNode.set_image(_nd, img_data)
 # ------------------------------------
+# 存储整个UI的动画树
+var _animation_trees: Dictionary = {}
+
+# 分别存储入场和出场动画树
+var _in_animation_trees: Dictionary = {}
+var _out_animation_trees: Dictionary = {}
+
 func transition_in(nd: Node) -> void:
-    print('trans_in', nd, nd.name)
+    prints('trans_in', nd.name)
+    # 如果入场动画树已存在，直接执行
+    if _in_animation_trees.has(nd):
+        _execute_trans_tree(_in_animation_trees[nd])
+        return
+        
     # 构建入场过渡动画树
     var trans_tree = _construct_trans_in_tree(nd)
-    
-    # 如果节点没有过渡配置，直接显示并递归处理子节点
     if trans_tree.is_empty():
         nd.show()
-        # 递归处理子节点
-        for child in nd.get_children():
-            transition_in(child)
         return
+        
+    # 缓存入场动画树
+    _in_animation_trees[nd] = trans_tree
     
-    # 确保节点可见
-    nd.show()
-    
+    print('in tree', trans_tree)
+
     # 执行过渡动画树
     _execute_trans_tree(trans_tree)
 
 func transition_out(nd: Node) -> void:
+    prints('trans_out', nd.name)
+    # 如果出场动画树已存在，直接执行
+    if _out_animation_trees.has(nd):
+        _execute_trans_tree(_out_animation_trees[nd])
+        return
+        
     # 构建出场过渡动画树
     var trans_tree = _construct_trans_out_tree(nd)
-    print('out')
-    
-    # 如果节点没有过渡配置，直接隐藏
     if trans_tree.is_empty():
         nd.hide()
         return
         
+    # 缓存出场动画树
+    _out_animation_trees[nd] = trans_tree
+
+    print('out tree', trans_tree)
+    
     # 执行过渡动画树
     _execute_trans_tree(trans_tree)
 
-func is_in_transition(nd):
-    # 递归检查节点及其子节点是否有正在进行的过渡动画
-    if _active_tweens.has(nd):
-        return true
-        
-    for child in nd.get_children():
-        if is_in_transition(child):
-            return true
-            
-    return false
+# 清理动画树缓存
+func _clear_animation_tree(node: Node) -> void:
+    if _in_animation_trees.has(node):
+        _in_animation_trees.erase(node)
+    if _out_animation_trees.has(node):
+        _out_animation_trees.erase(node)
+    # 递归清理子节点
+    for child in node.get_children():
+        _clear_animation_tree(child)
 
-# 构建过渡动画树
-# 返回格式:
-# {
-#     type = 'hide' | 'show',
-#     delay = 0.0,
-#     duration = 0.3,
-#     children = [
-#         {
-#             type = 'fade_in',
-#             delay = 0.1,
-#             duration = 0.2,
-#             children = []
-#         }
-#     ]
-# }
-func _construct_trans_in_tree(nd: Node) -> Dictionary:
-    var ret = {}
-    
-    # 获取节点的入场过渡配置
-    var trans_in = nd.get_meta("transition_in", {})
-    
-    # # 如果指定了预设，获取预设配置
-    # if trans_in.has("preset"):
-    #     var preset = TRANS_PRESETS.get(trans_in.preset)
-    #     if preset:
-    #         # 创建一个新的配置字典
-    #         var merged_config = {}
-    #         # 如果预设有props或sequence，直接使用预设的完整配置
-    #         if preset.has("props") or preset.has("sequence"):
-    #             merged_config = preset.duplicate(true)
-    #         else:
-    #             # 否则，使用单个属性的配置
-    #             merged_config = {
-    #                 "prop": preset.get("prop", "modulate:a"),
-    #                 "from": preset.get("from", 0.0),
-    #                 "to": preset.get("to", 1.0),
-    #                 "dur": preset.get("dur", 0.3),
-    #                 "ease": preset.get("ease", Tween.EASE_OUT),
-    #                 "trans": preset.get("trans", Tween.TRANS_CUBIC)
-    #             }
-    #         # 合并自定义参数
-    #         for key in trans_in:
-    #             if key != "preset":
-    #                 merged_config[key] = trans_in[key]
-    #         trans_in = merged_config
-    
-    # 处理子节点
-    var children = []
-    var max_child_duration = 0.0
-    var max_child_total_time = 0.0
-    var parent_total_time = 0.0  # 记录父节点的总时间
-    
-    # 如果当前节点有动画，计算其总时间
-    if trans_in.size() > 0:
-        parent_total_time = trans_in.get("dur", 0.3) + trans_in.get("delay", 0.0)
-        prints('node has animation', nd.name, 'parent_total_time:', parent_total_time)
-    
-    # 先收集所有子节点的动画树
-    for child in nd.get_children():
-        var child_tree = _construct_trans_in_tree(child)
-        if not child_tree.is_empty():
-            # 如果父节点有动画，给所有子树添加延迟
-            if parent_total_time > 0:
-                _add_delay_to_tree(child_tree, parent_total_time)
-            
-            children.append(child_tree)
-            # 计算最大持续时间和总时间
-            if child_tree.has("duration"):
-                max_child_duration = max(max_child_duration, child_tree.duration)
-                var child_total_time = child_tree.duration
-                if child_tree.has("delay"):
-                    child_total_time += child_tree.delay
-                max_child_total_time = max(max_child_total_time, child_total_time)
-                prints('child timing', child.name, 'duration:', child_tree.duration, 'total:', child_total_time)
-    
-    # 构建当前节点的入场过渡配置
-    if trans_in.size() > 0:
-        ret = {
-            "type": "show",
-            "node": nd,
-            "prop": trans_in.get("prop", "modulate:a"),
-            "from": trans_in.get("from", 0.0),
-            "to": trans_in.get("to", 1.0),
-            "duration": trans_in.get("dur", 0.3),
-            "delay": trans_in.get("delay", 0.0),
-            "ease": trans_in.get("ease", Tween.EASE_OUT),
-            "trans": trans_in.get("trans", Tween.TRANS_CUBIC),
-            "children": children
-        }
-        
-        # 确保节点在动画开始前是可见的
-        nd.show()
-        
-    elif children.size() > 0:
-        ret = {
-            "type": "container",
-            "node": nd,
-            "children": children,
-            "duration": max_child_duration,
-            "total_time": max_child_total_time
-        }
-        
-        # 确保容器节点可见
-        nd.show()
-    
-    return ret
-
-func _add_delay_to_tree(tree: Dictionary, delay: float) -> void:
-    if tree.type == "show":
-        tree["delay"] = tree.get("delay", 0.0) + delay
-    elif tree.has("children"):
-        for child in tree.children:
-            _add_delay_to_tree(child, delay)
-
-func _construct_trans_out_tree(nd: Node) -> Dictionary:
-    var ret = {}
-    
-    # 获取节点的出场过渡配置
-    var trans_out = nd.get_meta("transition_out", {})
-    
-    # # 如果指定了预设，获取预设配置
-    # if trans_out.has("preset"):
-    #     var preset = TRANS_PRESETS.get(trans_out.preset)
-    #     if preset:
-    #         trans_out = preset.duplicate(true)
-    #         # 合并自定义参数并反转动画
-    #         trans_out.merge(nd.get_meta("transition_out"))
-    #         # 反转from和to值
-    #         var temp = trans_out.from
-    #         trans_out.from = trans_out.to
-    #         trans_out.to = temp
-    
-    # 处理子节点
-    var children = []
-    var max_child_duration = 0.0
-    var max_child_total_time = 0.0
-    
-    for child in nd.get_children():
-        var child_tree = _construct_trans_out_tree(child)
-        if not child_tree.is_empty():
-            children.append(child_tree)
-            # 计算��大持续时间和总时间
-            if child_tree.has("duration"):
-                max_child_duration = max(max_child_duration, child_tree.duration)
-                var child_total_time = child_tree.duration
-                if child_tree.has("delay"):
-                    child_total_time += child_tree.delay
-                max_child_total_time = max(max_child_total_time, child_total_time)
-    
-    # 构建当前节点的出场过渡配置
-    if trans_out.size() > 0:
-        ret = {
-            "type": "hide",
-            "node": nd,
-            "prop": trans_out.get("prop", "modulate:a"),
-            "from": trans_out.get("from", 1.0),
-            "to": trans_out.get("to", 0.0),
-            "duration": trans_out.get("dur", 0.3),
-            # 如果有子节点动画，父节点需要延迟
-            "delay": max_child_total_time if children.size() > 0 else 0.0,
-            "ease": trans_out.get("ease", Tween.EASE_IN),
-            "trans": trans_out.get("trans", Tween.TRANS_CUBIC),
-            "children": children
-        }
-    elif children.size() > 0:
-        ret = {
-            "type": "container",
-            "node": nd,
-            "children": children,
-            "duration": max_child_duration,
-            "total_time": max_child_total_time
-        }
-    
-    return ret
-
-# 跟踪节点的当前tween
-var _active_tweens: Dictionary = {}
-
-# 跟踪节点的显示状态
-var _node_states: Dictionary = {}
-
+# 在动画完成时清理缓存
 func _execute_trans_tree(tree: Dictionary) -> void:
     if tree.is_empty():
         return
         
-    
-    # 处理当前节点的过渡
     if tree.type == "show" or tree.type == "hide":
         var node = tree.node
         
@@ -538,23 +372,208 @@ func _execute_trans_tree(tree: Dictionary) -> void:
          .set_delay(delay)
         
         
-        # 如果是隐藏过渡，在动画结束时隐藏节点
-        if tree.type == "hide":
-            tween.chain().tween_callback(func():
+        
+        # 动画完成时清理缓存
+        tween.chain().tween_callback(func():
+            _active_tweens.erase(node)
+            _clear_animation_tree(node)
+            if tree.type == "hide":
                 node.hide()
-                _active_tweens.erase(node)
-            )
-        else:
-            # 动画结束时清理tween引用
-            tween.chain().tween_callback(func():
-                _active_tweens.erase(node)
-            )
+        )
     
     # 处理子节点
     if tree.has("children"):
         for child in tree.children:
             _execute_trans_tree(child)
+
+func is_in_transition(nd):
+    # 递归检查节点及其子节点是否有正在进行的过渡动画
+    if _active_tweens.has(nd):
+        return true
+        
+    for child in nd.get_children():
+        if is_in_transition(child):
+            return true
+            
+    return false
+
+# 构建过渡动画树
+# 返回格式:
+# {
+#     type = 'hide' | 'show',
+#     delay = 0.0,
+#     duration = 0.3,
+#     children = [
+#         {
+#             type = 'fade_in',
+#             delay = 0.1,
+#             duration = 0.2,
+#             children = []
+#         }
+#     ]
+# }
+func _construct_trans_in_tree(nd: Node) -> Dictionary:
+    var ret = {}
     
+    # 获取节点的入场过渡配置
+    var trans_in = nd.get_meta("transition_in", {})
+    
+    # 处理子节点
+    var children = []
+    var max_child_duration = 0.0
+    var max_child_total_time = 0.0
+    var accumulated_delay = 0.0  # 累积的父节点延迟
+    
+    # 计算从根节点到当前节点的所有父节点动画时间
+    var parent = nd.get_parent()
+    while parent:
+        var parent_trans = parent.get_meta("transition_in", {})
+        if parent_trans.size() > 0:
+            accumulated_delay += parent_trans.get("dur", 0.3)
+        parent = parent.get_parent()
+    
+    # 先收集所有子节点的动画树
+    for child in nd.get_children():
+        var child_tree = _construct_trans_in_tree(child)
+        if not child_tree.is_empty():
+            # 添加当前节点的动画时间到子节点延迟
+            var current_delay = accumulated_delay
+            if trans_in.size() > 0:
+                current_delay += trans_in.get("dur", 0.3)
+            
+            if child_tree.has("delay"):
+                child_tree["delay"] += current_delay
+            else:
+                child_tree["delay"] = current_delay
+            
+            children.append(child_tree)
+            
+            # 计算子节点的总时间
+            var child_total_time = 0.0
+            if child_tree.has("total_time"):
+                child_total_time = child_tree.total_time
+            elif child_tree.has("duration"):
+                child_total_time = child_tree.duration
+                if child_tree.has("delay"):
+                    child_total_time += child_tree.delay
+            
+            # 更新最大总时间
+            max_child_total_time = max(max_child_total_time, child_total_time)
+    
+    # 构建当前节点的入场过渡配置
+    if trans_in.size() > 0:
+        ret = {
+            "type": "show",
+            "node": nd,
+            "prop": trans_in.get("prop", "modulate:a"),
+            "from": trans_in.get("from", 0.0),
+            "to": trans_in.get("to", 1.0),
+            "duration": trans_in.get("dur", 0.3),
+            "delay": accumulated_delay,
+            "ease": trans_in.get("ease", Tween.EASE_OUT),
+            "trans": trans_in.get("trans", Tween.TRANS_CUBIC),
+            "children": children
+        }
+        # 更新总时间
+        ret.total_time = accumulated_delay + ret.duration + max_child_total_time
+        prints('nd', nd.name, ret.duration, 'd', ret.delay)
+        
+        # 确保节点在动画开始前是可见的
+        nd.show()
+        
+    elif children.size() > 0:
+        ret = {
+            "type": "container",
+            "node": nd,
+            "children": children,
+            "duration": max_child_duration,
+            "total_time": max_child_total_time,
+            "delay": accumulated_delay
+        }
+        prints('nd', nd.name, max_child_duration, 'd', accumulated_delay)
+        
+        # 确保容器节点可见
+        nd.show()
+    
+    return ret
+
+func _add_delay_to_tree(tree: Dictionary, delay: float) -> void:
+    if tree.type == "show":
+        tree["delay"] = tree.get("delay", 0.0) + delay
+    elif tree.has("children"):
+        for child in tree.children:
+            _add_delay_to_tree(child, delay)
+
+func _construct_trans_out_tree(nd: Node) -> Dictionary:
+    var ret = {}
+    
+    # 获取节点的出场过渡配置
+    var trans_out = nd.get_meta("transition_out", {})
+    
+    # 处理子节点
+    var children = []
+    var max_child_duration = 0.0
+    var max_child_total_time = 0.0
+    var current_delay = 0.0
+    
+    # 先收集所有子节点的动画树
+    for child in nd.get_children():
+        var child_tree = _construct_trans_out_tree(child)
+        if not child_tree.is_empty():
+            children.append(child_tree)
+            
+            # 计算子节点的总时间
+            var child_total_time = 0.0
+            if child_tree.has("total_time"):
+                child_total_time = child_tree.total_time
+            elif child_tree.has("duration"):
+                child_total_time = child_tree.duration
+                if child_tree.has("delay"):
+                    child_total_time += child_tree.delay
+            
+            # 更新最大总时间
+            max_child_total_time = max(max_child_total_time, child_total_time)
+            
+            # 更新当前延迟
+            if trans_out.size() > 0:
+                current_delay = max_child_total_time
+    
+    # 构建当前节点的出场过渡配置
+    if trans_out.size() > 0:
+        ret = {
+            "type": "hide",
+            "node": nd,
+            "prop": trans_out.get("prop", "modulate:a"),
+            "from": trans_out.get("from", 1.0),
+            "to": trans_out.get("to", 0.0),
+            "duration": trans_out.get("dur", 0.3),
+            "delay": current_delay,
+            "ease": trans_out.get("ease", Tween.EASE_OUT),
+            "trans": trans_out.get("trans", Tween.TRANS_CUBIC),
+            "children": children
+        }
+        # 更新总时间
+        ret.total_time = current_delay + ret.duration
+        prints('nd', nd.name, ret.duration, 'd', ret.delay)
+        
+    elif children.size() > 0:
+        ret = {
+            "type": "container",
+            "node": nd,
+            "children": children,
+            "duration": max_child_duration,
+            "total_time": max_child_total_time,
+            "delay": current_delay
+        }
+        prints('nd', nd.name, max_child_duration, 't', max_child_total_time)
+    
+    return ret
+
+# 跟踪节点的当前tween
+var _active_tweens: Dictionary = {}
+
+# 跟踪节点的显示状态
+var _node_states: Dictionary = {}
 
 # 辅助函数：设置属性值
 func _set_property(node: Node, prop: String, value) -> void:
