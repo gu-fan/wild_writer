@@ -2,8 +2,9 @@ class_name ExecutionWindow
 extends Window
 
 signal execution_requested(command: String, args: Dictionary)
+signal execution_canceled
 
-@onready var label: Label = $VBoxContainer/Label
+@onready var input: LineEdit = $VBoxContainer/LineEdit
 @onready var command_list: ItemList = $VBoxContainer/CommandList
 
 var current_text: String = ""
@@ -17,7 +18,7 @@ func _ready() -> void:
     exclusive = true
     
     # 初始化标签
-    label.text = ""
+    input.text = ""
     
     # 初始化命令列表
     setup_command_list()
@@ -26,11 +27,12 @@ func _ready() -> void:
     set_process_input(true)
     
     # 设置标签可聚焦
-    label.focus_mode = Control.FOCUS_ALL
+    input.focus_mode = Control.FOCUS_ALL
+    command_list.item_clicked.connect(_on_item_clicked)
     
     # 延迟一帧再获取焦点，确保窗口已完全创建
     await get_tree().process_frame
-    label.grab_focus()
+    input.grab_focus()
 
 func set_available_executors(executors: Dictionary) -> void:
     available_executors = executors
@@ -44,9 +46,14 @@ func setup_command_list() -> void:
 
 func update_command_list(filter_text: String) -> void:
     command_list.clear()
+
+    var _t = filter_text.split(' ', true, 1)
+    var _text_cmd = _t[0]
+    var _text_arg = _t[1] if _t.size() > 1 else ''
+    # prints(_t, _text_cmd, _text_arg)
     
     for cmd in available_executors:
-        if filter_text.is_empty() or cmd.begins_with(filter_text):
+        if _text_cmd.is_empty() or cmd.begins_with(_text_cmd):
             command_list.add_item("%s - %s" % [cmd, available_executors[cmd].description])
     
     if command_list.item_count > 0:
@@ -54,18 +61,19 @@ func update_command_list(filter_text: String) -> void:
         command_list.ensure_current_is_visible()
 
 func _input(event: InputEvent) -> void:
-    if not label.has_focus():
-        return
+    if not input.has_focus(): return
         
     if event is InputEventKey and event.pressed:
         if event.keycode == KEY_ESCAPE:
+            emit_signal("execution_canceled")
             queue_free()
         elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
             execute_command()
         elif event.keycode == KEY_BACKSPACE:
+            print('cur', current_text)
+            current_text = current_text.substr(0, current_text.length()-1)
+            print('aft', current_text)
             if not current_text.is_empty():
-                current_text = current_text.substr(0, current_text.length() - 1)
-                label.text = current_text
                 update_command_list(current_text)
         elif event.keycode == KEY_DOWN:
             var next_idx = command_list.get_selected_items()[0] + 1 if command_list.get_selected_items().size() > 0 else 0
@@ -81,9 +89,8 @@ func _input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
         else:
             var char_str = char(event.unicode)
-            if event.unicode != 0 and char_str.strip_edges() != "":
+            if event.unicode != 0:
                 current_text += char_str
-                label.text = current_text
                 update_command_list(current_text)
 
 func execute_command() -> void:
@@ -97,8 +104,10 @@ func execute_command() -> void:
         var args = {}
         if parts.size() > 1:
             args["args"] = parts[1]
-        
+
         emit_signal("execution_requested", command, args)
+    else:
+        emit_signal("execution_canceled")
     queue_free()
 
 func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: int) -> void:

@@ -49,7 +49,6 @@ func update_candidates_display(candidates: Array) -> void:
     var start_idx = state.current_page * state.page_size
     var end_idx = min(start_idx + state.page_size, candidates.size())
     
-    
     # Create new labels for visible candidates
     for i in range(start_idx, end_idx):
         var label = Label.new()

@@ -5,8 +5,6 @@ var editor_view: EditorView
 func _ready():
     editor_view = $CanvasLayer/EditorView
     
-    # 加载配置
-    editor_view.core.config_manager.load_config()
     
     # 设置初始状态
     setup_initial_state()
@@ -23,4 +21,17 @@ func setup_initial_state():
     else:
         pass
 
-# ----------------------
+# ---------------------------
+# func _test():
+#     $CanvasLayer/Box/Toggle.pressed.connect(_toggle_locale)
+#     $CanvasLayer/Box/Setting.pressed.connect(_show_ui)
+#     $CanvasLayer/Box/Old.pressed.connect(_show_old_ui)
+
+
+# func _show_ui():
+#     UI.toggle_node_from_raw('ui/settings:Settings', {parent=$CanvasLayer})
+# func _show_old_ui():
+#     UI.toggle_node_from_raw('ui/settings:OldSettings', {parent=$CanvasLayer})
+    # transition _ in / out
+    # use meta to store and trans all child
+# ---------------------------

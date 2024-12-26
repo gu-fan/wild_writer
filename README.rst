@@ -3,7 +3,8 @@ WILD WRITER
 
 user dir
 
-~/.local/share/godot/app_userdata/wild_writer/
+Linux ~/.local/share/godot/app_userdata/wild_writer/
+Linux ~/.local/share/Steam/steamapps/common/wildwriter_demo/linux/wild_writer/wild_writer.x86_64
 
 TODO LIST:
 ==========
@@ -26,4 +27,3 @@ WISHLIST
 ========
 
 
-1. 尾字押韵

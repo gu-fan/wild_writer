@@ -16,9 +16,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="LineEdit" type="LineEdit" parent="VBoxContainer"]
 layout_mode = 2
-focus_mode = 2
 
 [node name="CommandList" type="ItemList" parent="VBoxContainer"]
 layout_mode = 2
