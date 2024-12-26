@@ -361,7 +361,6 @@ func _construct_trans_in_tree(nd: Node) -> Dictionary:
     var max_child_duration = 0.0
     var max_child_total_time = 0.0
     var parent_total_time = 0.0  # 记录父节点的总时间
-    prints('trans_in_tree start', nd.name, nd.visible, trans_in)
     
     # 如果当前节点有动画，计算其总时间
     if trans_in.size() > 0:
@@ -400,7 +399,6 @@ func _construct_trans_in_tree(nd: Node) -> Dictionary:
             "trans": trans_in.get("trans", Tween.TRANS_CUBIC),
             "children": children
         }
-        prints('created show node', nd.name, ret)
         
         # 确保节点在动画开始前是可见的
         nd.show()
@@ -413,18 +411,15 @@ func _construct_trans_in_tree(nd: Node) -> Dictionary:
             "duration": max_child_duration,
             "total_time": max_child_total_time
         }
-        prints('created container node', nd.name, ret)
         
         # 确保容器节点可见
         nd.show()
     
-    prints('trans_in_tree end', nd.name, ret)
     return ret
 
 func _add_delay_to_tree(tree: Dictionary, delay: float) -> void:
     if tree.type == "show":
         tree["delay"] = tree.get("delay", 0.0) + delay
-        prints('adding delay to node', tree.node.name, 'new_delay:', tree["delay"])
     elif tree.has("children"):
         for child in tree.children:
             _add_delay_to_tree(child, delay)
@@ -451,7 +446,6 @@ func _construct_trans_out_tree(nd: Node) -> Dictionary:
     var children = []
     var max_child_duration = 0.0
     var max_child_total_time = 0.0
-    prints('trans_out_tree', nd, nd.visible, trans_out)
     
     for child in nd.get_children():
         var child_tree = _construct_trans_out_tree(child)
@@ -501,7 +495,6 @@ func _execute_trans_tree(tree: Dictionary) -> void:
     if tree.is_empty():
         return
         
-    prints('execute start', tree.node.name, tree.node.visible, tree)
     
     # 处理当前节点的过渡
     if tree.type == "show" or tree.type == "hide":
@@ -523,7 +516,6 @@ func _execute_trans_tree(tree: Dictionary) -> void:
         var duration = tree.duration
         var delay = tree.delay
         
-        prints('creating tween', node.name, 'delay:', delay, 'duration:', duration)
         
         # 如果是显示动画，确保节点和所有父节点都可见
         if tree.type == "show":
@@ -545,7 +537,6 @@ func _execute_trans_tree(tree: Dictionary) -> void:
          .set_ease(tree.ease)\
          .set_delay(delay)
         
-        prints('tween created', node.name)
         
         # 如果是隐藏过渡，在动画结束时隐藏节点
         if tree.type == "hide":
@@ -564,7 +555,6 @@ func _execute_trans_tree(tree: Dictionary) -> void:
         for child in tree.children:
             _execute_trans_tree(child)
     
-    prints('execute end', tree.node.name)
 
 # 辅助函数：设置属性值
 func _set_property(node: Node, prop: String, value) -> void:
@@ -607,4 +597,3 @@ func _set_initial_state(node: Node) -> void:
         var prop = trans_in.get("prop", "modulate:a")
         var from = trans_in.get("from", 0.0)
         _set_property(node, prop, from)
-        prints('set_initial_state', node, prop, from)

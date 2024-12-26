@@ -55,9 +55,27 @@ const _data = {
                                             'to': 0,
                                             'dur': 0.3,
                                         },
+                                        # children={
+                                        #     'RECT2':{
+                                        #         type='ColorRect',
+                                        #         custom_minimum_size = Vector2(100, 100),
+                                        #         preset=UI.PRESET_CENTER,
+                                        #         pre_offset = Vector2(0, 200),
+                                        #         transition_in={
+                                        #             'prop': 'modulate',
+                                        #             'from': Color('339933'),
+                                        #             'to': Color('993399'),
+                                        #             'dur': 0.3,
+                                        #         },
+                                        #         transition_out= {
+                                        #             'prop': 'modulate',
+                                        #             'to': Color('339933'),
+                                        #             'from': Color('993399'),
+                                        #             'dur': 0.3,
+                                        #         },
+                                        #     },
+                                        # },
                                     },
-
-
                                 },
                             },
                             'TAB_KEY':{

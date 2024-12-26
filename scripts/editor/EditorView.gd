@@ -303,6 +303,7 @@ func toggle_debug():
         stat_box.show()
         log_box.show()
         timer_fps.start()
+        _on_timer_fps_timeout()
 
 func _on_timer_fps_timeout():
     # Get performance info

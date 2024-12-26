@@ -109,6 +109,7 @@ focus_mode = 0
 text = "S"
 
 [node name="StatBox" type="VBoxContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -144,6 +145,7 @@ text = "video ram: 832m"
 horizontal_alignment = 2
 
 [node name="LogBox" type="VBoxContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
