@@ -31,7 +31,6 @@ var current_command_window: CommandWindow = null
 var current_execution_window: ExecutionWindow = null
 var current_file_dialog: FileDialog = null
 
-
 func _ready():
     
     core = EditorCore.new()

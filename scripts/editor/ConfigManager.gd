@@ -52,7 +52,6 @@ func load_config() -> void:
         for section in _default_settings:
             for key in _default_settings[section]:
                 set_setting(section, key, _default_settings[section][key])
-        save_config()
 
 func save_config() -> void:
     config.save(CONFIG_FILE)
@@ -136,3 +135,23 @@ func get_network_setting(key: String):
 
 func set_network_setting(key: String, value) -> void:
     set_setting("network", key, value)
+
+
+# --------------------------------
+# build ui               # config -> ui
+# ui binding to config   # ui change -> config change -> save
+# update ui by config     # config -> ui
+# update editor by config # config -> editor
+
+func _build_ui():
+    # build ui in 'ui/settings:Setting'
+    pass
+func _bind_config():
+    pass
+func _update_ui():
+    pass
+func _update_editor():
+    pass
+
+
+

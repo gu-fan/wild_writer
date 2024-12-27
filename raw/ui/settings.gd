@@ -27,6 +27,7 @@ const _data = {
                     'dur': 0.3,
                 },
                 'child':{
+                    name='Background',
                     type='ColorRect',
                     color ='333399',
                     # custom_minimum_size = Vector2(80, 80),

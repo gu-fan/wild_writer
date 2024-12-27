@@ -377,7 +377,6 @@ func _show_multi_char(s: String, f: bool = false) -> void:
     var p = editor.get_caret_draw_pos() + Vector2(0, -editor.get_line_height()/2.0) + Vector2(x, 0) if f else Vector2.ZERO
     for i in l: _show_char_force(s[i], t * i / l, -x + o[i], p)
 
-
 func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO):
     await get_tree().process_frame
     if p == Vector2.ZERO:

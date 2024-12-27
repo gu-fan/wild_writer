@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://cbcxxvyi6tcc0"]
+[gd_scene load_steps=3 format=3 uid="uid://cbcxxvyi6tcc0"]
 
 [ext_resource type="Script" path="res://scripts/editor/EditorView.gd" id="1_editor_view"]
+[ext_resource type="Script" path="res://scripts/editor/WildEdit.gd" id="2_dol8c"]
 
 [node name="EditorView" type="Control"]
 layout_mode = 3
@@ -37,11 +38,13 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 0
 
 [node name="TextEdit" type="CodeEdit" parent="VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer"]
+clip_contents = false
 layout_mode = 2
 size_flags_vertical = 3
 wrap_mode = 1
 caret_blink = true
 highlight_current_line = true
+script = ExtResource("2_dol8c")
 
 [node name="Pad" type="Control" parent="VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer"]
 layout_mode = 2
@@ -52,11 +55,13 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 0
 
 [node name="TextEdit" type="CodeEdit" parent="VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer"]
+clip_contents = false
 layout_mode = 2
 size_flags_vertical = 3
 wrap_mode = 1
 caret_blink = true
 highlight_current_line = true
+script = ExtResource("2_dol8c")
 
 [node name="Pad" type="Control" parent="VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer"]
 layout_mode = 2
