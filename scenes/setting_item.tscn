@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c5cl274yacd8g"]
 
 [node name="SettingItem" type="HBoxContainer"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(100, 30)
 
 [node name="Label" type="Label" parent="."]
 custom_minimum_size = Vector2(200, 0)

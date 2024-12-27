@@ -160,69 +160,12 @@ const TRANS_PRESETS = {
     }
 }
 
-# 添加使用预设的辅助函数
-func apply_transition_preset(node: Node, preset_name: String, is_in: bool = true, custom_params: Dictionary = {}) -> void:
-    var preset = TRANS_PRESETS.get(preset_name)
-    if not preset:
-        push_warning("Transition preset not found: " + preset_name)
-        return
-        
-    var trans_data = preset.duplicate(true)
-    # 合并自定义参数
-    trans_data.merge(custom_params)
-    
-    # 如果是出场动画，反转from和to值
-    if not is_in:
-        if trans_data.has("props"):
-            for prop in trans_data.props:
-                var temp = prop.from
-                prop.from = prop.to
-                prop.to = temp
-        elif trans_data.has("sequence"):
-            trans_data.sequence.reverse()
-            for step in trans_data.sequence:
-                var temp = step.from
-                step.from = step.to
-                step.to = temp
-        else:
-            var temp = trans_data.from
-            trans_data.from = trans_data.to
-            trans_data.to = temp
-    
-    # 设置过渡配置
-    node.set_meta("transition_" + ("in" if is_in else "out"), trans_data)
-
 # ------------------------------------
 # BASICS
 # ------------------------------------
 func set_layout(node, preset, offset=Vector2.ZERO):
     UILayout.set_layout(node, preset, offset)
 # ------------------------------------
-# Create Node in UICreateNode
-func toggle_node_from_raw(raw, params={}, _internal_mode=0) -> void:
-    var nd = get_node_or_null_from_raw(raw, params, _internal_mode)
-    if nd:
-        # 检查节点是否正在过渡动画中
-        if is_in_transition(nd):
-            return
-            
-        # 使用状态字典来判断当前状态，而不是visible属性
-        var is_shown = _node_states.get(nd, nd.visible)
-        if is_shown:
-            _node_states[nd] = false
-            transition_out(nd)
-        else:
-            _node_states[nd] = true
-            transition_in(nd)
-    else:
-        # 创建节点时，先隐藏它
-        nd = create_node_from_raw(raw, params, _internal_mode)
-        if nd:
-            _node_states[nd] = true
-            # 设置初始状态
-            _set_initial_state(nd)
-            # 执行入场动画
-            transition_in(nd)
 
 func get_or_create_node_from_raw(raw, params={}, _internal_mode=0):
     return UICreateNode.get_or_create_node_from_raw(raw, params, _internal_mode)
@@ -241,6 +184,15 @@ func get_or_create_node(params:Dictionary={}, _internal_mode=0)->Node:
 
 func create_node(params:Dictionary={}, _internal_mode=0)->Node:
     return UICreateNode.create_node(params, _internal_mode)
+func init_node_hidden_from_raw(raw, params={}, _internal_mode=0):
+    var nd = UICreateNode.get_node_or_null_from_raw(raw, params, _internal_mode)
+    if nd:
+        return nd
+    else:
+        nd = create_node_from_raw(raw, params, _internal_mode)
+        nd.hide()
+        return nd
+
 # ------------------------------------
 # Setup Node in UISetNode
 func set_font(_nd:Node, font_path):
@@ -267,6 +219,41 @@ func get_font_color(_nd:Node):
 func set_image(_nd:Node, img_data):
     UISetNode.set_image(_nd, img_data)
 # ------------------------------------
+func toggle_node_from_raw(raw, params={}, _internal_mode=0) -> void:
+    var nd = get_node_or_null_from_raw(raw, params, _internal_mode)
+    if nd:
+        if nd.visible:
+            nd.hide()
+        else:
+            nd.show()
+    else:
+        nd = create_node_from_raw(raw, params, _internal_mode)
+# Create Node in UICreateNode
+func transition_node_from_raw(raw, params={}, _internal_mode=0) -> void:
+    var nd = get_node_or_null_from_raw(raw, params, _internal_mode)
+    if nd:
+        # 检查节点是否正在过渡动画中
+        if is_in_transition(nd):
+            return
+            
+        # 使用状态字典来判断当前状态，而不是visible属性
+        var is_shown = _node_states.get(nd, nd.visible)
+        if is_shown:
+            _node_states[nd] = false
+            transition_out(nd)
+        else:
+            _node_states[nd] = true
+            transition_in(nd)
+    else:
+        # 创建节点时，先隐藏它
+        nd = create_node_from_raw(raw, params, _internal_mode)
+        if nd:
+            _node_states[nd] = true
+            # 设置初始状态
+            _set_initial_state(nd)
+            # 执行入场动画
+            transition_in(nd)
+# ------------------------------------
 # 存储整个UI的动画树
 var _animation_trees: Dictionary = {}
 
@@ -276,10 +263,10 @@ var _out_animation_trees: Dictionary = {}
 
 func transition_in(nd: Node) -> void:
     prints('trans_in', nd.name)
-    # 如果入场动画树已存在，直接执行
-    if _in_animation_trees.has(nd):
-        _execute_trans_tree(_in_animation_trees[nd])
-        return
+    # # 如果入场动画树已存在，直接执行
+    # if _in_animation_trees.has(nd):
+    #     _execute_trans_tree(_in_animation_trees[nd])
+    #     return
         
     # 构建入场过渡动画树
     var trans_tree = _construct_trans_in_tree(nd)
@@ -297,10 +284,10 @@ func transition_in(nd: Node) -> void:
 
 func transition_out(nd: Node) -> void:
     prints('trans_out', nd.name)
-    # 如果出场动画树已存在，直接执行
-    if _out_animation_trees.has(nd):
-        _execute_trans_tree(_out_animation_trees[nd])
-        return
+    # # 如果出场动画树已存在，直接执行
+    # if _out_animation_trees.has(nd):
+    #     _execute_trans_tree(_out_animation_trees[nd])
+    #     return
         
     # 构建出场过渡动画树
     var trans_tree = _construct_trans_out_tree(nd)

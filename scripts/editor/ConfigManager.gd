@@ -39,8 +39,6 @@ var _default_settings = {
     }
 }
 
-func _ready():
-    load_config()
 
 func load_config() -> void:
     # 尝试加载配置文件
@@ -143,9 +141,25 @@ func set_network_setting(key: String, value) -> void:
 # update ui by config     # config -> ui
 # update editor by config # config -> editor
 
-func _build_ui():
-    # build ui in 'ui/settings:Setting'
-    pass
+func build_ui():
+    var settings = Editor.init_node('ui/settings:Settings')
+    # 获取设置界面的容器节点
+    var basic_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Margin/VBox")
+    var shortcut_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Margin/VBox")
+    var network_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Margin/VBox")
+    
+    if basic_container:
+        # 构建基本设置
+        SettingsBuilder.build_settings(basic_container, SettingManager.SETTINGS_CONFIG.basic, "basic")
+    
+    # if shortcut_container:
+    #     # 构建快捷键设置
+    #     SettingsBuilder.build_settings(shortcut_container, _default_settings.shortcut, "shortcut")
+        
+    # if network_container:
+    #     # 构建网络设置
+    #     SettingsBuilder.build_settings(network_container, _default_settings.network, "network")
+
 func _bind_config():
     pass
 func _update_ui():

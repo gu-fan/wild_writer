@@ -1,12 +1,18 @@
 extends Node
 
 var editor_view: EditorView
+var canvas:CanvasLayer
 
 func _ready():
+    canvas = $CanvasLayer
     editor_view = $CanvasLayer/EditorView
-    
+    Editor.main = self
+    Editor.view = editor_view
     
     # 设置初始状态
+
+    editor_view.init()
+    
     setup_initial_state()
 
 func setup_initial_state():

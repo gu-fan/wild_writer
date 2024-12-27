@@ -100,11 +100,11 @@ const KEY_DISPLAY_MAP = {
 # 设置配置
 const SETTINGS_CONFIG = {
     "basic": {
-        # "auto_open_recent": {
-        #     "type": "bool",
-        #     "default": true,
-        #     "label": "自动打开最近的文件"
-        # },
+        "auto_open_recent": {
+            "type": "bool",
+            "default": true,
+            "label": "自动打开最近的文件"
+        },
         # "auto_save": {
         #     "type": "bool", 
         #     "default": true,

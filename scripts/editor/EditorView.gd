@@ -31,7 +31,7 @@ var current_command_window: CommandWindow = null
 var current_execution_window: ExecutionWindow = null
 var current_file_dialog: FileDialog = null
 
-func _ready():
+func init():
     
     core = EditorCore.new()
     add_child(core)
@@ -291,7 +291,8 @@ func toggle_locale():
         TranslationServer.set_locale("en")
 
 func toggle_setting():
-    UI.toggle_node_from_raw('ui/settings:Settings', {parent=self})
+    # UI.toggle_node_from_raw('ui/settings:Settings', {parent=Editor.main.canvas})
+    UI.transition_node_from_raw('ui/settings:Settings', {parent=Editor.main.canvas})
 
 func toggle_debug():
     if stat_box.visible:

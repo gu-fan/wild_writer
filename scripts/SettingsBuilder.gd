@@ -8,6 +8,7 @@ static func build_settings(container: Control, config: Dictionary, section: Stri
         var setting = config[key]  # setting是一个字典，包含type、default等属性
         var item = _create_setting_item(section, key, setting)
         container.add_child(item)
+        print('add child', item, item.is_inside_tree(),item.size, item.visible)
 
 static func _create_section(name: String) -> Control:
     var section = VBoxContainer.new()
@@ -20,7 +21,9 @@ static func _create_section(name: String) -> Control:
     return section
 
 static func _create_setting_item(section: String, key: String, config: Dictionary) -> Control:
+
     var item = SETTING_SCENE.instantiate()
+    item.name = key
     
     # 设置标签
     item.get_node("Label").text = config.get("label", key)
@@ -57,6 +60,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             )
             item.add_child(button)
     
+    print('build item', section, key, config, item, item.size)
     return item
 
 static func _setup_shortcut(button: Button, section: String, key: String) -> void:
