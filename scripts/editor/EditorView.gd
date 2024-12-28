@@ -47,11 +47,7 @@ func init():
     # 设置快捷键
     setup_key_bindings()
 
-    # 加载配置
-    core.config_manager.load_config()
-
     last_focused_editor = text_edit
-
     
     # 检查是否需要自动打开最近的文件
     if core.config_manager.get_basic_setting("auto_open_recent"):

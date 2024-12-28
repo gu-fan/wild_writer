@@ -39,6 +39,7 @@ func _ready():
     
     # 加载配置
     config_manager.load_config()
+    Editor.config = config_manager
     config_manager.build_ui()
     
     # 设置初始状态

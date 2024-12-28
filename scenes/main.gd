@@ -12,7 +12,7 @@ func _ready():
     # 设置初始状态
 
     editor_view.init()
-    
+
     setup_initial_state()
 
 func setup_initial_state():
@@ -32,7 +32,6 @@ func setup_initial_state():
 #     $CanvasLayer/Box/Toggle.pressed.connect(_toggle_locale)
 #     $CanvasLayer/Box/Setting.pressed.connect(_show_ui)
 #     $CanvasLayer/Box/Old.pressed.connect(_show_old_ui)
-
 
 # func _show_ui():
 #     UI.toggle_node_from_raw('ui/settings:Settings', {parent=$CanvasLayer})

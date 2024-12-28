@@ -25,3 +25,7 @@ WISHLIST
 ========
 
 
+1. record all actions,as replay.dat, and play it in editor
+2. save version each pub, and if updated new version, show changelog on startup
+
+

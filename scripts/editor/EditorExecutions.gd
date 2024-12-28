@@ -5,8 +5,16 @@ var editor_view: Node  # Reference to EditorView instance
 
 var available_executors = {
     "setting": {
-        "description": "setting",
-        "executor": "setting"
+        "description": "Toggle settings",
+        "executor": "setting",
+        "sub_commands": {
+            "auto_save": "Toggle auto save",
+            "auto_open_recent": "Toggle auto open recent",
+            "show_char_count": "Toggle character count",
+            "line_wrap": "Toggle line wrap",
+            "line_number": "Toggle line numbers",
+            "highlight_line": "Toggle line highlight",
+        }
     },
     "python": {
         "description": "Run Python script",
@@ -144,5 +152,15 @@ func request_duel(args: Dictionary) -> void:
     if peer_id > 0:
         editor_view.core.network_manager.send_duel_request(peer_id)
 
-func toggle_setting(args:Dictionary):
-    editor_view.toggle_setting()
+func toggle_setting(args: Dictionary) -> void:
+    var setting_name = args.get("args", "").strip_edges()
+    if setting_name.is_empty():
+        editor_view.toggle_setting()  # 打开设置面板
+        return
+        
+    # 检查是否是有效的设置名
+    if Editor.config._default_settings.basic.has(setting_name):
+        var current_value = Editor.config.get_setting("basic", setting_name)
+        # 对于布尔值或0/1值，进行切换
+        if typeof(current_value) == TYPE_BOOL or (typeof(current_value) == TYPE_INT and current_value in [0, 1]):
+            Editor.config.set_setting("basic", setting_name, not bool(current_value))

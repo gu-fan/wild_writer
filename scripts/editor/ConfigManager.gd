@@ -1,7 +1,7 @@
 class_name ConfigManager
 extends Node
 
-signal config_changed(section: String, key: String, value: Variant)
+signal setting_changed(section: String, key: String, value: Variant)
 
 const CONFIG_FILE = "user://config.ini"
 var config = ConfigFile.new()
@@ -39,6 +39,7 @@ var _default_settings = {
     }
 }
 
+var _subscriptions = {}  # 添加到类的成员变量
 
 func load_config() -> void:
     # 尝试加载配置文件
@@ -79,7 +80,8 @@ func set_setting(section: String, key: String, value) -> void:
     
     config.set_value(section, key, value)
     save_config()
-    emit_signal("config_changed", section, key, value)
+    print('setting  changed', section, key, value)
+    emit_signal("setting_changed", section, key, value)
 
 func set_setting_no_signal(section: String, key: String, value) -> void:
     if not _default_settings.has(section) or not _default_settings[section].has(key):
@@ -141,31 +143,75 @@ func set_network_setting(key: String, value) -> void:
 # update ui by config     # config -> ui
 # update editor by config # config -> editor
 
+const SETTINGS_CONFIG = {
+    "basic": {
+        "auto_open_recent": {
+            "type": "bool",
+            "default": true,
+            "label": "AUTO_OPEN_RECENT"
+        },
+        "auto_save": {
+            "type": "bool",
+            "default": true,
+            "label": "AUTO_SAVE"
+        },
+        "show_char_count": {
+            "type": "bool",
+            "default": true,
+            "label": "SHOW_CHAR_COUNT"
+        },
+        "line_wrap": {
+            "type": "bool",
+            "default": true,
+            "label": "LINE_WRAP"
+        },
+        "font_size": {
+            "type": "int",
+            "default": 1,
+            "min": 0,
+            "max": 3,
+            "label": "FONT_SIZE"
+        },
+    },
+    "ime": {
+        "shuangpin": {
+            "type": "bool",
+            "default": false,
+            "label": "启用双拼"
+        },
+        "fuzzy": {
+            "type": "bool",
+            "default": false,
+            "label": "启用模糊音"
+        },
+    },
+}
 func build_ui():
     var settings = Editor.init_node('ui/settings:Settings')
     # 获取设置界面的容器节点
     var basic_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Margin/VBox")
-    var shortcut_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Margin/VBox")
-    var network_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Margin/VBox")
     
     if basic_container:
-        # 构建基本设置
-        SettingsBuilder.build_settings(basic_container, SettingManager.SETTINGS_CONFIG.basic, "basic")
+        SettingsBuilder.build_settings(basic_container, SETTINGS_CONFIG, "basic")
+
+
+func subscribe(section: String, key: String, object:Object, callback: Callable) -> void:
+    var wrapper = func(s, k, v):
+        if section == s and key == k:
+            callback.call(v)
     
-    # if shortcut_container:
-    #     # 构建快捷键设置
-    #     SettingsBuilder.build_settings(shortcut_container, _default_settings.shortcut, "shortcut")
+    # 存储订阅信息
+    var sub_key = "%s/%s/%s" % [section, key, object.get_instance_id()]
+    _subscriptions[sub_key] = wrapper
+    setting_changed.connect(wrapper)
+
+func unsubscribe(section: String, key: String, object: Object) -> void:
+    # 构建订阅键
+    var sub_key = "%s/%s/%s" % [section, key, object.get_instance_id()]
+    
+    # 检查并移除订阅
+    if _subscriptions.has(sub_key):
+        setting_changed.disconnect(_subscriptions[sub_key])
+        _subscriptions.erase(sub_key)
+
         
-    # if network_container:
-    #     # 构建网络设置
-    #     SettingsBuilder.build_settings(network_container, _default_settings.network, "network")
-
-func _bind_config():
-    pass
-func _update_ui():
-    pass
-func _update_editor():
-    pass
-
-
-
