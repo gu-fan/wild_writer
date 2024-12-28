@@ -14,6 +14,7 @@ var available_executors = {
             "line_wrap": "Toggle line wrap",
             "line_number": "Toggle line numbers",
             "highlight_line": "Toggle line highlight",
+            "font_size": "Set font size(0-3)",
         }
     },
     "python": {
@@ -65,7 +66,7 @@ func _init(_editor_view: Node) -> void:
 
 
 func execute_command(command: String, args: Dictionary) -> void:
-    print("Executing command:", command, "with args:", args)
+    prints("Executing command:", command, "with args:", args)
     
     match command:
         "python":
@@ -158,9 +159,21 @@ func toggle_setting(args: Dictionary) -> void:
         editor_view.toggle_setting()  # 打开设置面板
         return
         
+    # 获取设置值（如果提供）
+    var setting_value = args.get("value")
+    prints('get arg', args, setting_name, )
+    
     # 检查是否是有效的设置名
-    if Editor.config._default_settings.basic.has(setting_name):
-        var current_value = Editor.config.get_setting("basic", setting_name)
-        # 对于布尔值或0/1值，进行切换
-        if typeof(current_value) == TYPE_BOOL or (typeof(current_value) == TYPE_INT and current_value in [0, 1]):
-            Editor.config.set_setting("basic", setting_name, not bool(current_value))
+    if setting_name in available_executors.setting.sub_commands:
+        if setting_value != null:
+            # 如果提供了值，直接设置
+            var value = setting_value
+            # 对于数字类型的设置，转换为数字
+            if setting_name == "font_size":
+                value = int(setting_value)
+            Editor.config.set_basic_setting(setting_name, value)
+        else:
+            # 如果没有提供值，则切换布尔值
+            var current_value = Editor.config.get_basic_setting(setting_name)
+            if typeof(current_value) == TYPE_BOOL or (typeof(current_value) == TYPE_INT and current_value in [0, 1]):
+                Editor.config.set_basic_setting(setting_name, not bool(current_value))

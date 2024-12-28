@@ -37,11 +37,6 @@ func _ready():
         func(doc): emit_signal("document_changed", doc)
     )
     
-    # 加载配置
-    config_manager.load_config()
-    Editor.config = config_manager
-    config_manager.build_ui()
-    
     # 设置初始状态
     setup_initial_state()
     

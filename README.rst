@@ -6,6 +6,9 @@ user dir
 Linux ~/.local/share/godot/app_userdata/wild_writer/
 Linux ~/.local/share/Steam/steamapps/common/wildwriter_demo/linux/wild_writer/wild_writer.x86_64
 
+Mac '~/Library/Application\ Support/Godot/app_userdata/'
+Windows: %APPDATA%\Godot\app_userdata\[project_name]
+
 TODO LIST:
 ==========
 

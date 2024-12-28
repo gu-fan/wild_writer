@@ -39,6 +39,7 @@ func init():
     # 初始化命令系统
     motions = EditorMotions.new(self)
     executions =  EditorExecutions.new(self)
+
     
     # 初始化视图
     setup_view()
@@ -47,6 +48,15 @@ func init():
     # 设置快捷键
     setup_key_bindings()
 
+
+    Editor.config = core.config_manager
+
+    # 加载配置
+    core.config_manager.load_config()
+    core.config_manager.build_ui()
+
+    subscribe_configs()
+    
     last_focused_editor = text_edit
     
     # 检查是否需要自动打开最近的文件
@@ -101,6 +111,8 @@ func setup_view() -> void:
             var gutter_size_fin = max(4*gutter_size, (3+1)*gutter_size)
             text_edit.set_gutter_width(i, gutter_size_fin)
             print(text_edit.get_gutter_width(i))
+
+
 
 func connect_signals() -> void:
     text_edit.focus_entered.connect(_on_editor_focus_entered.bind(text_edit))
@@ -334,3 +346,15 @@ func logging(txt: String) -> void:
     for c in will_remove:
         log_box.remove_child(c)
         c.queue_free()
+# ----------
+func subscribe_configs():
+    Editor.config.init_config('basic', 'font_size', self, _update_font_size)
+    Editor.config.subscribe('basic', 'font_size', self, _update_font_size)
+
+func _update_font_size(f):
+    for te in [text_edit, text_edit_secondary]:
+        match f:
+            0: te.set("theme_override_font_sizes/font_size", 16)
+            1: te.set("theme_override_font_sizes/font_size", 32)
+            2: te.set("theme_override_font_sizes/font_size", 48)
+            3: te.set("theme_override_font_sizes/font_size", 96)

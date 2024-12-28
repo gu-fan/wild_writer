@@ -56,6 +56,7 @@ func save_config() -> void:
     config.save(CONFIG_FILE)
 
 func set_setting(section: String, key: String, value) -> void:
+    print("Setting config: %s/%s = %s" % [section, key, value])
     if not _default_settings.has(section) or not _default_settings[section].has(key):
         push_warning("Invalid setting: %s/%s" % [section, key])
         return
@@ -78,9 +79,9 @@ func set_setting(section: String, key: String, value) -> void:
         TYPE_STRING:
             value = str(value)
     
+    print("After conversion: %s/%s = %s" % [section, key, value])
     config.set_value(section, key, value)
     save_config()
-    print('setting  changed', section, key, value)
     emit_signal("setting_changed", section, key, value)
 
 func set_setting_no_signal(section: String, key: String, value) -> void:
@@ -194,6 +195,11 @@ func build_ui():
     if basic_container:
         SettingsBuilder.build_settings(basic_container, SETTINGS_CONFIG, "basic")
 
+
+func init_config(section: String, key: String, object:Object, callback: Callable) -> void:
+    var current_value = get_setting(section, key)
+    prints('got current', section, key, current_value)
+    callback.call(current_value)
 
 func subscribe(section: String, key: String, object:Object, callback: Callable) -> void:
     var wrapper = func(s, k, v):

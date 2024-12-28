@@ -47,9 +47,11 @@ func setup_command_list() -> void:
 func update_command_list(filter_text: String) -> void:
     command_list.clear()
 
-    var parts = filter_text.split(' ', true, 1)
+    var parts = filter_text.split(' ', true, 2)  # 最多分割成3部分
     var cmd_filter = parts[0]
     var arg_filter = parts[1] if parts.size() > 1 else ''
+    var value = parts[2] if parts.size() > 2 else ''
+    prints('cmd', cmd_filter, arg_filter, value)
     
     for cmd in available_executors:
         var executor = available_executors[cmd]
@@ -58,13 +60,22 @@ func update_command_list(filter_text: String) -> void:
         if executor.has("sub_commands") and cmd.begins_with(cmd_filter):
             # 如果已经输入了空格，显示子命令列表
             if arg_filter != "":
-                # 显示过滤后的子命令
+                # 存储匹配的子命令
+                var matched_subcmds = []
                 for sub_cmd in executor.sub_commands:
                     if sub_cmd.begins_with(arg_filter):
+                        matched_subcmds.append(sub_cmd)
+                
+                # 如果有值部分，只显示之前匹配的子命令
+                if value != "":
+                    for sub_cmd in matched_subcmds:
+                        command_list.add_item("%s %s %s" % [cmd, sub_cmd, value])
+                # 否则显示所有匹配的子命令
+                else:
+                    for sub_cmd in matched_subcmds:
                         command_list.add_item("%s %s - %s" % [cmd, sub_cmd, executor.sub_commands[sub_cmd]])
             # 如果还没有输入空格，但已经开始输入命令
             else:
-                command_list.add_item("%s - %s" % [cmd, executor.description])
                 # 显示所有子命令
                 for sub_cmd in executor.sub_commands:
                     command_list.add_item("%s %s - %s" % [cmd, sub_cmd, executor.sub_commands[sub_cmd]])
@@ -122,15 +133,20 @@ func execute_command() -> void:
     var selected = command_list.get_selected_items()
     if selected.size() > 0:
         var item_text = command_list.get_item_text(selected[0])
-        var parts = item_text.split(" - ")[0].split(" ", true, 1)
-        var command = parts[0]
+        # 分割命令文本，但保留第三个参数
+        var parts = current_text.split(" ", false)
+        
+        # 从选中项获取完整的命令名称和子命令
+        var selected_parts = item_text.split(" ", false)
+        var command = "setting" if selected_parts[0] == "se" else selected_parts[0]  # 使用完整命令名
         var args = {}
         
-        # 如果有子命令，将其作为参数传递
+        # 处理子命令和其参数
         if parts.size() > 1:
-            args["args"] = parts[1]
-        else:
-            args["args"] = ""
+            # 使用选中项中的完整子命令名称
+            args["args"] = selected_parts[1]  # 使用完整的子命令名称
+            if parts.size() > 2:
+                args["value"] = parts[2]  # 子命令的参数值
 
         emit_signal("execution_requested", command, args)
     else:
