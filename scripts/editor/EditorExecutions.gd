@@ -17,6 +17,10 @@ var available_executors = {
             "font_size": "Set font size(0-3)",
         }
     },
+    "ime": {
+        "description": "Toggle Ime",
+        "executor": "ime"
+    },
     "python": {
         "description": "Run Python script",
         "executor": "python"
@@ -75,6 +79,8 @@ func execute_command(command: String, args: Dictionary) -> void:
             execute_node(args)
         "shell":
             execute_shell(args)
+        "ime":
+            toggle_ime(args)
         "host":
             host_game(args)
         "join":
@@ -177,3 +183,6 @@ func toggle_setting(args: Dictionary) -> void:
             var current_value = Editor.config.get_basic_setting(setting_name)
             if typeof(current_value) == TYPE_BOOL or (typeof(current_value) == TYPE_INT and current_value in [0, 1]):
                 Editor.config.set_basic_setting(setting_name, not bool(current_value))
+
+func toggle_ime(args: Dictionary) -> void:
+    TinyIME.toggle()

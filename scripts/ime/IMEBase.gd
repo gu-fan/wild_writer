@@ -4,6 +4,7 @@ extends Node
 
 signal ime_text_changed(text: String)
 signal ime_state_changed(active: bool)
+signal ime_buffer_changed(buffer: String)
 signal composition_updated
 
 # 基础IME状态

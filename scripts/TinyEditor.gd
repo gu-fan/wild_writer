@@ -316,7 +316,6 @@ func _tc(textedit:TextEdit):
                     _ic(len_d)
                 else:
                     _ic(len_d*3) # average is 4
-
             
             # Draw the thing
             if effects.chars: 

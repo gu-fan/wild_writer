@@ -13,6 +13,7 @@ func _init():
     
     # 连接信号
     processor.composition_updated.connect(_on_composition_updated)
+    processor.buffer_changed.connect(_on_buffer_changed)
     processor.text_committed.connect(_on_text_committed)
 
 func _ready():
@@ -43,7 +44,8 @@ func get_state() -> Dictionary:
 
 func _on_composition_updated() -> void:
     emit_signal("composition_updated")
-
+func _on_buffer_changed(buf) -> void:
+    emit_signal("ime_buffer_changed", buf)
 func _on_text_committed(text: String) -> void:
     emit_signal("ime_text_changed", text)
 

@@ -187,6 +187,7 @@ const SETTINGS_CONFIG = {
         },
     },
 }
+
 func build_ui():
     var settings = Editor.init_node('ui/settings:Settings')
     # 获取设置界面的容器节点
@@ -195,10 +196,8 @@ func build_ui():
     if basic_container:
         SettingsBuilder.build_settings(basic_container, SETTINGS_CONFIG, "basic")
 
-
 func init_config(section: String, key: String, object:Object, callback: Callable) -> void:
     var current_value = get_setting(section, key)
-    prints('got current', section, key, current_value)
     callback.call(current_value)
 
 func subscribe(section: String, key: String, object:Object, callback: Callable) -> void:
@@ -220,4 +219,3 @@ func unsubscribe(section: String, key: String, object: Object) -> void:
         setting_changed.disconnect(_subscriptions[sub_key])
         _subscriptions.erase(sub_key)
 
-        

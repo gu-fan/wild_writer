@@ -3,6 +3,7 @@ class_name InputProcessor
 
 signal composition_updated
 signal text_committed(text: String)
+signal buffer_changed(buffer: String)
 
 var context: CompositionContext
 var matcher: PinyinMatcher
@@ -63,6 +64,7 @@ func _handle_escape() -> bool:
         return false
     context.reset()
     emit_signal("composition_updated")
+    emit_signal("buffer_changed", context.buffer)
     return true
 
 # 处理Enter键
@@ -83,16 +85,19 @@ func _handle_enter() -> bool:
             # 更新候选词列表
             matcher.update_candidates(context)
             emit_signal("composition_updated")
+            emit_signal("buffer_changed", context.buffer)
         else:
             # 完全匹配，重置上下文
             context.reset()
             emit_signal("composition_updated")
+            emit_signal("buffer_changed", context.buffer)
         return true
         
     # 如果没有候选字但有输入，直接提交输入
     emit_signal("text_committed", context.buffer)
     context.reset()
     emit_signal("composition_updated")
+    emit_signal("buffer_changed", context.buffer)
     return true
 
 # 处理Backspace键
@@ -103,6 +108,7 @@ func _handle_backspace() -> bool:
     context.buffer = context.buffer.substr(0, context.buffer.length() - 1)
     matcher.update_candidates(context)
     emit_signal("composition_updated")
+    emit_signal("buffer_changed", context.buffer)
     return true
 
 # 处理数字键选择
@@ -131,10 +137,12 @@ func _handle_number_selection(key: String) -> bool:
         # 更新候选词列表
         matcher.update_candidates(context)
         emit_signal("composition_updated")
+        emit_signal("buffer_changed", context.buffer)
     else:
         # 完全匹配，重置上下文
         context.reset()
         emit_signal("composition_updated")
+        emit_signal("buffer_changed", context.buffer)
     
     return true
 
@@ -150,6 +158,7 @@ func _handle_pinyin_input(key: String) -> bool:
     # 更新候选词
     matcher.update_candidates(context)
     emit_signal("composition_updated")
+    emit_signal("buffer_changed", context.buffer)
     return true
 
 # 辅助方法：检查是否是有效的拼音字符

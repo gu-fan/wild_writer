@@ -8,8 +8,8 @@ var executions: EditorExecutions
 @onready var split_container: HSplitContainer = $VBoxContainer/MarginContainer/SplitContainer
 @onready var primary_container: VBoxContainer = $VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer
 @onready var secondary_container: VBoxContainer = $VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer
-@onready var text_edit: TextEdit = $VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer/TextEdit
-@onready var text_edit_secondary: TextEdit = $VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer/TextEdit
+@onready var text_edit: TextEdit = $VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer/Control/TextEdit
+@onready var text_edit_secondary: TextEdit = $VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer/Control/TextEdit
 @onready var pad: Control = $VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer/Pad
 @onready var pad_secondary: Control = $VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer/Pad
 
@@ -39,7 +39,6 @@ func init():
     # 初始化命令系统
     motions = EditorMotions.new(self)
     executions =  EditorExecutions.new(self)
-
     
     # 初始化视图
     setup_view()
@@ -47,7 +46,6 @@ func init():
     connect_signals()
     # 设置快捷键
     setup_key_bindings()
-
 
     Editor.config = core.config_manager
 
@@ -111,7 +109,6 @@ func setup_view() -> void:
             var gutter_size_fin = max(4*gutter_size, (3+1)*gutter_size)
             text_edit.set_gutter_width(i, gutter_size_fin)
             print(text_edit.get_gutter_width(i))
-
 
 
 func connect_signals() -> void:

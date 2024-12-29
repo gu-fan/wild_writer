@@ -37,9 +37,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 0
 
-[node name="TextEdit" type="CodeEdit" parent="VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer"]
-clip_contents = false
+[node name="Control" type="Control" parent="VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer"]
 layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TextEdit" type="CodeEdit" parent="VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer/Control"]
+clip_contents = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_vertical = 3
 wrap_mode = 1
 caret_blink = true
@@ -47,6 +56,7 @@ highlight_current_line = true
 script = ExtResource("2_dol8c")
 
 [node name="Pad" type="Control" parent="VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer"]
+custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 
 [node name="SecondaryContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/SplitContainer"]
@@ -54,9 +64,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 0
 
-[node name="TextEdit" type="CodeEdit" parent="VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer"]
-clip_contents = false
+[node name="Control" type="Control" parent="VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer"]
 layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TextEdit" type="CodeEdit" parent="VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer/Control"]
+clip_contents = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_vertical = 3
 wrap_mode = 1
 caret_blink = true
@@ -64,6 +83,7 @@ highlight_current_line = true
 script = ExtResource("2_dol8c")
 
 [node name="Pad" type="Control" parent="VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer"]
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 
 [node name="Panel" type="PanelContainer" parent="VBoxContainer"]

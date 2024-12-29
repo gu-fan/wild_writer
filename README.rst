@@ -27,8 +27,19 @@ TODO LIST:
 WISHLIST
 ========
 
-
 1. record all actions,as replay.dat, and play it in editor
 2. save version each pub, and if updated new version, show changelog on startup
+
+# egg
+
+make me mad
+热手运动
+狂打
+
+fullscreen mode
+
+mini pad mode -> borderless, minimal screen, c+enter to send to other application
+
+
 
 

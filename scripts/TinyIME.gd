@@ -2,6 +2,7 @@ extends Node
 
 signal ime_text_changed(text: String)
 signal ime_state_changed(v)
+signal ime_buffer_changed(buffer: String)
 
 
 var pinyin_buffer: String = ""
@@ -97,13 +98,13 @@ func _hki(event: InputEventKey) -> void:
     
     # Handle number keys for selection (1-5)
     if candidates.size() > 0 and key_string.is_valid_int():
+        get_viewport().set_input_as_handled()
         var num = key_string.to_int() - 1  # Convert to 0-based index
         var actual_index = current_page * page_size + num
         if num >= 0 and num < page_size and actual_index < candidates.size():
             # emit_signal("ime_text_changed", candidates[actual_index])
             _hcs(actual_index)
             # reset_ime()
-            get_viewport().set_input_as_handled()
             return
     
     # 处理拼音输入
@@ -239,11 +240,14 @@ func _update_candidates()->void:
             candidates.append(match["char"])
             candidates_matched_lengths.append(match["pinyin"].length())
 
+    emit_signal('ime_buffer_changed', pinyin_buffer)
+
 func reset_ime() -> void:
     pinyin_buffer = ""
     candidates.clear()
     current_selection = 0
     current_page = 0
+    emit_signal('ime_buffer_changed', pinyin_buffer)
 
 func toggle_ime() -> void:
     is_ime_active = !is_ime_active
