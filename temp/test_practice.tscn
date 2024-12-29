@@ -1,0 +1,76 @@
+[gd_scene load_steps=3 format=3 uid="uid://bshxa6wghtlhm"]
+
+[ext_resource type="Script" path="res://temp/test_practice.gd" id="1_u13sp"]
+[ext_resource type="FontFile" uid="uid://b5n65c1fx4c2t" path="res://assets/fonts/Agave/AgaveNerdFontMono-Regular.ttf" id="2_wyyrr"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_u13sp")
+
+[node name="Back" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0.329158, 0.329158, 0.329158, 1)
+theme_override_fonts/normal_font = ExtResource("2_wyyrr")
+theme_override_font_sizes/bold_italics_font_size = 32
+theme_override_font_sizes/italics_font_size = 32
+theme_override_font_sizes/mono_font_size = 32
+theme_override_font_sizes/normal_font_size = 32
+theme_override_font_sizes/bold_font_size = 32
+bbcode_enabled = true
+text = "took this no do line next never took other three home been put add below these his story place every thought she mother later eye change be next at between much stop each home later can city children earth make like word had all and over below tree if old than answer river call song face he that think through when use study read boy came away that idea could we her get their really number mean take water call red if even because take turn hard two different thing"
+autowrap_mode = 1
+shortcut_keys_enabled = false
+
+[node name="Type" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0.326422, 0.532406, 1, 1)
+theme_override_fonts/normal_font = ExtResource("2_wyyrr")
+theme_override_font_sizes/bold_italics_font_size = 32
+theme_override_font_sizes/italics_font_size = 32
+theme_override_font_sizes/mono_font_size = 32
+theme_override_font_sizes/normal_font_size = 32
+theme_override_font_sizes/bold_font_size = 32
+bbcode_enabled = true
+text = "took this no do line next never took other three home been put add below these his story place every thought she mother later eye change be "
+autowrap_mode = 1
+shortcut_keys_enabled = false
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -52.0
+offset_right = 43.0
+grow_vertical = 0
+
+[node name="Time" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Time:"
+
+[node name="Wpm" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Time:"
+
+[node name="Acc" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Time:"
+
+[node name="Error" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Time:"

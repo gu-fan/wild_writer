@@ -218,4 +218,3 @@ func unsubscribe(section: String, key: String, object: Object) -> void:
     if _subscriptions.has(sub_key):
         setting_changed.disconnect(_subscriptions[sub_key])
         _subscriptions.erase(sub_key)
-
