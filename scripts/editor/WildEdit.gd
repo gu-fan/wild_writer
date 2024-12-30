@@ -48,6 +48,7 @@ var skip_effect = false
 var is_single_letter = false
 
 var last_mix: String = ''
+var last_non_empty_mix: String = ''
 var is_ime_input = false
 
 func _ready():
@@ -118,8 +119,11 @@ func _on_gui_input(event):
         is_single_letter = true
         skip_effect = false
         prints('[%d]' % Time.get_ticks_usec(), 'input: ', last_key_name, last_unicode, event.keycode, 'mix|', last_mix, '|')
+        prints('is_linux', Editor.is_linux, 'is_macos', Editor.is_macos)
         if event.keycode == 0:
             is_ime_input = true
+            if Editor.is_macos:
+                _finish_ime_mix()
         else:
             is_ime_input = false
 
@@ -308,13 +312,15 @@ func _feed_ime_mix(t):
             _cancel_ime_mix()
 
     last_mix = t
+    if t != '': last_non_empty_mix = t
 
 func _finish_ime_mix():
-    print('finish ime mix', last_mix)
+    prints('finish ime mix', last_mix, last_non_empty_mix)
     last_mix = ''
+    last_non_empty_mix = ''
 
 func _cancel_ime_mix():
-    print('cancel ime mix')
+    prints('cancel ime mix', last_mix, last_non_empty_mix)
 
 # -----------------------
 func _otc():
