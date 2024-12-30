@@ -117,7 +117,7 @@ func _on_gui_input(event):
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
-        prints('[%d]' % Time.get_ticks_usec(), 'input: ', last_key_name, last_unicode, event.keycode)
+        prints('[%d]' % Time.get_ticks_usec(), 'input: ', last_key_name, last_unicode, event.keycode, 'mix|', last_mix, '|')
         if event.keycode == 0:
             is_ime_input = true
         else:
