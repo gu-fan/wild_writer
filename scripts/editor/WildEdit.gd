@@ -318,6 +318,7 @@ func _finish_ime_mix():
     prints('finish ime mix', last_mix, last_non_empty_mix)
     last_mix = ''
     last_non_empty_mix = ''
+    is_ime_input = false
 
 func _cancel_ime_mix():
     prints('cancel ime mix', last_mix, last_non_empty_mix)
