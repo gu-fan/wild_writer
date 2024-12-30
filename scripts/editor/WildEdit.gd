@@ -119,11 +119,11 @@ func _on_gui_input(event):
         is_single_letter = true
         skip_effect = false
         prints('[%d]' % Time.get_ticks_usec(), 'input: ', last_key_name, last_unicode, event.keycode, 'mix|', last_mix, '|')
-        prints('is_linux', Editor.is_linux, 'is_macos', Editor.is_macos)
-        if event.keycode == 0:
+        prints('is_linux', Editor.is_linux, 'is_macos', Editor.is_macos, 'is_windows', Editor.is_windows)
+        if event.keycode == 0 or last_key_name == 'Unknown':
             is_ime_input = true
-            if Editor.is_macos:
-                _finish_ime_mix()
+            # if Editor.is_macos or Editor.is_windows: _finish_ime_mix()
+            _finish_ime_mix()
         else:
             is_ime_input = false
 
@@ -321,6 +321,8 @@ func _finish_ime_mix():
     is_ime_input = false
 
 func _cancel_ime_mix():
+    # maybe on macos, wait 0.1s to see if need finish,
+    # if not finish in 0.1s, cancel it
     prints('cancel ime mix', last_mix, last_non_empty_mix)
 
 # -----------------------
