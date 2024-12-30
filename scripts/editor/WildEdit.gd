@@ -7,7 +7,6 @@ const Laser: PackedScene   = preload("res://effects/laser.tscn")
 const Blip: PackedScene    = preload("res://effects/blip.tscn")
 const Newline: PackedScene = preload("res://effects/newline.tscn")
 
-
 var effects = {
     level=1,
     combo=1,
@@ -32,7 +31,6 @@ var last_unicode: String = ''
 var last_key_name: String = ''
 var last_text: String = ''
 var last_caret_line: = 0
-var last_mix: String = ''
 
 const TIME_BOOM_INTERVAL = 0.1
 const TIME_CHAR_INTERVAL = 0.1
@@ -48,6 +46,9 @@ var ime_display
 
 var skip_effect = false
 var is_single_letter = false
+
+var last_mix: String = ''
+var is_ime_input = false
 
 func _ready():
     print('WildEdit inited')
@@ -99,7 +100,6 @@ func update_ime_position():
                 2: pos.y += 2
                 3: pos.y -= 4
         
-            
         # 确保不会超出右边界
         var editor_width = size.x
         if pos.x + ime_display.size.x > editor_width:
@@ -117,7 +117,11 @@ func _on_gui_input(event):
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
-        prints('input: ', last_key_name, last_unicode, event.keycode)
+        prints('[%d]' % Time.get_ticks_usec(), 'input: ', last_key_name, last_unicode, event.keycode)
+        if event.keycode == 0:
+            is_ime_input = true
+        else:
+            is_ime_input = false
 
 func _physics_process(delta):
     _time_b += delta
@@ -264,6 +268,7 @@ func _ssf(duration, intensity):
 # ---------------
 func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
+        print('[%d]' % Time.get_ticks_usec() , 'note ime update', is_ime_input)
         var t = DisplayServer.ime_get_text()
         _feed_ime_mix(t)
 
@@ -292,16 +297,21 @@ func _get_ime_mix():
     return mix_node
 
 func _feed_ime_mix(t):
-    print('feed ime mix', t)
+    print('[%d]feed ime mix: %s' % [Time.get_ticks_usec(), t])
     var m = _get_ime_mix()
     m.set_text(t)
+    prints('mix|%s|%s|' % [last_mix,t], last_mix.length(), t.length(), is_ime_input)
     if last_mix.length() != 0 and t.length() == 0:
-        _cancel_ime_mix()
+        if is_ime_input:
+            _finish_ime_mix()
+        else:
+            _cancel_ime_mix()
 
     last_mix = t
 
 func _finish_ime_mix():
-    pass
+    print('finish ime mix', last_mix)
+    last_mix = ''
 
 func _cancel_ime_mix():
     print('cancel ime mix')
