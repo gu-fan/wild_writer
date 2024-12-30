@@ -1,7 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://bshxa6wghtlhm"]
+[gd_scene load_steps=4 format=3 uid="uid://bshxa6wghtlhm"]
 
 [ext_resource type="Script" path="res://temp/test_practice.gd" id="1_u13sp"]
 [ext_resource type="FontFile" uid="uid://b5n65c1fx4c2t" path="res://assets/fonts/Agave/AgaveNerdFontMono-Regular.ttf" id="2_wyyrr"]
+
+[sub_resource type="FontVariation" id="FontVariation_octcw"]
+base_font = ExtResource("2_wyyrr")
+spacing_bottom = -3
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -11,6 +15,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_u13sp")
+
+[node name="BackPos" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = SubResource("FontVariation_octcw")
+theme_override_font_sizes/font_size = 32
+text = "In the old times, when it was still of some use to wish for the thing one wanted, there lived a King whose daughters were all handsome, but the youngest was so beautiful that the sun himself, who has seen so much, wondered each time he shone over her because of her beauty. Near the royal castle there was a great dark wood, and in the wood under an old linden-tree was a well; and when the day was hot, the King's daughter used to go forth into the wood and sit by the brink of the cool well, and if the time seemed long, she would take out a golden ball, and throw it up and catch it again, and this was her favourite pastime."
+autowrap_mode = 1
 
 [node name="Back" type="RichTextLabel" parent="."]
 layout_mode = 1
@@ -27,7 +44,9 @@ theme_override_font_sizes/mono_font_size = 32
 theme_override_font_sizes/normal_font_size = 32
 theme_override_font_sizes/bold_font_size = 32
 bbcode_enabled = true
-text = "took this no do line next never took other three home been put add below these his story place every thought she mother later eye change be next at between much stop each home later can city children earth make like word had all and over below tree if old than answer river call song face he that think through when use study read boy came away that idea could we her get their really number mean take water call red if even because take turn hard two different thing"
+text = "In the old times, when it was still of some use to wish for the thing one wanted, there lived a King whose daughters were all handsome, but the youngest was so beautiful that the sun himself, who has seen so much, wondered each time he shone over her because of her beauty. Near the royal castle there was a great dark wood, and in the wood under an old linden-tree was a well; and when the day was hot, the King's daughter used to go forth into the wood and sit by the brink of the cool well, and if the time seemed long, she would take out a golden ball, and throw it up and catch it again, and this was her favourite pastime."
+fit_content = true
+scroll_active = false
 autowrap_mode = 1
 shortcut_keys_enabled = false
 
@@ -46,7 +65,8 @@ theme_override_font_sizes/mono_font_size = 32
 theme_override_font_sizes/normal_font_size = 32
 theme_override_font_sizes/bold_font_size = 32
 bbcode_enabled = true
-text = "took this no do line next never took other three home been put add below these his story place every thought she mother later eye change be "
+fit_content = true
+scroll_active = false
 autowrap_mode = 1
 shortcut_keys_enabled = false
 
@@ -55,7 +75,7 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
+offset_top = -108.0
 offset_right = 43.0
 grow_vertical = 0
 

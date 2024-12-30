@@ -43,3 +43,5 @@ mini pad mode -> borderless, minimal screen, c+enter to send to other applicatio
 
 
 
+
+

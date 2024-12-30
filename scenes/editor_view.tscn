@@ -107,11 +107,15 @@ text = "Locale"
 [node name="Status" type="Label" parent="VBoxContainer/Panel/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 14
 text = "Ready"
 
 [node name="Count" type="Label" parent="VBoxContainer/Panel/HBoxContainer"]
 custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 14
 text = "232L 3293 C"
 horizontal_alignment = 2
 

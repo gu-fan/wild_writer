@@ -32,6 +32,7 @@ var last_unicode: String = ''
 var last_key_name: String = ''
 var last_text: String = ''
 var last_caret_line: = 0
+var last_mix: String = ''
 
 const TIME_BOOM_INTERVAL = 0.1
 const TIME_CHAR_INTERVAL = 0.1
@@ -109,7 +110,6 @@ func update_ime_position():
             
         ime_display.position = pos
 
-
 func _on_gui_input(event):
     if event is InputEventKey and event.pressed:
         if event.unicode:
@@ -117,6 +117,7 @@ func _on_gui_input(event):
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
+        prints('input: ', last_key_name, last_unicode, event.keycode)
 
 func _physics_process(delta):
     _time_b += delta
@@ -265,8 +266,8 @@ func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
         var t = DisplayServer.ime_get_text()
         _feed_ime_mix(t)
+
 func _on_ime_buffer_changed(buffer):
-    print('changed' ,buffer)
     _feed_ime_mix(buffer)
 
 class IMEMix extends ColorRect:
@@ -291,14 +292,19 @@ func _get_ime_mix():
     return mix_node
 
 func _feed_ime_mix(t):
+    print('feed ime mix', t)
     var m = _get_ime_mix()
     m.set_text(t)
+    if last_mix.length() != 0 and t.length() == 0:
+        _cancel_ime_mix()
+
+    last_mix = t
 
 func _finish_ime_mix():
     pass
 
 func _cancel_ime_mix():
-    pass
+    print('cancel ime mix')
 
 # -----------------------
 func _otc():
