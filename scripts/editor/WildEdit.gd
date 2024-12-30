@@ -324,7 +324,7 @@ func _otc():
     caret_line=get_caret_line()
     caret_column=get_caret_column()
     last_line=get_line(caret_line)
-    print('otc', last_unicode, last_key_name)
+    print('fill input with otc match', last_unicode, last_key_name)
     if last_key_name == '(Unset)':
         if caret_line==o:
             is_single_letter=false
