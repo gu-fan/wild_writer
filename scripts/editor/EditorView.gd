@@ -17,7 +17,7 @@ var executions: EditorExecutions
 @onready var debug: Button = $VBoxContainer/Panel/HBoxContainer/Debug
 @onready var locale: Button = $VBoxContainer/Panel/HBoxContainer/Locale
 @onready var count: Label = $VBoxContainer/Panel/HBoxContainer/Count
-@onready var lang: Button = $VBoxContainer/Panel/HBoxContainer/Lang
+@onready var lb_ime: Button = $VBoxContainer/Panel/HBoxContainer/IME
 @onready var file: Button = $VBoxContainer/Panel/HBoxContainer/File
 @onready var setting: Button = $VBoxContainer/Panel/HBoxContainer/Setting
 
@@ -80,7 +80,6 @@ func init():
     await get_tree().create_timer(0.1).timeout
     last_focused_editor.call_deferred('grab_focus')
     
-
 func setup_view() -> void:
     # 设置编辑器基本属性
     text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY if core.config_manager.get_basic_setting("line_wrap") else TextEdit.LINE_WRAPPING_NONE
@@ -120,6 +119,7 @@ func setup_view() -> void:
 func connect_signals() -> void:
     text_edit.focus_entered.connect(_on_editor_focus_entered.bind(text_edit))
     text_edit_secondary.focus_entered.connect(_on_editor_focus_entered.bind(text_edit_secondary))
+    TinyIME.ime_state_changed.connect(_on_ime_state_changed)
 
 func setup_key_bindings() -> void:
     # 添加命令窗口快捷键
@@ -135,6 +135,12 @@ func setup_key_bindings() -> void:
         "show_execution",
         "editorFocus"
     )
+
+    core.key_system.add_binding(
+        ["Ctrl+I"],
+        "toggle_ime",
+        "editorFocus"
+    )
     core.key_system.sequence_matched.connect(_on_key_sequence_matched)
 
 func _on_key_sequence_matched(binding: KeySystem.KeyBinding) -> void:
@@ -142,9 +148,16 @@ func _on_key_sequence_matched(binding: KeySystem.KeyBinding) -> void:
     match binding.command:
         "show_command": show_command_window()
         "show_execution": show_execution_window()
+        "toggle_ime": TinyIME.toggle()
 
 func _on_editor_focus_entered(editor: TextEdit) -> void:
     last_focused_editor = editor
+func _on_ime_state_changed(v):
+    if v:
+        lb_ime.text  = 'CN'
+    else:
+        lb_ime.text  = 'EN'
+
 
 func show_command_window() -> void:
     if current_command_window != null and is_instance_valid(current_command_window):
@@ -209,7 +222,6 @@ func _on_execution_requested(command: String, args: Dictionary):
     _on_execution_canceled()
 
 func _on_execution_canceled():
-
     current_execution_window = null
 
     await get_tree().process_frame

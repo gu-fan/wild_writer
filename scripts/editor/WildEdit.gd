@@ -40,7 +40,7 @@ var _time_b: float = 0.0
 var font_size := 0 # the setting in basic
 
 var combo_node: Control
-var mix_node: Control
+var compose_node: Control
 var ime
 var ime_display
 
@@ -52,7 +52,7 @@ var is_ime_input = false
 
 var ime_state = {
     is_composing = false,      # 是否正在输入中
-    last_mix = "",            # 上一次的混合文本
+    last_compose = "",            # 上一次的混合文本
     last_non_empty = "",      # 上一次非空的混合文本
     pending_finish = false,    # 是否有待处理的完成事件
     pending_cancel = false,    # 是否有待处理的取消事件
@@ -70,7 +70,7 @@ func _ready():
     text_changed.connect(_on_text_changed)
     caret_changed.connect(_on_caret_changed)
 
-    _get_ime_mix()
+    _get_ime_compose()
     ime_display = preload("res://scenes/ime_display.tscn").instantiate()
     ime_display.hide()
     add_child(ime_display)
@@ -132,7 +132,7 @@ func _on_gui_input(event):
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
-        prints(Util.f_usec(), 'input: ', last_key_name, last_unicode, event.keycode, 'mix|', ime_state.last_mix, '|')
+        prints(Util.f_usec(), 'input: ', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|')
         
         if event.keycode == 0 or last_key_name == 'Unknown':
             is_ime_input = true
@@ -144,7 +144,8 @@ func _on_gui_input(event):
                 ime_state.input_sequence += last_unicode
             # Windows/macOS: 在输入时就触发完成效果
             if Editor.is_macos or Editor.is_windows:
-                _handle_ime_finish()
+                # _handle_ime_finish()
+                Util.delay('_ime_compose', 0.05, _handle_ime_finish)
         else:
             is_ime_input = false
 
@@ -296,13 +297,13 @@ func _notification(what):
         if !is_active: return
         var t = DisplayServer.ime_get_text()
         prints('[%d]' % Time.get_ticks_usec(), 'note ime update', is_ime_input, t)
-        _feed_ime_mix(t)
+        _feed_ime_compose(t)
 
 func _on_ime_buffer_changed(buffer):
     if !is_active: return
-    _feed_ime_mix(buffer)
+    _feed_ime_compose(buffer)
 
-class IMEMix extends ColorRect:
+class IMECompose extends ColorRect:
     var _label: Label = null
     func _init():
         custom_minimum_size = Vector2(100, 40)
@@ -315,21 +316,21 @@ class IMEMix extends ColorRect:
     func clear():
         _label.text = ''
 
-func _get_ime_mix():
-    if mix_node == null:
-        mix_node = IMEMix.new()
-        mix_node.position = Vector2(100, 200)
-        mix_node.z_index = 10
-        add_child.call_deferred(mix_node)
-    return mix_node
+func _get_ime_compose():
+    if compose_node == null:
+        compose_node = IMECompose.new()
+        compose_node.position = Vector2(100, 200)
+        compose_node.z_index = 10
+        add_child.call_deferred(compose_node)
+    return compose_node
 
-func _feed_ime_mix(t: String):
-    print('[%d]feed ime mix: %s' % [Time.get_ticks_usec(), t])
-    var m = _get_ime_mix()
+func _feed_ime_compose(t: String):
+    print('[%d]feed ime compose: %s' % [Time.get_ticks_usec(), t])
+    var m = _get_ime_compose()
     m.set_text(t)
     
     var current_time = Time.get_ticks_msec()
-    prints(Util.f_usec(), 'mix|%s|%s|' % [ime_state.last_mix, t], ime_state.last_mix.length(), t.length(), is_ime_input)
+    prints(Util.f_usec(), 'compose|%s|%s|' % [ime_state.last_compose, t], ime_state.last_compose.length(), t.length(), is_ime_input)
     prints(Util.f_usec(), 'get state', ime_state)
     
     # 如果最近刚完成输入，忽略后续的空字符串通知
@@ -345,7 +346,7 @@ func _feed_ime_mix(t: String):
         ime_state.input_sequence = ""  # 重置输入序列
     
     # 检测输入完成或取消
-    if ime_state.last_mix.length() != 0 and t.length() == 0:
+    if ime_state.last_compose.length() != 0 and t.length() == 0:
         if is_ime_input:
             # Linux: 在这里触发完成效果
             if Editor.is_linux:
@@ -355,20 +356,22 @@ func _feed_ime_mix(t: String):
             _handle_ime_cancel()
             ime_state.pending_cancel = true
     
-    ime_state.last_mix = t
+    ime_state.last_compose = t
     if t != "":
         ime_state.last_non_empty = t
     ime_state.last_update_time = current_time
 
+
 func _handle_ime_finish():
     prints(Util.f_usec(), '_handle_ime_finish', last_unicode, last_key_name, ime_state.last_non_empty)
-    if not ime_state.pending_finish and ime_state.last_non_empty != "":
-        # 检查输入序列是否与 last_mix 匹配
-        if ime_state.first_input != "" and ime_state.last_non_empty[0] != ime_state.first_input:
-            _handle_ime_cancel()
-            return
+    if not ime_state.pending_finish and ime_state.input_sequence != "":
+        # 检查输入序列是否与 last_compose 匹配
+        # This is only valid on linux
+        # if ime_state.first_input != "" and ime_state.last_non_empty[0] != ime_state.first_input:
+        #     _handle_ime_cancel()
+        #     return
             
-        prints(Util.f_usec(), 'finish ime mix', ime_state.last_mix, ime_state.last_non_empty, ime_state.input_sequence)
+        prints(Util.f_usec(), 'finish ime compose', ime_state.last_compose, ime_state.last_non_empty, ime_state.input_sequence)
         # 在这里触发完成效果
         var pos = _gfcp()
         var thing = Blip.instantiate()
@@ -382,7 +385,7 @@ func _handle_ime_finish():
         if effects.shake:
             _ss(0.08, 8)
         
-        ime_state.last_mix = ""
+        ime_state.last_compose = ""
         ime_state.last_non_empty = ""
         ime_state.is_composing = false
         ime_state.pending_finish = true
@@ -394,7 +397,7 @@ func _handle_ime_finish():
 
 func _handle_ime_cancel():
     if not ime_state.pending_cancel and not ime_state.pending_finish:
-        prints(Util.f_usec(), 'cancel ime mix', ime_state.last_mix, ime_state.last_non_empty)
+        prints(Util.f_usec(), 'cancel ime compose', ime_state.last_compose, ime_state.last_non_empty)
         # 在这里触发取消效果
         var pos = _gfcp()
         var thing = Boom.instantiate()
@@ -407,7 +410,7 @@ func _handle_ime_cancel():
         if effects.shake:
             _ss(0.05, 6)
         
-        ime_state.last_mix = ""
+        ime_state.last_compose = ""
         ime_state.last_non_empty = ""
         ime_state.is_composing = false
         ime_state.pending_cancel = true
@@ -436,7 +439,6 @@ func _otc():
             last_unicode=''
         skip_effect=true
 
-
 func feed_ime_input(key):
     if !is_active: return
     prints(Util.f_usec(), 'handle tiny ime', last_unicode, last_key_name, key)
@@ -449,6 +451,13 @@ func feed_ime_input(key):
     _incr_multi_combo(key)
     # emit_signal('typing')
     # update_editor_stats()
+    
+    ime_state.pending_finish = false
+    ime_state.input_sequence = key
+    _handle_ime_finish()
+    ime_state.pending_finish = true
+
+
 func _incr_multi_combo(s, mul=3):
     var n = s.length()
     var t = 0.18 + (0.34 if n > 7 else n * 0.04)
