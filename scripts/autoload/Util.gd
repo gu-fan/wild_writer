@@ -57,8 +57,12 @@ func sec():
     return int(Time.get_ticks_msec() / 100) / 10.0 # 3.3 sec
 func msec():
     return Time.get_ticks_msec()
+func f_msec():
+    return '[%d]' % Time.get_ticks_msec()
 func usec():
     return Time.get_ticks_usec()
+func f_usec():
+    return '[%d]' % Time.get_ticks_usec()
 func keycode_to_string(k):
     return OS.get_keycode_string(k)
 func string_to_keycode(s):

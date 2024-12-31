@@ -25,7 +25,13 @@ var timer_fps : Timer = null
 @onready var stat_box: VBoxContainer = $StatBox
 @onready var log_box: VBoxContainer = $LogBox
 
-var last_focused_editor: TextEdit = null
+var last_focused_editor: TextEdit = null :
+    set(te):
+        if last_focused_editor != te:
+            if last_focused_editor: last_focused_editor.is_active = false
+            last_focused_editor = te
+            if last_focused_editor: last_focused_editor.is_active = true
+        
 var current_file_path: String = ""
 var current_command_window: CommandWindow = null
 var current_execution_window: ExecutionWindow = null
