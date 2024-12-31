@@ -1,6 +1,5 @@
 class_name WildEdit extends CodeEdit
 
-
 const Boom: PackedScene    = preload("res://effects/boom.tscn")
 const Combo: PackedScene   = preload("res://effects/combo.tscn")
 const Laser: PackedScene   = preload("res://effects/laser.tscn")
@@ -37,7 +36,6 @@ const TIME_CHAR_INTERVAL = 0.1
 var _time_b: float = 0.0
 # var _time_c: float = 0.0
 var font_size := 0 # the setting in basic
-
 
 var combo_node: Control
 var mix_node: Control
@@ -122,8 +120,8 @@ func _on_gui_input(event):
         prints('is_linux', Editor.is_linux, 'is_macos', Editor.is_macos, 'is_windows', Editor.is_windows)
         if event.keycode == 0 or last_key_name == 'Unknown':
             is_ime_input = true
-            # if Editor.is_macos or Editor.is_windows: _finish_ime_mix()
-            _finish_ime_mix()
+            if Editor.is_macos or Editor.is_windows: _finish_ime_mix()
+            # _finish_ime_mix()
         else:
             is_ime_input = false
 
@@ -259,7 +257,6 @@ func _rc():
             combo_node.queue_free()
             combo_node = null
 
-
 func _ss(duration, intensity):
     if shake > 0:
         return
@@ -272,8 +269,8 @@ func _ssf(duration, intensity):
 # ---------------
 func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
-        print('[%d]' % Time.get_ticks_usec() , 'note ime update', is_ime_input)
         var t = DisplayServer.ime_get_text()
+        prints('[%d]' % Time.get_ticks_usec() , 'note ime update', is_ime_input, t)
         _feed_ime_mix(t)
 
 func _on_ime_buffer_changed(buffer):
@@ -315,15 +312,19 @@ func _feed_ime_mix(t):
     if t != '': last_non_empty_mix = t
 
 func _finish_ime_mix():
-    prints('finish ime mix', last_mix, last_non_empty_mix)
-    last_mix = ''
-    last_non_empty_mix = ''
+    if last_non_empty_mix != '': 
+        prints('finish ime mix', last_mix, last_non_empty_mix)
+        last_mix = ''
+        last_non_empty_mix = ''
     is_ime_input = false
 
 func _cancel_ime_mix():
     # maybe on macos, wait 0.1s to see if need finish,
     # if not finish in 0.1s, cancel it
     prints('cancel ime mix', last_mix, last_non_empty_mix)
+
+func _clear_ime_mix():
+    pass
 
 # -----------------------
 func _otc():
