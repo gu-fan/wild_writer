@@ -3,7 +3,10 @@ extends Node2D
 var text_server: TextServer
 var font: Font
 var char_data: Array[CharData] = []
-var base_pos := Vector2(100, 100)
+var base_pos := Vector2.ZERO
+var fonts
+var canvas: RID
+var font_size = 32
 
 # Animation parameters
 var time: float = 0.0
@@ -28,14 +31,15 @@ class CharData:
 func _ready():
     # Get the primary text server interface
     text_server = TextServerManager.get_primary_interface()
+    canvas = get_canvas_item()
     
     font = load("res://assets/fonts/NotoSans/NotoSansSC-Regular.ttf")
     # Create a font resource
     
     # Set up text
     var test_text = "Hello World! 👋"
-    var fonts = font.get_rids()
-    var font_size = 32
+    fonts = font.get_rids()
+    font_size = 32
     
     # Process each character
     var current_x = 0.0
@@ -93,7 +97,7 @@ func _draw():
         pos.y += data.baseline  # Align to baseline
         pos.y += wave_offset   # Add wave animation
 
-        var size = text_server.shaped_text_get_size(data.shaped_text_rid)
+        # var size = text_server.shaped_text_get_size(data.shaped_text_rid)
         
         # # Draw the character
         text_server.shaped_text_draw_outline(
@@ -104,6 +108,17 @@ func _draw():
             2,  # Outline size
             Color(0, 0, 0, alpha)  # Outline color
         )
+        var glyphs = text_server.shaped_text_get_glyphs(data.shaped_text_rid)
+        # print('glyphs', glyphs)
+        # for g in glyphs:
+        #     # print(text_server.font_get_glyph_size([fonts[0], ]))
+        #     print(g)
+        text_server.font_draw_glyph(fonts[0], canvas, font_size, Vector2(100 + 30*i, 100), glyphs[0].index)
+        var objs = text_server.shaped_text_get_objects(data.shaped_text_rid)
+        print('ojbs', objs)
+        for obj in objs:
+            print('obj', obj)
+            print(text_server.shaped_text_get_object_rect(data.shaped_text_rid, obj))
         
         text_server.shaped_text_draw(
             data.shaped_text_rid,
@@ -112,6 +127,7 @@ func _draw():
             -1, -1,  # No clipping
             Color(1, 1, 1, alpha)  # Text color
         )
+        var size = text_server.font_get_glyph_size(fonts[0], Vector2(font_size, 0), glyphs[0].index)
         var rect = Rect2(pos-Vector2(0, data.baseline), size)
         draw_rect(rect, Color.GREEN, false)
 

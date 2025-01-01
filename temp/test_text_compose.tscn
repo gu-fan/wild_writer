@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://gx6pd3ufkodu"]
+
+[ext_resource type="Script" path="res://temp/test_text_compose.gd" id="1_6k5nl"]
+[ext_resource type="Script" path="res://temp/AnimatedText.gd" id="2_f0v4i"]
+
+[node name="TestTextCompose" type="Node2D"]
+script = ExtResource("1_6k5nl")
+
+[node name="AnimatedText" type="Node2D" parent="."]
+position = Vector2(200, 200)
+script = ExtResource("2_f0v4i")

@@ -44,7 +44,6 @@ var compose_node: Control
 var ime
 var ime_display
 
-
 var skip_effect = false
 var is_single_letter = false
 
@@ -52,14 +51,14 @@ var is_ime_input = false
 
 var ime_state = {
     is_composing = false,      # 是否正在输入中
-    last_compose = "",            # 上一次的混合文本
-    last_non_empty = "",      # 上一次非空的混合文本
+    last_compose = "",         # 上一次的混合文本
+    last_non_empty = "",       # 上一次非空的混合文本
     pending_finish = false,    # 是否有待处理的完成事件
     pending_cancel = false,    # 是否有待处理的取消事件
-    last_update_time = 0,     # 最后更新时间
-    last_finish_time = 0,     # 最后完成时间
-    first_input = "",         # 输入序列的第一个字符
-    input_sequence = "",      # 完整的输入序列
+    last_update_time = 0,      # 最后更新时间
+    last_finish_time = 0,      # 最后完成时间
+    first_input = "",          # 输入序列的第一个字符
+    input_sequence = "",       # 完整的输入序列
 }
 
 func _ready():
@@ -456,7 +455,6 @@ func feed_ime_input(key):
     ime_state.input_sequence = key
     _handle_ime_finish()
     ime_state.pending_finish = true
-
 
 func _incr_multi_combo(s, mul=3):
     var n = s.length()

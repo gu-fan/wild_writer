@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dusd41n2ue4f1"]
+
+[ext_resource type="Script" path="res://temp/test_paragraph.gd" id="1_sl8rd"]
+
+[node name="TestParagraph" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_sl8rd")
