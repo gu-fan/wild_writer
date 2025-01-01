@@ -3,9 +3,33 @@
 [ext_resource type="Script" path="res://temp/test_text_compose.gd" id="1_6k5nl"]
 [ext_resource type="Script" path="res://temp/AnimatedText.gd" id="2_f0v4i"]
 
-[node name="TestTextCompose" type="Node2D"]
+[node name="TestTextCompose" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_6k5nl")
 
 [node name="AnimatedText" type="Node2D" parent="."]
 position = Vector2(200, 200)
 script = ExtResource("2_f0v4i")
+
+[node name="BtnTest" type="Button" parent="."]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 33.0
+offset_right = 84.0
+offset_bottom = 64.3333
+focus_mode = 0
+text = "test"
+
+[node name="BtnRainbow" type="Button" parent="."]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 97.0
+offset_right = 108.0
+offset_bottom = 128.333
+focus_mode = 0
+text = "rainbow"
