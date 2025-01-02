@@ -37,7 +37,6 @@ file_logging/enable_file_logging=true
 window/size/viewport_width=1728
 window/size/viewport_height=972
 window/stretch/aspect="ignore"
-window/stretch/scale=2.0
 window/vsync/vsync_mode=0
 
 [editor_plugins]

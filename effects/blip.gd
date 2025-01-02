@@ -80,8 +80,8 @@ func _ready():
     }).tween({
         prop='position',
         from=Vector2(-35+20, -60) + char_offset,
-        to=Vector2(-35-120, -110)*extra_scale + char_offset if !move_right else Vector2(-35+160, -110)*extra_scale + char_offset,
-        dur=0.8,
+        to=Vector2(-35-200, -110)*extra_scale + char_offset if !move_right else Vector2(-35+260, -110)*extra_scale + char_offset,
+        dur=0.9,
         parallel=true,
         ease=Tween.EASE_OUT,
         trans=Tween.TRANS_SINE,

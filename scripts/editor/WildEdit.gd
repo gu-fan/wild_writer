@@ -133,7 +133,7 @@ func update_compose_position():
         var ime_height = compose_node.size.y
         var caret_pos = _gfcp()
         
-        var pos = position + caret_pos - Vector2(0, line_height)
+        var pos = position + caret_pos - Vector2(0, line_height) - Vector2(0, 30)
         # match font_size:
         #     0: pos.y += 40
         #     1: pos.y += 30
@@ -336,11 +336,11 @@ func _on_ime_buffer_changed(buffer):
     if !is_active: return
     _feed_ime_compose(buffer)
 
-class IMECompose extends ColorRect:
+class IMECompose extends Control:
     var _label: AnimatedText = null
     func _init():
-        custom_minimum_size = Vector2(100, 40)
-        color = '336633'
+        custom_minimum_size = Vector2(10, 10)
+        # color = '336633'
         _label = AnimatedText.new()
         add_child(_label)
 
@@ -348,6 +348,8 @@ class IMECompose extends ColorRect:
         _label.text = t
     func clear():
         _label.text = ''
+    func finish_compose():
+        _label.finish_compose()
 
 func _get_ime_compose():
     if compose_node == null:
@@ -359,20 +361,33 @@ func _get_ime_compose():
 
 func _feed_ime_compose(t: String):
     print('[%d]feed ime compose: %s' % [Time.get_ticks_usec(), t])
-    var m = _get_ime_compose()
-    m.set_text(t)
     
     var current_time = Time.get_ticks_msec()
     prints(Util.f_usec(), 'compose|%s|%s|' % [ime_state.last_compose, t], ime_state.last_compose.length(), t.length(), is_ime_input)
-    prints(Util.f_usec(), 'get state', ime_state)
+    # prints(Util.f_usec(), 'get state', ime_state)
     
     # 如果最近刚完成输入，忽略后续的空字符串通知
     if t.length() == 0 and current_time - ime_state.last_finish_time < 50:  # 50ms 阈值
+        var m = _get_ime_compose()
+        m.set_text(t)
         return
 
-    _ic()
-    _show_char_force(' ')
 
+    var t_d = t.length() - ime_state.last_compose.length()
+    prints('delta', t_d, t, ime_state.last_compose)
+    if t_d > 0:
+        _ic(t_d)
+        _show_char_force(' ')
+    else:
+        _dc(-t_d * 3)
+        # _show_char_force('←')
+        var pos = _gfcp()
+        var thing = Boom.instantiate()
+        thing.position = pos
+        thing.destroy = true
+        thing.audio = effects.audio
+        thing.blips = effects.particles
+        add_child.call_deferred(thing)
     
     # 开始新的输入
     if not ime_state.is_composing and t != "":
@@ -398,6 +413,9 @@ func _feed_ime_compose(t: String):
         ime_state.last_non_empty = t
     ime_state.last_update_time = current_time
 
+    var m = _get_ime_compose()
+    m.set_text(t)
+
 
 func _handle_ime_finish():
     prints(Util.f_usec(), '_handle_ime_finish', last_unicode, last_key_name, ime_state.last_non_empty)
@@ -409,18 +427,23 @@ func _handle_ime_finish():
         #     return
             
         prints(Util.f_usec(), 'finish ime compose', ime_state.last_compose, ime_state.last_non_empty, ime_state.input_sequence)
+        var m = _get_ime_compose()
+        m.finish_compose()
+
         # 在这里触发完成效果
         var pos = _gfcp()
-        var thing = Blip.instantiate()
-        thing.position = pos
-        thing.destroy = true
-        thing.audio = effects.audio
-        thing.blips = effects.particles
-        thing.last_key = ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty
-        add_child.call_deferred(thing)
+        # var thing = Blip.instantiate()
+        # thing.position = pos
+        # thing.destroy = true
+        # thing.audio = effects.audio
+        # thing.blips = effects.particles
+        # thing.last_key = ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty
+        # add_child.call_deferred(thing)
+
+        _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false, {audio=false})
         
-        if effects.shake:
-            _ss(0.08, 8)
+        # if effects.shake:
+        #     _ss(0.08, 8)
         
         ime_state.last_compose = ""
         ime_state.last_non_empty = ""
@@ -483,36 +506,39 @@ func feed_ime_input(key):
     last_unicode = ''
 
     insert_text_at_caret(key)
-    await get_tree().process_frame
-    _show_multi_char(key)
-    _incr_multi_combo(key)
-    # emit_signal('typing')
-    # update_editor_stats()
+
+    # await get_tree().process_frame
+    # _show_multi_char(key)
+    # _incr_multi_combo(key)
+
     
     ime_state.pending_finish = false
     ime_state.input_sequence = key
     _handle_ime_finish()
     ime_state.pending_finish = true
 
+    # emit_signal('typing')
+    # update_editor_stats()
+
 func _incr_multi_combo(s, mul=3):
     var n = s.length()
-    var t = 0.18 + (0.34 if n > 7 else n * 0.04)
+    var t = 0.20 + (0.30 if n > 7 else n * 0.04)
     var i = 0
     for k in s:
         _ic(1 if _is_ascii(k) else mul, t * i / n)
         i += 1
 
-func _show_multi_char(s: String, f: bool = false) -> void:
+func _show_multi_char(s: String, f: bool = false, params = {}) -> void:
     var l = s.length()
-    var t = 0.18 + (0.34 if l > 7 else l * 0.04)
+    var t = 0.20 + (0.30 if l > 7 else l * 0.04)
     var h = get_line_height() * 0.25
     var x = 0.0
     var o = []
     for c in s: x += h * (2 if c.unicode_at(0) > 127 else 1); o.append(x)
     var p = get_caret_draw_pos() + Vector2(0, -get_line_height()/2.0) + Vector2(x, 0) if f else Vector2.ZERO
-    for i in l: _show_char_force(s[i], t * i / l, -x + o[i], p)
+    for i in l: _show_char_force(s[i], t * i / l, -x + o[i], p, params)
 
-func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO):
+func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
     await get_tree().process_frame
     if p == Vector2.ZERO:
         var line_height = get_line_height()
@@ -528,11 +554,11 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO):
         thing.char_offset = Vector2(x, 0)
         thing.destroy = true
         if d:
-            thing.audio = effects.audio
+            thing.audio = params.get('audio', effects.audio)
             thing.blips = false
         else:
-            thing.audio = effects.audio
-            thing.blips = effects.particles
+            thing.audio = params.get('audio', effects.audio)
+            thing.blips = params.get('particles', effects.particles)
         thing.last_key = t
         add_child(thing)
     
