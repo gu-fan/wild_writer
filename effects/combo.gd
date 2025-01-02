@@ -10,7 +10,6 @@ var combo_count : float = 0 :
 @onready var label2: Label = $Label2
 @onready var label3: Label = $Label/Label3
 
-
 # 定义颜色阶段
 const COMBO_COLORS = {
     0:   Color(0.5, 1, 0.5),
@@ -66,11 +65,13 @@ func _update_color():
 
 func incr(n=1):
     count += n
+    if label == null: return
     _update_text()
     if count > 10: color_label()
 
 func decr(n=1):
     count -= n
+    if label == null: return
     _update_text()
     if count > 10: color_label()
 

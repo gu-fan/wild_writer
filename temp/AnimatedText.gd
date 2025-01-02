@@ -18,6 +18,7 @@ class CharNode extends Node2D:
     var font_size := 32 
     var offset :=Vector2.ZERO
     var base_position := Vector2.ZERO
+    var index := 0
 
     var shake_intensity:float  = 3.0
     var shake_pos := Vector2.ZERO
@@ -31,6 +32,23 @@ class CharNode extends Node2D:
     var rainbow_value := 1.0
     var text_color := Color.WHITE
     
+    # 动画状态
+    enum State { WAITING, APPEARING, IDLE, DISAPPEARING }
+    var current_state := State.WAITING
+    
+    # 动画参数
+    var appear_duration := 0.15
+    var clear_duration := 0.15
+    var bounce_scale := 0.3
+    var appear_offset := 50.0
+    var disappear_offset := 50.0
+    var disappear_scale := 2.0
+    
+    # 动画时间追踪
+    var anim_time := 0.0
+    
+    signal disappeared  # 添加消失信号
+    
     func _init(ts: TextServer, rid: RID, b: float, t: float, s: Vector2, c: String, f:Array, fs:int, cd: float, of: Vector2 = Vector2.ZERO):
         shaped_text_rid = rid
         baseline = b
@@ -43,18 +61,68 @@ class CharNode extends Node2D:
         char_delay = cd
         offset = of
 
-    func _process(delta):
+    func _process(delta: float):
+        anim_time += delta
+        
+        # 处理抖动
         if enable_shake:
-            shake_pos = Vector2(randf_range(-shake_intensity,shake_intensity), randf_range(-shake_intensity,shake_intensity))
+            shake_pos = Vector2(
+                randf_range(-shake_intensity, shake_intensity),
+                randf_range(-shake_intensity, shake_intensity)
+            )
         else:
             shake_pos = Vector2.ZERO
             
+        # 处理彩虹效果
         if enable_rainbow:
             var time = Time.get_ticks_msec() / 1000.0
-            # 使用 HSV 颜色空间来创建彩虹效果
             var hue = fmod(time * rainbow_speed + rainbow_offset, 1.0)
             text_color = Color.from_hsv(hue, rainbow_saturation, rainbow_value)
-            queue_redraw()
+        
+        match current_state:
+            State.WAITING:
+                modulate.a = 0.0
+                scale = Vector2.ZERO
+                
+            State.APPEARING:
+                var t = anim_time / appear_duration
+                if t >= 1.0:
+                    current_state = State.IDLE
+                    modulate.a = 1.0
+                    scale = Vector2.ONE
+                    position.y = base_position.y
+                else:
+                    modulate.a = t
+                    scale = Vector2.ONE * (1.0 + sin(t * PI) * bounce_scale)
+                    position.y = base_position.y + appear_offset * (1.0 - t)
+
+                queue_redraw()
+            
+            State.IDLE:
+                pass
+                
+            State.DISAPPEARING:
+                var t = anim_time / clear_duration
+                if t >= 1.0:
+                    if shaped_text_rid.is_valid():
+                        text_server.free_rid(shaped_text_rid)
+                    emit_signal("disappeared")
+                    queue_free()
+                else:
+                    modulate.a = 1.0 - t
+                    scale = Vector2.ONE * (1.0 + t * disappear_scale)
+                    position.y = base_position.y - t * disappear_offset
+                    queue_redraw()
+        
+    
+    func appear() -> void:
+        current_state = State.APPEARING
+        anim_time = 0.0
+    
+    func disappear() -> void:
+        if current_state != State.DISAPPEARING:
+            current_state = State.DISAPPEARING
+            anim_time = 0.0
 
     func _draw():
         if !shaped_text_rid.is_valid():
@@ -83,10 +151,11 @@ class CharNode extends Node2D:
         )
         if enable_rect:
             var glyphs = text_server.shaped_text_get_glyphs(shaped_text_rid)
-            var offset = text_server.font_get_glyph_offset(fonts[0], Vector2(font_size,0), glyphs[0].index)
-            var size = text_server.font_get_glyph_size(fonts[0], Vector2(font_size, 0), glyphs[0].index)
-            var rect = Rect2(orig_pos+ offset, size)
-            draw_rect(rect, Color.GREEN, false)
+            if glyphs.size():
+                var g_offset = text_server.font_get_glyph_offset(fonts[0], Vector2(font_size,0), glyphs[0].index)
+                var size = text_server.font_get_glyph_size(fonts[0], Vector2(font_size, 0), glyphs[0].index)
+                var rect = Rect2(orig_pos+ g_offset, size)
+                draw_rect(rect, Color.GREEN, false)
     # func _exit_tree():
     #     if shaped_text_rid.is_valid():
     #         text_server.free_rid(shaped_text_rid)
@@ -128,12 +197,15 @@ func _ready() -> void:
 func set_text(new_text: String) -> void:
     var old_chars = {}
     var char_positions = {}
+    var total_index := 0
     
-    # 保存现有字符节点的信息和它们的位置
+    # 保存现有字符节点的信息
     for child in get_children():
         if child is CharNode:
-            old_chars[child.get_instance_id()] = child
-            char_positions[child.position.x] = child
+            if child.shaped_text_rid.is_valid():
+                old_chars[child.get_instance_id()] = child
+                char_positions[child.position.x] = child
+                total_index = max(total_index, child.appear_time / char_delay)
     
     var current_x = 0.0
     var new_chars = {}
@@ -164,6 +236,8 @@ func set_text(new_text: String) -> void:
             char_node.position = Vector2(target_x, baseline)
             char_node.base_position = Vector2(target_x, baseline)
             char_node.modulate.a = 0.0
+            char_node.enable_rect = enable_rect
+            char_node.index = i
             
             # 设置彩虹效果
             char_node.enable_rainbow = enable_rainbow
@@ -171,14 +245,16 @@ func set_text(new_text: String) -> void:
             char_node.rainbow_offset = rainbow_phase * i  # 每个字符一个偏移
             
             add_child(char_node)
+            char_node.disappeared.connect(queue_redraw)
         
         new_chars[char_node.get_instance_id()] = true
         current_x += size.x
     
     # 清除未使用的旧字符
     for char_node in old_chars.values():
-        if char_node.clear_time < 0:
-            char_node.clear_time = time
+        char_node.disappear()
+
+    if enable_rect: queue_redraw()
 
 func _process(delta: float) -> void:
     time += delta
@@ -189,54 +265,25 @@ func _process(delta: float) -> void:
             continue
             
         var char_node: CharNode = child
-        var char_time = time - char_node.appear_time
-        
-        if char_time < 0:
-            char_node.modulate.a = 0.0
-            char_node.scale = Vector2.ZERO
-            all_appeared = false
+        if !char_node.shaped_text_rid.is_valid():
             continue
             
-        if char_node.clear_time >= 0:
-            # 消失动画
-            var clear_time = time - char_node.clear_time
-            char_node.modulate.a = 1.0 - (clear_time / clear_duration)
-            char_node.scale = Vector2.ONE * (1.0 + clear_time * 2)
-            char_node.position.y = char_node.baseline - clear_time * 50
-            char_node.offset.y = - clear_time * 50
-            
-            if clear_time >= clear_duration:
-                char_node.queue_free()
-        else:
-
-            # 出现动画
-            char_node.position.y = char_node.baseline + (int(enable_wave) * sin((time  - char_node.char_delay) * wave_speed) * wave_height)
-            char_node.modulate.a = min(char_time / 0.3, 1.0)
-            
-            # 弹跳缩放效果
-            var bounce_duration := appear_duration
-            if char_time < bounce_duration:
-                var t = char_time / bounce_duration
-                char_node.scale = Vector2.ONE * (1.0 + sin(t * PI) * 0.3)
-                char_node.offset.y = 50 -t* 50
-            else:
-                char_node.scale = Vector2.ONE
-            
-            if char_time < appear_duration:
-                all_appeared = false
-            
-        char_node.queue_redraw()
-
-        char_node.enable_rect = enable_rect
-        char_node.enable_shake = enable_shake
+        # 检查是否到达出现时间
+        if time >= char_node.appear_time and char_node.current_state == CharNode.State.WAITING:
+            char_node.appear()
+        
+        # 波浪效果
+        if enable_wave and char_node.current_state == CharNode.State.IDLE:
+            var wave_time = time - char_node.appear_time
+            char_node.position.y = char_node.base_position.y + sin(wave_time * wave_speed) * wave_height
+        
+        if char_node.current_state != CharNode.State.IDLE:
+            all_appeared = false
     
     # if all_appeared and not is_clearing:
     #     emit_signal("text_appeared")
-        
-    # if is_clearing and get_child_count() == 0:
-    #     is_clearing = false
-    #     emit_signal("text_cleared")
     if enable_rect: queue_redraw()
+
 func _draw():
     if enable_rect:
         var rect = get_rect()
