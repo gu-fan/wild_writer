@@ -32,7 +32,7 @@ func _changed_text():
             "Pello Worl! ",
             "Helkg Dola!",
             "Hello World! yes",
-            "Hello World! yes,go 👋 你好 你好",
+            "Hello World! yes, go 👋 你好 你好",
             "你好 你好",
         ])
     animated_text.set_text(txt)

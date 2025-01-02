@@ -98,19 +98,27 @@ var font_size := 32
 
 # 动画参数
 var time: float = 0.0
-var wave_speed: float = 4.0
-var wave_height: float = 30.0
-var char_delay: float = 0.02
+var wave_speed: float = 8.0
+var wave_height: float = 5.0
+var char_delay: float = 0.01
 var is_clearing := false
-var clear_duration := 0.2
+var appear_duration := 0.15
+var clear_duration := 0.15
 var enable_wave := true
 var enable_rect := true
-var enable_shake := true
+var enable_shake := false
 
 # 在主节点中添加彩虹控制
 var enable_rainbow := false
 var rainbow_speed := 1.0
 var rainbow_phase := 0.2  # 字符间的色相偏移
+
+var text := '' : 
+    set(v):
+        set_text(v)
+        text = v
+    get:
+        return text
 
 func _ready() -> void:
     text_server = TextServerManager.get_primary_interface()
@@ -206,7 +214,7 @@ func _process(delta: float) -> void:
             char_node.modulate.a = min(char_time / 0.3, 1.0)
             
             # 弹跳缩放效果
-            var bounce_duration := 0.3
+            var bounce_duration := appear_duration
             if char_time < bounce_duration:
                 var t = char_time / bounce_duration
                 char_node.scale = Vector2.ONE * (1.0 + sin(t * PI) * 0.3)
@@ -214,7 +222,7 @@ func _process(delta: float) -> void:
             else:
                 char_node.scale = Vector2.ONE
             
-            if char_time < 0.3:
+            if char_time < appear_duration:
                 all_appeared = false
             
         char_node.queue_redraw()

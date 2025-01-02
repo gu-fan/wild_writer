@@ -87,12 +87,14 @@ func _ready():
             ime_display.hide()
     )
     caret_changed.connect(update_ime_position)
+    caret_changed.connect(update_compose_position)
 
     ime.ime_buffer_changed.connect(_on_ime_buffer_changed)
 
 func update_ime_position():
     if !is_active: return
-    if ime_display and ime_display.visible:
+    if ime_display == null: return
+    if ime_display.visible:
         await get_tree().process_frame
         var line_height = get_line_height()
         var ime_height = ime_display.size.y
@@ -122,6 +124,39 @@ func update_ime_position():
         if pos.x < 0: pos.x = 0
             
         ime_display.position = pos
+func update_compose_position():
+    if !is_active: return
+    if compose_node == null: return
+    if compose_node.visible:
+        await get_tree().process_frame
+        var line_height = get_line_height()
+        var ime_height = compose_node.size.y
+        var caret_pos = _gfcp()
+        
+        var pos = position + caret_pos - Vector2(0, line_height)
+        # match font_size:
+        #     0: pos.y += 40
+        #     1: pos.y += 30
+        #     2: pos.y += 16
+        #     3: pos.y -= 75
+
+        # if pos.y > size.y-10: 
+        #     pos = position + caret_pos + Vector2(0, -line_height)
+        #     match font_size:
+        #         0: pos.y += 12
+        #         1: pos.y += 6
+        #         2: pos.y += 2
+        #         3: pos.y -= 4
+        
+        # # 确保不会超出右边界
+        # var editor_width = size.x
+        # if pos.x + compose_node.size.x > editor_width:
+        #     pos.x = editor_width - compose_node.size.x
+            
+        # # 确保不会超出左边界
+        # if pos.x < 0: pos.x = 0
+            
+        compose_node.position = pos
 
 func _on_gui_input(event):
     if !is_active: return
@@ -223,7 +258,6 @@ func _on_text_changed():
     caret_line = cur_caret_line
     caret_column = cur_caret_col
 
-
 func _on_caret_changed():
     caret_line = get_caret_line()
     caret_column = get_caret_column()
@@ -303,11 +337,11 @@ func _on_ime_buffer_changed(buffer):
     _feed_ime_compose(buffer)
 
 class IMECompose extends ColorRect:
-    var _label: Label = null
+    var _label: AnimatedText = null
     func _init():
         custom_minimum_size = Vector2(100, 40)
         color = '336633'
-        _label = Label.new()
+        _label = AnimatedText.new()
         add_child(_label)
 
     func set_text(t:String):
@@ -318,7 +352,7 @@ class IMECompose extends ColorRect:
 func _get_ime_compose():
     if compose_node == null:
         compose_node = IMECompose.new()
-        compose_node.position = Vector2(100, 200)
+        # compose_node.position = Vector2(100, 200)
         compose_node.z_index = 10
         add_child.call_deferred(compose_node)
     return compose_node
@@ -335,6 +369,10 @@ func _feed_ime_compose(t: String):
     # 如果最近刚完成输入，忽略后续的空字符串通知
     if t.length() == 0 and current_time - ime_state.last_finish_time < 50:  # 50ms 阈值
         return
+
+    _ic()
+    _show_char_force(' ')
+
     
     # 开始新的输入
     if not ime_state.is_composing and t != "":
