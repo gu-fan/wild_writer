@@ -20,6 +20,7 @@ class CharNode extends Node2D:
     var base_position := Vector2.ZERO
     var base_offset := Vector2.ZERO
     var index := 0
+    var wave_position := Vector2.ZERO
 
     var shake_intensity:float  = 3.0
     var shake_pos := Vector2.ZERO
@@ -47,20 +48,28 @@ class CharNode extends Node2D:
     
     # 动画时间追踪
     var anim_time := 0.0
+
+    var alpha := 1.0
     
     signal disappeared  # 添加消失信号
     
     func _init(ts: TextServer, rid: RID, b: float, t: float, s: Vector2, c: String, f:Array, fs:int, cd: float, of: Vector2 = Vector2.ZERO):
+        text_server = ts
         shaped_text_rid = rid
         baseline = b
         appear_time = t
-        text_server = ts
         size = s
         character = c
         fonts = f
         font_size = fs
         char_delay = cd
         offset = of
+
+        # text_server.shaped_text_clear(rid)
+    # func _ready():
+        # # await Util.next_frame()
+        # text_server.shaped_text_add_string(shaped_text_rid, character, fonts, font_size)
+
 
     func _process(delta: float):
         anim_time += delta
@@ -101,7 +110,8 @@ class CharNode extends Node2D:
                 queue_redraw()
             
             State.IDLE:
-                pass
+                if enable_rainbow:
+                    queue_redraw()
                 
             State.FINISH:
                 var t = anim_time / clear_duration
@@ -111,9 +121,11 @@ class CharNode extends Node2D:
                     emit_signal("disappeared")
                     queue_free()
                 else:
-                    modulate.a = 1.0 - t
+                    # modulate.a = 1.0 - t
+                    alpha = 1.0 - t
                     scale = Vector2.ONE * (1.0 + t * disappear_scale)
-                    # position.y = base_position.y - t * disappear_offset
+                    # position.y = wave_position.y + t * 30
+                    # base_offset.y =  t * 30
                     queue_redraw()
 
             State.DISAPPEARING:
@@ -126,7 +138,7 @@ class CharNode extends Node2D:
                 else:
                     modulate.a = 1.0 - t
                     scale = Vector2.ONE * (1.0 + t * disappear_scale)
-                    position.y = base_position.y - t * disappear_offset
+                    position.y = wave_position.y - t * disappear_offset
                     queue_redraw()
         
     
@@ -135,11 +147,11 @@ class CharNode extends Node2D:
         anim_time = 0.0
     
     func disappear() -> void:
-        if current_state != State.DISAPPEARING:
+        if current_state != State.DISAPPEARING and current_state != State.FINISH:
             current_state = State.DISAPPEARING
             anim_time = 0.0
     func finish() -> void:
-        if current_state != State.FINISH:
+        if current_state != State.FINISH and current_state != State.DISAPPEARING:
             current_state = State.FINISH
             anim_time = 0.0
 
@@ -154,23 +166,39 @@ class CharNode extends Node2D:
         var draw_pos = orig_pos + shake_pos
 
         if current_state == State.FINISH:
-            var glyphs = text_server.shaped_text_get_glyphs(shaped_text_rid)
-            if glyphs.size():
-                var g_offset = text_server.font_get_glyph_offset(fonts[0], Vector2(font_size,0), glyphs[0].index)
-                var g_size = text_server.font_get_glyph_size(fonts[0], Vector2(font_size, 0), glyphs[0].index)
-                var rect = Rect2(orig_pos+ g_offset, g_size)
-                draw_rect(rect, Color.WHITE, true)
+            # var glyphs = text_server.shaped_text_get_glyphs(shaped_text_rid)
+            # if glyphs.size():
+            #     var g_offset = text_server.font_get_glyph_offset(fonts[0], Vector2(font_size,0), glyphs[0].index)
+            #     var g_size = text_server.font_get_glyph_size(fonts[0], Vector2(font_size, 0), glyphs[0].index)
+            #     var rect = Rect2(orig_pos+ g_offset, g_size)
+            #     draw_rect(rect, Color(1, 1, 1,  alpha), true)
             # var rect = Rect2(draw_pos+ Vector2(-size.x/2, -size.y/2), size)
             # draw_rect(rect, Color.WHITE, true)
-#             text_server.shaped_text_draw(
-#                 shaped_text_rid,
-#                 get_canvas_item(),
-#                 draw_pos,
-#                 -1, -1,
-#                 # Color('2ce8f5'),
-#             )
+            text_server.shaped_text_draw(
+                shaped_text_rid,
+                get_canvas_item(),
+                draw_pos,
+                -1, -1,
+                Color(1, 1, 1, alpha),
+            )
+            # text_server.shaped_text_draw_outline(
+            #     shaped_text_rid,
+            #     get_canvas_item(),
+            #     draw_pos,
+            #     -1, -1, 4,
+            #     Color(1, 1, 1, 1 - alpha)
+            # )
         else:
-            var oc = Color('2ce8f5')
+            # if enable_rainbow:
+            #     text_server.shaped_text_draw(
+            #         shaped_text_rid,
+            #         get_canvas_item(),
+            #         draw_pos,
+            #         -1, -1,
+            #         text_color * modulate  # 将彩虹颜色与透明度结合
+            #     )
+            # else:
+            var oc = Color('40EBF7')
             var nc =Color.from_hsv(oc.h + Rnd.rangef(-0.06, 0.06), oc.s, oc.v+0.1, modulate.a)
             text_server.shaped_text_draw(
                 shaped_text_rid,
@@ -179,13 +207,6 @@ class CharNode extends Node2D:
                 -1, -1,
                 nc
             )
-            # text_server.shaped_text_draw(
-            #     shaped_text_rid,
-            #     get_canvas_item(),
-            #     draw_pos,
-            #     -1, -1,
-            #     text_color * modulate  # 将彩虹颜色与透明度结合
-            # )
         if enable_rect:
             var glyphs = text_server.shaped_text_get_glyphs(shaped_text_rid)
             if glyphs.size():
@@ -193,11 +214,9 @@ class CharNode extends Node2D:
                 var g_size = text_server.font_get_glyph_size(fonts[0], Vector2(font_size, 0), glyphs[0].index)
                 var rect = Rect2(orig_pos+ g_offset, g_size)
                 draw_rect(rect, Color.GREEN, false)
-    # func _exit_tree():
-    #     if shaped_text_rid.is_valid():
-    #         text_server.free_rid(shaped_text_rid)
 
-var text_server: TextServer
+var text_server: TextServer = TextServerManager.get_primary_interface()
+var id = ''
 var font: Font
 var fonts: Array
 var font_size := 64
@@ -215,11 +234,17 @@ var enable_rect := false
 var enable_shake := false
 
 # 在主节点中添加彩虹控制
-var enable_rainbow := false
+var enable_rainbow := false :
+    set(v):
+        if enable_rainbow != v:
+            enable_rainbow = v
+            for child in get_children():
+                if not (child is CharNode): continue
+                var char_node: CharNode = child
+                char_node.enable_rainbow = enable_rainbow
+
 var rainbow_speed := 1.0
 var rainbow_phase := 0.2  # 字符间的色相偏移
-
-var is_finish_compose = false
 
 var centered := true :
     set(v):
@@ -246,7 +271,7 @@ var text := '' :
         text = v
 
 func _ready() -> void:
-    text_server = TextServerManager.get_primary_interface()
+    # text_server = TextServerManager.get_primary_interface()
     # font = load("res://assets/fonts/NotoSans/NotoSansSC-Regular.ttf")
     font = load("res://effects/font.tres")
     fonts = font.get_rids()
@@ -254,7 +279,6 @@ func _ready() -> void:
 func set_text(new_text: String) -> void:
     var old_chars = {}
     var char_positions = {}
-    var total_index := 0
     
     # 保存现有字符节点的信息
     for child in get_children():
@@ -262,17 +286,23 @@ func set_text(new_text: String) -> void:
             if child.shaped_text_rid.is_valid():
                 old_chars[child.get_instance_id()] = child
                 char_positions[child.base_position.x] = child
-                total_index = max(total_index, child.appear_time / char_delay)
     
     var current_x = 0.0
     var new_chars = {}
-    
+
+    # if new_text.length() == 1:
+    #     new_text = '1' + new_text
+
+    # await Util.wait(0.05)
+
     # 创建新的字符节点
     for i in new_text.length():
         var char = new_text[i]
+        # XXX: this may output error code of char
         var shaped_text_rid = text_server.create_shaped_text()
         text_server.shaped_text_add_string(shaped_text_rid, char, fonts, font_size)
         text_server.shaped_text_shape(shaped_text_rid)
+        print('create char', char)
         
         var size = text_server.shaped_text_get_size(shaped_text_rid)
         var baseline = text_server.shaped_text_get_ascent(shaped_text_rid)
@@ -309,16 +339,12 @@ func set_text(new_text: String) -> void:
     
     # 清除未使用的旧字符
     for char_node in old_chars.values():
-        if is_finish_compose:
-            char_node.finish()
-        else:
-            char_node.disappear()
+        char_node.disappear()
 
     if enable_rect: queue_redraw()
 
     if centered: _update_position()
 
-    is_finish_compose = false
 
 func _process(delta: float) -> void:
     time += delta
@@ -329,18 +355,19 @@ func _process(delta: float) -> void:
             continue
             
         var char_node: CharNode = child
-        if !char_node.shaped_text_rid.is_valid():
-            continue
+        if !char_node.shaped_text_rid.is_valid(): continue
             
         # 检查是否到达出现时间
         if time >= char_node.appear_time and char_node.current_state == CharNode.State.WAITING:
             char_node.appear()
         
         char_node.position.x = char_node.base_position.x + char_node.base_offset.x
+        char_node.wave_position.x = char_node.base_position.x + char_node.base_offset.x
         # 波浪效果
         if enable_wave and char_node.current_state == CharNode.State.IDLE:
             var wave_time = time - char_node.appear_time
             char_node.position.y = char_node.base_position.y + sin(wave_time * wave_speed) * wave_height
+            char_node.wave_position.y = char_node.position.y
         
         if char_node.current_state != CharNode.State.IDLE:
             all_appeared = false
@@ -397,4 +424,14 @@ func get_rect() -> Rect2:
     )
 
 func finish_compose():
-    is_finish_compose = true
+    # is_finish_compose = true
+    for child in get_children():
+        if child is CharNode:
+            var char_node: CharNode = child
+            char_node.finish()
+func cancel_compose():
+    # text = ''
+    for child in get_children():
+        if child is CharNode:
+            var char_node: CharNode = child
+            char_node.disappear()

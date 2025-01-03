@@ -49,6 +49,7 @@ func _on_buffer_changed(buf) -> void:
 func _on_text_committed(text: String) -> void:
     emit_signal("ime_text_changed", text)
 
+
 # 重写基类方法
 func toggle() -> void:
     super.toggle()

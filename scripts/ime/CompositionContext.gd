@@ -39,3 +39,11 @@ func get_state() -> Dictionary:
 # 检查是否有候选词
 func has_candidates() -> bool:
     return not candidates.is_empty()
+
+func get_current_candidate():
+    if candidates.is_empty():
+        return ''
+    else:
+        return candidates[0]
+
+

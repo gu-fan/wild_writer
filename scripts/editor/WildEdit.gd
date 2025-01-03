@@ -39,8 +39,7 @@ var _time_b: float = 0.0
 # var _time_c: float = 0.0
 var font_size := 0 # the setting in basic
 
-var combo_node: Control
-var compose_node: Control
+
 var ime
 var ime_display
 
@@ -50,6 +49,7 @@ var is_single_letter = false
 var is_ime_input = false
 
 var ime_state = {
+    compose_id = "",
     is_composing = false,      # 是否正在输入中
     last_compose = "",         # 上一次的混合文本
     last_non_empty = "",       # 上一次非空的混合文本
@@ -61,6 +61,37 @@ var ime_state = {
     input_sequence = "",       # 完整的输入序列
 }
 
+var combo_node: Control
+var compose_nodes : = {}
+# var compose_node_pool :  = []
+# var compose_node_pool_size := 4
+
+func _get_ime_compose(id=''):
+    # var id = ime_state.compose_id
+    if id in compose_nodes:
+        return compose_nodes[id]
+    var node = IMECompose.new()
+    node.z_index = 10
+    # add_child(node)
+    add_child.call_deferred(node)
+    update_compose_position(node)
+    compose_nodes[id] = node
+    return node
+func _free_ime_compose(id=''):
+    if id in compose_nodes:
+        var nd = compose_nodes[id]
+        compose_nodes.erase(id)
+        nd.set_text('')
+        await Util.wait(1.0)
+        nd.queue_free()
+    else:
+        push_error('free invalid id', id)
+
+func _has_ime_compose(id=''):
+    return compose_nodes.has(id)
+
+
+
 func _ready():
     print('WildEdit inited')
 
@@ -69,7 +100,6 @@ func _ready():
     text_changed.connect(_on_text_changed)
     caret_changed.connect(_on_caret_changed)
 
-    _get_ime_compose()
     ime_display = preload("res://scenes/ime_display.tscn").instantiate()
     ime_display.hide()
     add_child(ime_display)
@@ -87,7 +117,7 @@ func _ready():
             ime_display.hide()
     )
     caret_changed.connect(update_ime_position)
-    caret_changed.connect(update_compose_position)
+    # caret_changed.connect(update_compose_position)
 
     ime.ime_buffer_changed.connect(_on_ime_buffer_changed)
 
@@ -124,39 +154,15 @@ func update_ime_position():
         if pos.x < 0: pos.x = 0
             
         ime_display.position = pos
-func update_compose_position():
-    if !is_active: return
-    if compose_node == null: return
-    if compose_node.visible:
-        await get_tree().process_frame
-        var line_height = get_line_height()
-        var ime_height = compose_node.size.y
-        var caret_pos = _gfcp()
-        
-        var pos = position + caret_pos - Vector2(0, line_height) - Vector2(0, 30)
-        # match font_size:
-        #     0: pos.y += 40
-        #     1: pos.y += 30
-        #     2: pos.y += 16
-        #     3: pos.y -= 75
 
-        # if pos.y > size.y-10: 
-        #     pos = position + caret_pos + Vector2(0, -line_height)
-        #     match font_size:
-        #         0: pos.y += 12
-        #         1: pos.y += 6
-        #         2: pos.y += 2
-        #         3: pos.y -= 4
-        
-        # # 确保不会超出右边界
-        # var editor_width = size.x
-        # if pos.x + compose_node.size.x > editor_width:
-        #     pos.x = editor_width - compose_node.size.x
-            
-        # # 确保不会超出左边界
-        # if pos.x < 0: pos.x = 0
-            
-        compose_node.position = pos
+func update_compose_position(nd):
+    if !is_active: return
+    await get_tree().process_frame
+    var line_height = get_line_height()
+    var ime_height = nd.size.y
+    var caret_pos = _gfcp()
+    var pos = position + caret_pos - Vector2(0, line_height) - Vector2(0, 30)
+    nd.position = pos
 
 func _on_gui_input(event):
     if !is_active: return
@@ -179,7 +185,7 @@ func _on_gui_input(event):
             # Windows/macOS: 在输入时就触发完成效果
             if Editor.is_macos or Editor.is_windows:
                 # _handle_ime_finish()
-                Util.delay('_ime_compose', 0.05, _handle_ime_finish)
+                Util.delay('_ime_compose', 0.06, _handle_ime_finish)
         else:
             is_ime_input = false
 
@@ -261,6 +267,8 @@ func _on_text_changed():
 func _on_caret_changed():
     caret_line = get_caret_line()
     caret_column = get_caret_column()
+    prints(Util.f_usec(), 'caret_changed', caret_line, caret_column)
+    ime_state.first_input = ""
 
 func _gfcp():
     var cp = get_caret_draw_pos()
@@ -274,7 +282,7 @@ func _gfcp():
 func _ccnin():
     if combo_node == null or !is_instance_valid(combo_node):
         var thing = Combo.instantiate()
-        add_child(thing)
+        add_child.call_deferred(thing)
         combo_node = thing
 
 func _ic(n=1, delay=0):
@@ -334,53 +342,63 @@ func _notification(what):
 
 func _on_ime_buffer_changed(buffer):
     if !is_active: return
-    _feed_ime_compose(buffer)
+    # _feed_ime_compose(buffer)
+    _feed_ime_compose(ime.context.get_current_candidate())
 
-class IMECompose extends Control:
+class IMECompose extends ColorRect:
     var _label: AnimatedText = null
+    var is_ready = false
     func _init():
         custom_minimum_size = Vector2(10, 10)
         # color = '336633'
         _label = AnimatedText.new()
         add_child(_label)
 
-    func set_text(t:String):
-        _label.text = t
-    func clear():
-        _label.text = ''
-    func finish_compose():
-        _label.finish_compose()
+    func _ready():
+        is_ready = true
+        _label.text = text
 
-func _get_ime_compose():
-    if compose_node == null:
-        compose_node = IMECompose.new()
-        # compose_node.position = Vector2(100, 200)
-        compose_node.z_index = 10
-        add_child.call_deferred(compose_node)
-    return compose_node
+    var text = ''
+    func set_text(t:String):
+        text = t
+        if is_ready: _label.text = t
+
+    func clear():
+        text = ''
+        if is_ready: _label.text = ''
+    func finish_compose():
+        if is_ready: _label.finish_compose()
+    func cancel_compose():
+        if is_ready: _label.cancel_compose()
 
 func _feed_ime_compose(t: String):
     print('[%d]feed ime compose: %s' % [Time.get_ticks_usec(), t])
+
     
     var current_time = Time.get_ticks_msec()
     prints(Util.f_usec(), 'compose|%s|%s|' % [ime_state.last_compose, t], ime_state.last_compose.length(), t.length(), is_ime_input)
     # prints(Util.f_usec(), 'get state', ime_state)
+
     
     # 如果最近刚完成输入，忽略后续的空字符串通知
     if t.length() == 0 and current_time - ime_state.last_finish_time < 50:  # 50ms 阈值
-        var m = _get_ime_compose()
-        m.set_text(t)
+        var id = ime_state.compose_id
+        if _has_ime_compose(id):
+            var m = _get_ime_compose(id)
+            m.set_text(t)
+            print('is just finished, ignore')
+            push_error('set composed text with 0')
         return
 
+    # we need a more intutive combo, that per each type
 
     var t_d = t.length() - ime_state.last_compose.length()
     prints('delta', t_d, t, ime_state.last_compose)
     if t_d > 0:
         _ic(t_d)
         _show_char_force(' ')
-    else:
+    elif t_d < 0:
         _dc(-t_d * 3)
-        # _show_char_force('←')
         var pos = _gfcp()
         var thing = Boom.instantiate()
         thing.position = pos
@@ -390,31 +408,50 @@ func _feed_ime_compose(t: String):
         add_child.call_deferred(thing)
     
     # 开始新的输入
-    if not ime_state.is_composing and t != "":
+    if not ime_state.is_composing and t.length() != 0:
         ime_state.is_composing = true
         ime_state.pending_finish = false
         ime_state.pending_cancel = false
         ime_state.first_input = ""
         ime_state.input_sequence = ""  # 重置输入序列
-    
-    # 检测输入完成或取消
-    if ime_state.last_compose.length() != 0 and t.length() == 0:
-        if is_ime_input:
-            # Linux: 在这里触发完成效果
-            if Editor.is_linux:
-                _handle_ime_finish()
-            ime_state.pending_finish = true
-        else:
-            _handle_ime_cancel()
-            ime_state.pending_cancel = true
-    
-    ime_state.last_compose = t
-    if t != "":
+        ime_state.compose_id = '%d|%d' % [caret_line, caret_column]
+        print('start new compose', ime_state.compose_id)
+        ime_state.last_compose = t
         ime_state.last_non_empty = t
-    ime_state.last_update_time = current_time
+        ime_state.last_update_time = current_time
+        var m = _get_ime_compose(ime_state.compose_id)
+        m.set_text(t)
+    else:
+        # 检测输入完成或取消
+        if ime_state.last_compose.length() != 0 and t.length() == 0:
+            if is_ime_input:
+                # Linux: 在这里触发完成效果
+                if Editor.is_linux:
+                    _handle_ime_finish()
+                ime_state.pending_finish = true
+            else:
+                _handle_ime_cancel()
+                ime_state.pending_cancel = true
+        else:
+            ime_state.last_compose = t
+            if t != "": ime_state.last_non_empty = t
+            ime_state.last_update_time = current_time
 
-    var m = _get_ime_compose()
-    m.set_text(t)
+            if t == '':
+                if _has_ime_compose(ime_state.compose_id):
+                    var m = _get_ime_compose(ime_state.compose_id)
+                    m.set_text(t)
+                    push_error('set composed text with 0')
+                clear_compose()
+            else:
+                var m = _get_ime_compose(ime_state.compose_id)
+                m.set_text(t)
+                print('set ime compose text:', t, '|')
+                if t == '新年快乐':
+                    m._label.enable_rainbow = true
+                else:
+                    if m._label.enable_rainbow:
+                        m._label.enable_rainbow = false
 
 
 func _handle_ime_finish():
@@ -427,11 +464,12 @@ func _handle_ime_finish():
         #     return
             
         prints(Util.f_usec(), 'finish ime compose', ime_state.last_compose, ime_state.last_non_empty, ime_state.input_sequence)
-        var m = _get_ime_compose()
-        m.finish_compose()
+        # var m = _get_ime_compose()
+        # m.position = Vector2.ZERO
+        # m.finish_compose()
 
         # 在这里触发完成效果
-        var pos = _gfcp()
+        # var pos = _gfcp()
         # var thing = Blip.instantiate()
         # thing.position = pos
         # thing.destroy = true
@@ -453,6 +491,11 @@ func _handle_ime_finish():
         ime_state.first_input = ""
         ime_state.input_sequence = ""  # 重置输入序列
         print('set state finish', ime_state)
+
+        finish_compose()
+    else:
+        push_error('not finished?', ime_state)
+        clear_compose()
     is_ime_input = false
 
 func _handle_ime_cancel():
@@ -477,6 +520,28 @@ func _handle_ime_cancel():
         ime_state.first_input = ""
         ime_state.input_sequence = ""  # 重置输入序列
         print('set state cancel', ime_state)
+        cancel_compose()
+    else:
+        push_error('not canceld ?', ime_state)
+        clear_compose()
+
+
+func finish_compose():
+    var id = ime_state.compose_id
+    var m = _get_ime_compose(id)
+    m.finish_compose()
+    _free_ime_compose(id)
+
+func cancel_compose():
+    var id = ime_state.compose_id
+    var m = _get_ime_compose(id)
+    m.cancel_compose()
+    _free_ime_compose(id)
+
+func clear_compose():
+    push_warning('CLEAR COMPOSE')
+    for id in compose_nodes:
+        _free_ime_compose(id)
 
 # -----------------------
 func _otc():
@@ -522,7 +587,7 @@ func feed_ime_input(key):
 
 func _incr_multi_combo(s, mul=3):
     var n = s.length()
-    var t = 0.20 + (0.30 if n > 7 else n * 0.04)
+    var t = 0.22 + (0.28 if n > 7 else n * 0.04)
     var i = 0
     for k in s:
         _ic(1 if _is_ascii(k) else mul, t * i / n)
@@ -530,7 +595,7 @@ func _incr_multi_combo(s, mul=3):
 
 func _show_multi_char(s: String, f: bool = false, params = {}) -> void:
     var l = s.length()
-    var t = 0.20 + (0.30 if l > 7 else l * 0.04)
+    var t = 0.22 + (0.28 if l > 7 else l * 0.04)
     var h = get_line_height() * 0.25
     var x = 0.0
     var o = []
@@ -543,6 +608,7 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
     if p == Vector2.ZERO:
         var line_height = get_line_height()
         p = get_caret_draw_pos() + Vector2(0,-line_height/2.0)
+    if params.has('position'): p = params.position
     if d: await get_tree().create_timer(d).timeout
     
     if effects.chars: 
@@ -571,3 +637,6 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
         
 func _is_ascii(c):
     return c.unicode_at(0) <= 127
+
+# ----------------------------
+
