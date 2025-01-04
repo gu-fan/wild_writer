@@ -70,7 +70,6 @@ class CharNode extends Node2D:
         # # await Util.next_frame()
         # text_server.shaped_text_add_string(shaped_text_rid, character, fonts, font_size)
 
-
     func _process(delta: float):
         anim_time += delta
         
@@ -86,7 +85,7 @@ class CharNode extends Node2D:
         # 处理彩虹效果
         if enable_rainbow:
             var time = Time.get_ticks_msec() / 1000.0
-            var hue = fmod(time * rainbow_speed + rainbow_offset, 1.0)
+            var hue = fmod(time * rainbow_speed + rainbow_offset, 0.5) + 0.1
             text_color = Color.from_hsv(hue, rainbow_saturation, rainbow_value)
 
         
@@ -189,24 +188,24 @@ class CharNode extends Node2D:
             #     Color(1, 1, 1, 1 - alpha)
             # )
         else:
-            # if enable_rainbow:
-            #     text_server.shaped_text_draw(
-            #         shaped_text_rid,
-            #         get_canvas_item(),
-            #         draw_pos,
-            #         -1, -1,
-            #         text_color * modulate  # 将彩虹颜色与透明度结合
-            #     )
-            # else:
-            var oc = Color('40EBF7')
-            var nc =Color.from_hsv(oc.h + Rnd.rangef(-0.06, 0.06), oc.s, oc.v+0.1, modulate.a)
-            text_server.shaped_text_draw(
-                shaped_text_rid,
-                get_canvas_item(),
-                draw_pos + Vector2(2 , 2),
-                -1, -1,
-                nc
-            )
+            if enable_rainbow:
+                text_server.shaped_text_draw(
+                    shaped_text_rid,
+                    get_canvas_item(),
+                    draw_pos,
+                    -1, -1,
+                    text_color * modulate  # 将彩虹颜色与透明度结合
+                )
+            else:
+                var oc = Color('40EBF7')
+                var nc =Color.from_hsv(oc.h + Rnd.rangef(-0.06, 0.06), oc.s, oc.v+0.1, modulate.a)
+                text_server.shaped_text_draw(
+                    shaped_text_rid,
+                    get_canvas_item(),
+                    draw_pos + Vector2(2 , 2),
+                    -1, -1,
+                    nc
+                )
         if enable_rect:
             var glyphs = text_server.shaped_text_get_glyphs(shaped_text_rid)
             if glyphs.size():

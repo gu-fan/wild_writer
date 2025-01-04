@@ -25,6 +25,8 @@ var timer_fps : Timer = null
 @onready var stat_box: VBoxContainer = $StatBox
 @onready var log_box: VBoxContainer = $LogBox
 
+var firework
+
 var last_focused_editor: TextEdit = null :
     set(te):
         if last_focused_editor != te:
@@ -114,6 +116,7 @@ func setup_view() -> void:
             var gutter_size_fin = max(4*gutter_size, (3+1)*gutter_size)
             text_edit.set_gutter_width(i, gutter_size_fin)
             print(text_edit.get_gutter_width(i))
+
 
 
 func connect_signals() -> void:

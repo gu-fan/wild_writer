@@ -2,12 +2,17 @@ extends Node
 
 var editor_view: EditorView
 var canvas:CanvasLayer
+var firework
 
 func _ready():
     canvas = $CanvasLayer
     editor_view = $CanvasLayer/EditorView
+    firework = $CanvasLayer/Firework
+    editor_view.firework = firework
+
     Editor.main = self
     Editor.view = editor_view
+
     
     # 设置初始状态
 

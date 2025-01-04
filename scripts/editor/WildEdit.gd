@@ -7,6 +7,7 @@ const Combo: PackedScene   = preload("res://effects/combo.tscn")
 const Laser: PackedScene   = preload("res://effects/laser.tscn")
 const Blip: PackedScene    = preload("res://effects/blip.tscn")
 const Newline: PackedScene = preload("res://effects/newline.tscn")
+const PackedFireworkProjectile: PackedScene = preload("res://effects/firework_projectile.tscn")
 
 var effects = {
     level=1,
@@ -61,35 +62,11 @@ var ime_state = {
     input_sequence = "",       # 完整的输入序列
 }
 
+
 var combo_node: Control
 var compose_nodes : = {}
 # var compose_node_pool :  = []
 # var compose_node_pool_size := 4
-
-func _get_ime_compose(id=''):
-    # var id = ime_state.compose_id
-    if id in compose_nodes:
-        return compose_nodes[id]
-    var node = IMECompose.new()
-    node.z_index = 10
-    # add_child(node)
-    add_child.call_deferred(node)
-    update_compose_position(node)
-    compose_nodes[id] = node
-    return node
-func _free_ime_compose(id=''):
-    if id in compose_nodes:
-        var nd = compose_nodes[id]
-        compose_nodes.erase(id)
-        nd.set_text('')
-        await Util.wait(1.0)
-        nd.queue_free()
-    else:
-        push_error('free invalid id', id)
-
-func _has_ime_compose(id=''):
-    return compose_nodes.has(id)
-
 
 
 func _ready():
@@ -120,6 +97,8 @@ func _ready():
     # caret_changed.connect(update_compose_position)
 
     ime.ime_buffer_changed.connect(_on_ime_buffer_changed)
+
+
 
 func update_ime_position():
     if !is_active: return
@@ -275,7 +254,8 @@ func _gfcp():
     var lh = get_line_height()
     var c_line = get_caret_line()
     var c_col = get_caret_column()
-    if c_col == 0 and c_line != 0: cp.y += lh * 0.45
+    # if c_col == 0 and c_line != 0: cp.y += lh * 0.45
+    if c_col == 0: cp.y += lh * 0.45
     cp += Vector2(0,-lh/2.0)
     return cp
 # ---------------
@@ -392,13 +372,16 @@ func _feed_ime_compose(t: String):
 
     # we need a more intutive combo, that per each type
 
-    var t_d = t.length() - ime_state.last_compose.length()
-    prints('delta', t_d, t, ime_state.last_compose)
-    if t_d > 0:
-        _ic(t_d)
+    var t_d = _get_delta_len(t, ime_state.last_compose)
+    print('get delta', t_d)
+    if t_d >= 0:
+        if t_d > 0: 
+            _ic(t_d)
+        else:
+            _ic(1)
         _show_char_force(' ')
     elif t_d < 0:
-        _dc(-t_d * 3)
+        _dc(-t_d * 2)
         var pos = _gfcp()
         var thing = Boom.instantiate()
         thing.position = pos
@@ -482,6 +465,9 @@ func _handle_ime_finish():
         
         # if effects.shake:
         #     _ss(0.08, 8)
+
+        if ime_state.input_sequence == '新年快乐':
+            start_fireworks(ime_state.input_sequence)
         
         ime_state.last_compose = ""
         ime_state.last_non_empty = ""
@@ -493,6 +479,9 @@ func _handle_ime_finish():
         print('set state finish', ime_state)
 
         finish_compose()
+
+
+
     else:
         push_error('not finished?', ime_state)
         clear_compose()
@@ -542,6 +531,30 @@ func clear_compose():
     push_warning('CLEAR COMPOSE')
     for id in compose_nodes:
         _free_ime_compose(id)
+
+func _get_ime_compose(id=''):
+    # var id = ime_state.compose_id
+    if id in compose_nodes:
+        return compose_nodes[id]
+    var node = IMECompose.new()
+    node.z_index = 10
+    # add_child(node)
+    add_child.call_deferred(node)
+    update_compose_position(node)
+    compose_nodes[id] = node
+    return node
+func _free_ime_compose(id=''):
+    if id in compose_nodes:
+        var nd = compose_nodes[id]
+        compose_nodes.erase(id)
+        nd.set_text('')
+        await Util.wait(1.0)
+        nd.queue_free()
+    else:
+        push_error('free invalid id', id)
+
+func _has_ime_compose(id=''):
+    return compose_nodes.has(id)
 
 # -----------------------
 func _otc():
@@ -637,6 +650,40 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
         
 func _is_ascii(c):
     return c.unicode_at(0) <= 127
-
+func _get_w_len(s: String) -> int:
+    var length := 0
+    for c in s:
+        # 检查字符的 Unicode 值
+        # ASCII 字符的 Unicode 值在 0-127 之间
+        if c.unicode_at(0) <= 127:
+            length += 1
+        else:
+            length += 2
+    return length
+func _get_delta_len(s1, s2):
+    return _get_w_len(s1) - _get_w_len(s2)
 # ----------------------------
-
+func start_fireworks(chars:String):
+    var pos = _gfcp() # XXX, should convert to aaa pos
+    for i in chars.length():
+        var config = {
+                'from': Vector2(pos.x, 0) + Vector2(i * 200 -400 + Rnd.rangef(-50, 50) , size.y + 100) ,
+                'to': pos + Vector2(-300 + i*300 + Rnd.rangef(-50, 50) , -100 + Rnd.range(-100, 100)),
+                'delay': Rnd.rangef(-0.1, 0.15) + i * 0.7,
+                'char' : chars[i],
+                'color' : Color.from_hsv(0.2 + Rnd.rangef(0.4), 0.8, 1.0),
+            }
+        var projectile = FireworkProjectile.create(
+            PackedFireworkProjectile,
+            config.from,
+            config.to,
+            config.get("color", Color.WHITE),
+            config.get('char', ''),
+        )
+        add_child(projectile)
+    await Util.wait(1)
+    Editor.view.firework.start_drops()
+    # Editor.view.firework.start_spray()
+    await Util.wait(1)
+    Editor.view.firework.stop_drops()
+    # Editor.view.firework.stop_spray()

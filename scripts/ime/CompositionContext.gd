@@ -45,5 +45,3 @@ func get_current_candidate():
         return ''
     else:
         return candidates[0]
-
-
