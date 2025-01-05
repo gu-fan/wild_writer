@@ -153,6 +153,11 @@ func _on_gui_input(event):
         skip_effect = false
         prints(Util.f_usec(), 'input: ', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|')
         
+        if last_key_name == 'Space':
+            Editor.creative_mode.incr_word()
+        if last_key_name == 'Delete' or last_key_name == 'Backspace':
+            Editor.creative_mode.incr_error()
+
         if event.keycode == 0 or last_key_name == 'Unknown':
             is_ime_input = true
             # 记录输入序列
@@ -186,6 +191,15 @@ func _on_text_changed():
     var pos = _gfcp() 
     var cur_caret_line = get_caret_line()
     var cur_caret_col = get_caret_column()
+
+    Editor.creative_mode.incr_key(len_d)
+    # Editor.creative_mode.update_stats(len_d, true)
+
+    var current_text = get_line(get_caret_line())
+    var is_word_complete = false
+    if last_unicode in [" ", ".", ",", "!", "?", ";", ":", "\n"]:
+        is_word_complete = true
+    Editor.creative_mode.update_style_stats(current_text, is_word_complete)
     
     var is_text_updated = false
     if len_d < 0 and _time_b > TIME_BOOM_INTERVAL:
@@ -373,14 +387,15 @@ func _feed_ime_compose(t: String):
     # we need a more intutive combo, that per each type
 
     var t_d = _get_delta_len(t, ime_state.last_compose)
-    print('get delta', t_d)
     if t_d >= 0:
+        Editor.creative_mode.incr_key()
         if t_d > 0: 
             _ic(t_d)
         else:
             _ic(1)
         _show_char_force(' ')
     elif t_d < 0:
+        Editor.creative_mode.incr_error()
         _dc(-t_d * 2)
         var pos = _gfcp()
         var thing = Boom.instantiate()
@@ -430,7 +445,7 @@ func _feed_ime_compose(t: String):
                 var m = _get_ime_compose(ime_state.compose_id)
                 m.set_text(t)
                 print('set ime compose text:', t, '|')
-                if t == '新年快乐':
+                if t in ['新年快乐', '万事如意']:
                     m._label.enable_rainbow = true
                 else:
                     if m._label.enable_rainbow:
@@ -462,11 +477,12 @@ func _handle_ime_finish():
         # add_child.call_deferred(thing)
 
         _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false, {audio=false})
+        Editor.creative_mode.incr_word(ime_state.input_sequence.length())
         
         # if effects.shake:
         #     _ss(0.08, 8)
 
-        if ime_state.input_sequence == '新年快乐':
+        if ime_state.input_sequence in ['新年快乐', '万事如意']:
             start_fireworks(ime_state.input_sequence)
         
         ime_state.last_compose = ""
@@ -479,8 +495,6 @@ func _handle_ime_finish():
         print('set state finish', ime_state)
 
         finish_compose()
-
-
 
     else:
         push_error('not finished?', ime_state)
@@ -513,7 +527,6 @@ func _handle_ime_cancel():
     else:
         push_error('not canceld ?', ime_state)
         clear_compose()
-
 
 func finish_compose():
     var id = ime_state.compose_id
@@ -664,26 +677,47 @@ func _get_delta_len(s1, s2):
     return _get_w_len(s1) - _get_w_len(s2)
 # ----------------------------
 func start_fireworks(chars:String):
-    var pos = _gfcp() # XXX, should convert to aaa pos
+    # 获取视口中心位置
+    var viewport_size = get_viewport_rect().size
+    var center_x = viewport_size.x / 2
+    var center_y = viewport_size.y / 2
+    
+    # 计算字符总宽度，以便居中排列
+    var total_chars = chars.length()
+    var char_spacing = 200  # 字符间距
+    var total_width = total_chars * char_spacing
+    var start_x = center_x - (total_width / 2)
+
+    var pos = _gfcp()
     for i in chars.length():
         var config = {
-                'from': Vector2(pos.x, 0) + Vector2(i * 200 -400 + Rnd.rangef(-50, 50) , size.y + 100) ,
-                'to': pos + Vector2(-300 + i*300 + Rnd.rangef(-50, 50) , -100 + Rnd.range(-100, 100)),
-                'delay': Rnd.rangef(-0.1, 0.15) + i * 0.7,
+                'from': Vector2(pos.x, 0) + Vector2(i * 100 -200 + Rnd.rangef(-50, 50) , size.y + 100) ,
+                'to': Vector2(
+                    start_x + i * char_spacing + Rnd.rangef(-50, 50),  # 目标x与起始x相同
+                    center_y - 200  + Rnd.rangef(-50, 50)              # 在中心上方爆炸
+                ),
+                'delay': Rnd.rangef(-0.1, 0.1) + i * 0.15,
                 'char' : chars[i],
                 'color' : Color.from_hsv(0.2 + Rnd.rangef(0.4), 0.8, 1.0),
             }
-        var projectile = FireworkProjectile.create(
-            PackedFireworkProjectile,
-            config.from,
-            config.to,
-            config.get("color", Color.WHITE),
-            config.get('char', ''),
-        )
-        add_child(projectile)
+        _launch_firework(config)
     await Util.wait(1)
     Editor.view.firework.start_drops()
     # Editor.view.firework.start_spray()
     await Util.wait(1)
     Editor.view.firework.stop_drops()
     # Editor.view.firework.stop_spray()
+func _launch_firework(config):
+    var delay = config.get('delay', 0)
+    print('get delay', delay)
+    # if delay: await get_tree().create_timer(delay)
+    # if delay: await get_tree().create_timer(delay)
+    await Util.wait(delay)
+    var projectile = FireworkProjectile.create(
+        PackedFireworkProjectile,
+        config.from,
+        config.to,
+        config.get("color", Color.WHITE),
+        config.get('char', ''),
+    )
+    add_child(projectile)

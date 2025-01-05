@@ -1,8 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://cnj67a0shldy6"]
+[gd_scene load_steps=13 format=3 uid="uid://cnj67a0shldy6"]
 
 [ext_resource type="Script" path="res://effects/firework_projectile.gd" id="1_ocnia"]
 [ext_resource type="Texture2D" uid="uid://cj7mdg54nevgo" path="res://effects/firework/d8.png" id="2_45i84"]
 [ext_resource type="AudioStream" uid="uid://cpke6xwxygp3" path="res://temp/sfx/firework_proj.ogg" id="3_addku"]
+[ext_resource type="AudioStream" uid="uid://bd7kh7psw00eo" path="res://temp/sfx/firework_expl.ogg" id="4_u4hgs"]
 
 [sub_resource type="Curve2D" id="Curve2D_i6yau"]
 _data = {
@@ -20,12 +21,6 @@ point_count = 4
 
 [sub_resource type="CurveTexture" id="CurveTexture_e1o5w"]
 curve = SubResource("Curve_6wdid")
-
-[sub_resource type="Gradient" id="Gradient_c0bbq"]
-colors = PackedColorArray(1, 0, 0, 1, 0.842895, 0.66996, 0, 1)
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_tr4aq"]
-gradient = SubResource("Gradient_c0bbq")
 
 [sub_resource type="Curve" id="Curve_dg7pg"]
 min_value = -1.0
@@ -56,9 +51,8 @@ tangential_accel_min = -2.23517e-06
 tangential_accel_max = -2.23517e-06
 scale_min = 0.2
 scale_max = 0.2
-color_initial_ramp = SubResource("GradientTexture1D_tr4aq")
 alpha_curve = SubResource("CurveTexture_e1o5w")
-hue_variation_min = -2.23517e-08
+hue_variation_min = -0.1
 hue_variation_max = 0.1
 hue_variation_curve = SubResource("CurveTexture_81usg")
 
@@ -109,6 +103,12 @@ texture = ExtResource("2_45i84")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_addku")
+volume_db = 1.0
+max_distance = 20000.0
+attenuation = 0.12
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_u4hgs")
 volume_db = 1.0
 max_distance = 20000.0
 attenuation = 0.12

@@ -4,6 +4,7 @@ var scale = 1
 var main: Node
 var view: EditorView
 var config: ConfigManager
+var creative_mode
 
 var is_macos = false
 var is_linux = false

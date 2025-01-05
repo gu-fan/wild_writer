@@ -7,10 +7,11 @@ var path_2d: Path2D = self
 @onready var tail: GPUParticles2D = $PathFollow2D/Tail
 @onready var sprite_2d: Sprite2D = $PathFollow2D/Sprite2D
 @onready var audio_stream_player: AudioStreamPlayer2D = $AudioStreamPlayer
+@onready var audio_stream_player2: AudioStreamPlayer2D = $AudioStreamPlayer2
 
 var char = ''
 
-var speed := 1000.0
+var speed := 900.0
 var is_exploded := false
 
 var firework_expl = load('res://temp/sfx/firework_expl.ogg')
@@ -40,21 +41,32 @@ func set_color(value: Color) -> void:
     # 可选：更新精灵颜色
     sprite_2d.modulate = color
 
+static func curve2(from:Vector2, to:Vector2, mid_h=-10):
+    var curve = Curve2D.new()
+    var fdis = from.distance_to(to)
+    var spline = from.direction_to(to) * fdis * 0.4
+    var t_spline = from.direction_to(to) * fdis * 0.3
+    var mid = from.lerp(to, 0.6) + Vector2(0, mid_h)
+    curve.add_point(from)
+    curve.add_point(mid, -spline, t_spline)
+    curve.add_point(to)
+    return curve
 # 创建曲线路径
 func create_curve(from: Vector2, to: Vector2) -> void:
-    var curve := Curve2D.new()
+    var curve = curve2(from, to, -Rnd.rangef(10, 40))
     
-    # 计算控制点
-    var distance := from.distance_to(to)
-    var mid_height := -distance * 0.5  # 控制弧度高度
+    # # 计算控制点
+    # var distance := from.distance_to(to)
+    # var mid_height := (to.y + from.y) / 2.0
     
-    # 计算中间控制点
-    var mid_point := from.lerp(to, 0.5)  # 中点
-    var control_point := mid_point + Vector2(0, mid_height)  # 上方的控制点
+    # # 计算中间控制点
+    # var mid_point := from.lerp(to, 0.5)  # 中点
+    # var control_point := mid_point + Vector2(0, -30)  # 上方的控制点
     
-    # 添加贝塞尔曲线的点
-    curve.add_point(from, Vector2.ZERO, Vector2(0, mid_height * 0.5))
-    curve.add_point(to, Vector2(0, -mid_height * 0.5), Vector2.ZERO)
+    # # 添加贝塞尔曲线的点
+    # curve.add_point(from, Vector2.ZERO, mid_point)
+    # curve.add_point(to, mid_point, to)
+    # print('from, to', from, to, control_point)
     
     # 设置路径
     path_2d.curve = curve
@@ -75,6 +87,8 @@ static func create(scene: PackedScene, from: Vector2, to: Vector2, custom_color:
 
 
 func _ready():
+    audio_stream_player.pitch_scale = 1.0 + Rnd.rangef(0.0, 0.10)
+    audio_stream_player2.pitch_scale = 1.0 + Rnd.rangef(0.0, 0.10)
     audio_stream_player.play()
 
 
@@ -96,10 +110,8 @@ func explode():
     sprite_2d.hide()
     tail.emitting = false
 
-    audio_stream_player.stream = firework_expl
-    audio_stream_player.pitch_scale = 1.0 + Rnd.rangef(0.0, 0.06)
-    audio_stream_player.play()
-
+    audio_stream_player2.play()
+    audio_stream_player.stop()
     if char:
         var lb = Label.new()
         lb.text = char

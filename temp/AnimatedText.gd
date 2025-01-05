@@ -85,7 +85,7 @@ class CharNode extends Node2D:
         # 处理彩虹效果
         if enable_rainbow:
             var time = Time.get_ticks_msec() / 1000.0
-            var hue = fmod(time * rainbow_speed + rainbow_offset, 0.5) + 0.1
+            var hue = wrapf(fmod(-time * rainbow_speed + rainbow_offset, 1.0) * 0.5 + 0.7, 0.0, 1.0)
             text_color = Color.from_hsv(hue, rainbow_saturation, rainbow_value)
 
         

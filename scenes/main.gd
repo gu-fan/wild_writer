@@ -3,6 +3,8 @@ extends Node
 var editor_view: EditorView
 var canvas:CanvasLayer
 var firework
+var creative_mode_view
+var creative_mode
 
 func _ready():
     canvas = $CanvasLayer
@@ -13,12 +15,20 @@ func _ready():
     Editor.main = self
     Editor.view = editor_view
 
+
+
+    creative_mode_view = $CanvasLayer/CreativeMode
+    creative_mode_view.set_goal(1000)
+    creative_mode = creative_mode_view.creative_mode
+    Editor.creative_mode = creative_mode
+
     
     # 设置初始状态
 
     editor_view.init()
 
     setup_initial_state()
+
 
 func setup_initial_state():
     # 处理命令行参数
