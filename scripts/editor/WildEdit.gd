@@ -32,6 +32,7 @@ var last_line: String = ''
 var last_unicode: String = ''
 var last_key_name: String = ''
 var last_text: String = ''
+var last_caret_newline: = 0
 var last_caret_line: = 0
 
 const TIME_BOOM_INTERVAL = 0.1
@@ -195,11 +196,11 @@ func _on_text_changed():
     Editor.creative_mode.incr_key(len_d)
     # Editor.creative_mode.update_stats(len_d, true)
 
-    var current_text = get_line(get_caret_line())
-    var is_word_complete = false
-    if last_unicode in [" ", ".", ",", "!", "?", ";", ":", "\n"]:
-        is_word_complete = true
-    Editor.creative_mode.update_style_stats(current_text, is_word_complete)
+    # var current_text = get_line(get_caret_line())
+    # var is_word_complete = false
+    # if last_unicode in [" ", ".", ",", "!", "?", ";", ":", "\n"]:
+    #     is_word_complete = true
+    # Editor.creative_mode.update_style_stats(current_text, is_word_complete)
     
     var is_text_updated = false
     if len_d < 0 and _time_b > TIME_BOOM_INTERVAL:
@@ -236,7 +237,7 @@ func _on_text_changed():
                 2: _ss(0.05, 5)
                 3: _ss(0.05, 6)
 
-    if cur_caret_line != last_caret_line:
+    if cur_caret_line != last_caret_newline:
         if effects.newline:
             var thing = Newline.instantiate()
             thing.position = pos 
@@ -249,15 +250,20 @@ func _on_text_changed():
         if effects.shake:
             _ss(0.08, 8)
 
+        last_line = get_line(last_caret_line)
+        Editor.creative_mode.update_style_stats(last_line)
+        print('last_line', last_line)
+
         pitch_increase = 0.0
         is_text_updated = true
-        last_caret_line = cur_caret_line
+        last_caret_newline = cur_caret_line
 
     if is_text_updated: last_text = text
     caret_line = cur_caret_line
     caret_column = cur_caret_col
 
 func _on_caret_changed():
+    last_caret_line = caret_line
     caret_line = get_caret_line()
     caret_column = get_caret_column()
     prints(Util.f_usec(), 'caret_changed', caret_line, caret_column)

@@ -15,8 +15,6 @@ func _ready():
     Editor.main = self
     Editor.view = editor_view
 
-
-
     creative_mode_view = $CanvasLayer/CreativeMode
     creative_mode_view.set_goal(1000)
     creative_mode = creative_mode_view.creative_mode
@@ -35,10 +33,12 @@ func setup_initial_state():
     var args = OS.get_cmdline_args()
     if args.size() > 0:
         # 如果有命令行参数，打开指定文件
-        editor_view.core.command_manager.execute_command(
-            "open", 
-            [args[0]]
-        )
+        # editor_view.core.command_manager.execute_command(
+        #     "open", 
+        #     [args[0]]
+        # )
+        print('got args', args)
+        Editor.goto(args[0])
     else:
         pass
 
