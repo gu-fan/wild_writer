@@ -22,9 +22,9 @@ var wrong_chars: int = 0
 var accuracy: float = 100.0
 
 # 评分系统
-var speed_rating: String = "S"
-var style_rating: String = "A"
-var accuracy_rating: String = "S"
+var speed_rating: String = "NA"
+var style_rating: String = "NA"
+var accuracy_rating: String = "NA"
 
 # 风格统计相关变量
 var total_style_score := 0
@@ -51,9 +51,10 @@ const NATURAL_WORD_LENGTH = {
 }
 
 const STYLE_WEIGHTS = {
-    "natural_length": 0.5,    # 自然词长度权重
+    "natural_length": 0.4,    # 自然词长度权重
     "repetition": 0.3,        # 重复度权重
-    "rhythm": 0.2             # 节奏权重
+    "punctuation": 0.15,      # 标点
+    "rhythm": 0.15            # 节奏权重
 }
 
 func _ready() -> void:
@@ -163,7 +164,7 @@ const zh_seps = [
 
 # const en_symbols = [" ", ".", ",", "!", "?", ";", ":", "'", "\"", "`", "\n", "\t", "{", "}", "(", ")", "[", "]", "<", ">", "+", "-", "=", "*", "/"]
 const cn_symbols = "　｀－＝［］、‘；／。，｜？》《：“｛｝＋—）（＊…％￥＃·！～’”〕〈〉「」『』〖〗【】＜＞"
-const en_symbols = " .,!?;:'\"`\n\t{}()[]<>+-*/=%"
+const en_symbols = " .,!?;:'\"`\n\t{}()[]<>"
 const cn_sep = "给的说对在和是被最所那这有将你会与他为不没很了啊哦呵把去届次集章第每只及于到也又我"
 const cn_full_pre_match = '应享给视及因对由关可看听来在也就如一其自这那多少才每或我没中始收也'
 const cn_next_match_word = {
@@ -206,14 +207,13 @@ const cn_next_match_word = {
 func update_style_stats(paragraph: String) -> void:
     var current_time = Time.get_unix_time_from_system()
 
-    paragraph_stats = {
-        words = 1,
-    }
+    paragraph_stats = {}
     input_sequence = []
     
     # 分割段落为单词
     var words = []
     var current_word = ""
+    var puncs = []
 
 
     var i = 0
@@ -225,6 +225,7 @@ func update_style_stats(paragraph: String) -> void:
                 if current_word != "":
                     words.append(current_word)
                     current_word = ""
+                    if c != '　': puncs.append(i)
             else:
                 # 如果当前有英文单词，先保存
                 if current_word != "":
@@ -240,6 +241,7 @@ func update_style_stats(paragraph: String) -> void:
             if current_word != "":
                 words.append(current_word)
                 current_word = ""
+                if c != ' ': puncs.append(i)
         else:
             if current_word != "":
                 if current_word[0].unicode_at(0) < 127:
@@ -254,6 +256,7 @@ func update_style_stats(paragraph: String) -> void:
     # 处理最后一个单词
     if current_word != "":
         words.append(current_word)
+
 
     # 进一步处理中文词
     var final_words = []
@@ -275,7 +278,8 @@ func update_style_stats(paragraph: String) -> void:
     last_input_time = current_time
 
     paragraph_stats.words = final_words
-
+    paragraph_stats.puncs = puncs
+    paragraph_stats.length = paragraph.length()
 
     _calculate_style_rating()
 
@@ -388,11 +392,13 @@ func _calculate_style_rating() -> void:
     
     # 计算节奏得分
     var rhythm_score = _calculate_rhythm_score()
+    var punc_score = _calculate_punc_score()
     
     # 综合评分
     var final_score = (
         natural_ratio * STYLE_WEIGHTS.natural_length +
         repetition_ratio * STYLE_WEIGHTS.repetition +
+        punc_score * STYLE_WEIGHTS.punctuation +
         rhythm_score * STYLE_WEIGHTS.rhythm
     ) * 100.0
     
@@ -404,7 +410,7 @@ func _calculate_style_rating() -> void:
         "C": 65.0,  # 65-75：一般的输入
         "D": 0.0    # <65：需要改进
     })
-    prints('style:', natural_ratio, repetition_ratio, rhythm_score, final_score, style_rating)
+    prints('style:', natural_ratio, repetition_ratio, rhythm_score, punc_score, final_score, style_rating)
 
 # 计算节奏得分
 func _calculate_rhythm_score() -> float:
@@ -505,6 +511,56 @@ func _calculate_rhythm_score() -> float:
     
     prints('rhythm score:', rhythm_score, 'issues:', rhythm_issues, 'windows:', total_windows)
     return rhythm_score
+
+# 计算标点符号得分
+func _calculate_punc_score() -> float:
+    if not paragraph_stats.has("puncs"): return 1.0
+        
+    var puncs = paragraph_stats.puncs
+    if puncs.size() == 0:
+        return 0.7
+        
+    var text_length = paragraph_stats.length
+    if text_length == 0:
+        return 1.0
+        
+    var issues = 0
+    var last_punc_pos = -1
+    
+    # 检查标点符号的分布
+    for punc_pos in puncs:
+        # 检查标点间距
+        if last_punc_pos != -1:
+            var distance = punc_pos - last_punc_pos
+            # 标点太密集（间距小于5个字符）
+            if distance < 4:
+                issues += 1
+                prints("标点过密:", distance, "位置:", last_punc_pos, punc_pos)
+            # 标点太稀疏（间距大于50个字符）
+            elif distance > 85:
+                issues += 1
+                prints("标点过疏:", distance, "位置:", last_punc_pos, punc_pos)
+        last_punc_pos = punc_pos
+    
+    # 检查首尾标点
+    if puncs.size() > 0:
+        # 结尾没有标点
+        if text_length - puncs[-1] > 20:
+            issues += 1
+            prints("结尾缺少标点:", text_length - puncs[-1])
+    
+    # 计算得分
+    var punc_density = float(puncs.size()) / text_length
+    # 理想的标点密度约为 0.1-0.15
+    if punc_density < 0.01:
+        issues += 1
+        prints("标点太少:", punc_density)
+    elif punc_density > 0.3:
+        issues += 1
+        prints("标点太多:", punc_density)
+    
+    var score = 1.0 - (issues * 0.1)  # 每个问题扣0.1分
+    return max(0.0, score)  # 确保分数不小于0
 
 # -------------------------------
 # split chinese word
