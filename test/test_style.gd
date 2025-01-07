@@ -1,6 +1,5 @@
 extends Node2D
 
-
 func _ready():
     print('heello')
     var cm = CreativeMode.new()

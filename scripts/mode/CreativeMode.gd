@@ -3,10 +3,10 @@ extends Node
 
 signal goal_reached
 signal stats_updated
+signal combo_updated
 
 # 目标和进度
 var typing_goal: int = 1000  # 默认目标
-var current_chars: int = 0   # 当前输入字符数
 
 # 速度统计
 var start_time: float = 0.0
@@ -53,16 +53,16 @@ const NATURAL_WORD_LENGTH = {
 const STYLE_WEIGHTS = {
     "natural_length": 0.4,    # 自然词长度权重
     "repetition": 0.3,        # 重复度权重
-    "punctuation": 0.15,      # 标点
-    "rhythm": 0.15            # 节奏权重
+    "punctuation": 0.2,       # 标点
+    "rhythm": 0.1             # 节奏权重
 }
 
 func _ready() -> void:
     start_time = Time.get_unix_time_from_system()
+    _gen_cn_maps()
 
 func set_goal(chars: int) -> void:
     typing_goal = chars
-    current_chars = 0
     _reset_stats()
 
 func _reset_stats() -> void:
@@ -109,7 +109,7 @@ func update_stats() -> void:
         accuracy = (correct_chars / float(total_chars)) * 100.0
     
     # 检查是否达到目标
-    if current_chars >= typing_goal:
+    if total_words >= typing_goal:
         _calculate_final_rating()
         goal_reached.emit()
     
@@ -145,29 +145,34 @@ func match_rating(value: float, thresholds: Dictionary) -> String:
     return "D"
 
 func get_stats() -> Dictionary:
+    var elapsed_seconds = (Time.get_unix_time_from_system() - start_time)
     return {
         "wpm": wpm,
         "kpm": kpm,
         "accuracy": accuracy,
-        "progress": float(current_chars) / typing_goal,
+        "progress": float(total_words) / typing_goal,
         "speed_rating": speed_rating,
         "style_rating": style_rating,
-        "accuracy_rating": accuracy_rating
+        "accuracy_rating": accuracy_rating,
+        "time": elapsed_seconds,
+        "key": total_keys,
+        "delete": wrong_chars,
+        "word": total_words,
     }
-
-const zh_seps = [
-"",
-"省县市镇村乡区",
-"",
-"｀－＝［］、‘；／。，｜？》《：“｛｝＋—）（＊…％￥＃·！～’”〕〈〉「」『』〖〗【】＜＞",
-]
 
 # const en_symbols = [" ", ".", ",", "!", "?", ";", ":", "'", "\"", "`", "\n", "\t", "{", "}", "(", ")", "[", "]", "<", ">", "+", "-", "=", "*", "/"]
 const cn_symbols = "　｀－＝［］、‘；／。，｜？》《：“｛｝＋—）（＊…％￥＃·！～’”〕〈〉「」『』〖〗【】＜＞"
 const en_symbols = " .,!?;:'\"`\n\t{}()[]<>"
-const cn_sep = "给的说对在和是被最所那这有将你会与他为不没很了啊哦呵把去届次集章第每只及于到也又我"
-const cn_full_pre_match = '应享给视及因对由关可看听来在也就如一其自这那多少才每或我没中始收也'
+const cn_sep = "给的说对在和是被最所那这有将你会与他为不没很了啊哦呵把去届次集章第每只及于到也又我省县市镇村乡区"
+const cn_full_pre_match = '应享给视及因对由关可看听来在也就如一其自这那多少才每或我没中始收也城乡节省村市别分'
 const cn_next_match_word = {
+        '城': '市',
+        '乡': '镇村',
+        '节': '省',
+        '省': '钱心',
+        '村': '庄',
+        '市': '区',
+        '区': '别分',
         '如': '果',
         '始': '于',
         '收': '到',
@@ -205,10 +210,15 @@ const cn_next_match_word = {
 
 # 更新风格统计
 func update_style_stats(paragraph: String) -> void:
+    if paragraph.length() < 10: return
     var current_time = Time.get_unix_time_from_system()
 
     paragraph_stats = {}
     input_sequence = []
+    word_lengths = []
+    natural_words = 0
+    repeated_words = 0
+    paragraph_words = 0
     
     # 分割段落为单词
     var words = []
@@ -274,19 +284,20 @@ func update_style_stats(paragraph: String) -> void:
         if word.strip_edges() != "":
             _analyze_word(word, current_time)
     
-    print('got words', final_words, paragraph_stats)
     last_input_time = current_time
 
     paragraph_stats.words = final_words
     paragraph_stats.puncs = puncs
     paragraph_stats.length = paragraph.length()
 
+    print('got words', final_words, paragraph_stats)
     _calculate_style_rating()
+    combo_updated.emit()
 
 # 分析单词
 func _analyze_word(word: String, time: float) -> void:
     paragraph_words += 1
-    paragraph_stats.words = paragraph_words
+    # paragraph_stats.words = paragraph_words
 
     if input_sequence.has(word):
         repeated_words += 1
@@ -300,6 +311,7 @@ func _analyze_word(word: String, time: float) -> void:
     var word_length = word.length()
     # var word_length = _get_word_length(word)
     word_lengths.append(word_length)
+    print('word_lengths', word_lengths, word)
     paragraph_stats.word_lengths = word_lengths
 
     # 检查是否是自然长度
@@ -367,7 +379,7 @@ func _has_excessive_repeats(word: String) -> bool:
             consecutive_count = 1
         
         # 如果任何字符总重复超过4次
-        if char_counts[c] > 4:
+        if char_counts[c] >= 4:
             prints('unnatural word:', word, 'total repeat char:', c)
             return true
             
@@ -422,7 +434,7 @@ func _calculate_rhythm_score() -> float:
     var total_windows = 0
     var words = paragraph_stats.words
     
-    for i in range(word_lengths.size() - 3):  # -3确保有4个词的窗口
+    for i in range(word_lengths.size() - 4):  # -3确保有4个词的窗口
         var window = []
         var window_words = []
         var window_sum = 0
@@ -514,15 +526,14 @@ func _calculate_rhythm_score() -> float:
 
 # 计算标点符号得分
 func _calculate_punc_score() -> float:
-    if not paragraph_stats.has("puncs"): return 1.0
+    if not paragraph_stats.has("puncs"): return 0.7
         
     var puncs = paragraph_stats.puncs
     if puncs.size() == 0:
         return 0.7
         
     var text_length = paragraph_stats.length
-    if text_length == 0:
-        return 1.0
+    if text_length == 0: return 1.0
         
     var issues = 0
     var last_punc_pos = -1
@@ -532,20 +543,21 @@ func _calculate_punc_score() -> float:
         # 检查标点间距
         if last_punc_pos != -1:
             var distance = punc_pos - last_punc_pos
-            # 标点太密集（间距小于5个字符）
-            if distance < 4:
+            # 标点太密集（间距小于3个字符）
+            if distance < 3:
                 issues += 1
                 prints("标点过密:", distance, "位置:", last_punc_pos, punc_pos)
             # 标点太稀疏（间距大于50个字符）
-            elif distance > 85:
+            elif distance > 80:
                 issues += 1
                 prints("标点过疏:", distance, "位置:", last_punc_pos, punc_pos)
         last_punc_pos = punc_pos
     
     # 检查首尾标点
-    if puncs.size() > 0:
+    if text_length > 10:
+        var end_punc = puncs[-1] if puncs.size() else -99
         # 结尾没有标点
-        if text_length - puncs[-1] > 20:
+        if text_length - end_punc > 10:
             issues += 1
             prints("结尾缺少标点:", text_length - puncs[-1])
     
@@ -632,3 +644,50 @@ func get_max_size_of_words(words):
         if w.length() > max_size:
             max_size = w.length()
     return max_size
+
+
+func generate_match_maps(cn_full: Array) -> Dictionary:
+    # 用 Dictionary 来模拟 set
+    var pre_match = {}  # 用于存储所有词的第一个字
+    var next_match = {} # 用于存储每个首字可能对应的后续字
+    
+    for word in cn_full:
+        if word.length() >= 2:
+            var first_char = word[0]
+            var second_char = word[1]
+            
+            # 添加到首字集合
+            pre_match[first_char] = true
+            
+            # 添加到后续字映射
+            if not next_match.has(first_char):
+                next_match[first_char] = {}
+            next_match[first_char][second_char] = true
+    
+    # 转换为所需格式
+    var pre_match_str = ""
+    for char in pre_match.keys():
+        pre_match_str += char
+    
+    # 转换 next_match 的值为字符串
+    var next_match_dict = {}
+    for key in next_match:
+        var chars = ""
+        for second_char in next_match[key].keys():
+            chars += second_char
+        next_match_dict[key] = chars
+    
+    return {
+        "pre_match": pre_match_str,
+        "next_match": next_match_dict
+    }
+
+# 使用示例
+func _gen_cn_maps():
+    var cn_full = ['应对', '应该', '享有', '给予', '视为', '及其', '因为', '对于', '由于', 
+                   '关于', '可能', '因此', '如果', '因果', '看见', '可以', '看到', '听说', 
+                   '听见', '听到', '就是', '也在', '一些', '一定', '其中', '自己','还有']
+    
+    var result = generate_match_maps(cn_full)
+    print("cn_full_pre_match = '", result.pre_match, "'")
+    print("cn_next_match_word = ", result.next_match)

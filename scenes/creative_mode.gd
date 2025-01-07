@@ -3,7 +3,9 @@ extends Control
 
 @onready var goal_input: SpinBox = $GoalPanel/GoalInput
 @onready var progress_bar: ProgressBar = $ProgressBar
-@onready var stats_label: Label = $StatsPanel/StatsLabel
+@onready var stats_label: Label = $StatsPanel/Label
+@onready var detail_label: Label = $DetailPanel/Label
+@onready var combo_label: Label = $ComboRating/Label
 @onready var rating_panel: Panel = $RatingPanel
 @onready var close_button: Button = $RatingPanel/CloseButton
 
@@ -12,6 +14,7 @@ extends Control
 func _ready() -> void:
     
     creative_mode.stats_updated.connect(_on_stats_updated)
+    creative_mode.combo_updated.connect(_on_combo_updated)
     creative_mode.goal_reached.connect(_on_goal_reached)
     
     # 初始化目标输入
@@ -22,7 +25,6 @@ func _ready() -> void:
     close_button.pressed.connect(_on_close_button_pressed)
     # 初始隐藏评分面板
     rating_panel.hide()
-
 
 func set_goal(value):
     goal_input.value = value
@@ -43,6 +45,20 @@ func _on_stats_updated() -> void:
     KPM: %.1f
     Accuracy: %.1f%%
     """ % [stats.wpm, stats.kpm, stats.accuracy]
+
+    detail_label.text = """
+    time: %.1f
+    key: %.1f
+    word: %.1f
+    delete: %.1f
+    """ % [stats.time, stats.key, stats.word, stats.delete]
+
+func _on_combo_updated():
+    var styles = creative_mode.style_rating
+    print('got styles', styles)
+    combo_label.text = """
+    style: %s
+    """ % [styles]
 
 func _on_goal_reached() -> void:
     var stats = creative_mode.get_stats()
