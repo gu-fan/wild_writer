@@ -3,7 +3,7 @@ class_name InputProcessor
 
 signal composition_updated
 signal text_committed(text: String)
-signal buffer_changed(buffer: String)
+signal buffer_changed(buffer: String, is_partial_feed: bool)
 
 var context: CompositionContext
 var matcher: PinyinMatcher
@@ -137,7 +137,7 @@ func _handle_number_selection(key: String) -> bool:
         # 更新候选词列表
         matcher.update_candidates(context)
         emit_signal("composition_updated")
-        emit_signal("buffer_changed", context.buffer)
+        emit_signal("buffer_changed", context.buffer, true)
     else:
         # 完全匹配，重置上下文
         context.reset()

@@ -44,8 +44,8 @@ func get_state() -> Dictionary:
 
 func _on_composition_updated() -> void:
     emit_signal("composition_updated")
-func _on_buffer_changed(buf) -> void:
-    emit_signal("ime_buffer_changed", buf)
+func _on_buffer_changed(buf, is_partial_feed=false) -> void:
+    emit_signal("ime_buffer_changed", buf, is_partial_feed)
 func _on_text_committed(text: String) -> void:
     emit_signal("ime_text_changed", text)
 

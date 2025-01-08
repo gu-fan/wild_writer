@@ -54,11 +54,13 @@ func _on_stats_updated() -> void:
     """ % [stats.time, stats.key, stats.word, stats.delete]
 
 func _on_combo_updated():
-    var styles = creative_mode.style_rating
-    print('got styles', styles)
+    var ps = creative_mode.paragraph_stats
+    print('got styles', ps)
     combo_label.text = """
-    style: %s
-    """ % [styles]
+    Speed: %s
+    Style: %s
+    Accuracy: %s
+    """ % [ps.rating_speed, ps.rating_style, ps.rating_accuracy]
 
 func _on_goal_reached() -> void:
     var stats = creative_mode.get_stats()

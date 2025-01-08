@@ -10,38 +10,38 @@ var is_on_steam: bool = false
 
 
 func _init():
-	OS.set_environment("SteamAppId", str(steam_app_id))
-	OS.set_environment("GameAppId", str(steam_app_id))
+    OS.set_environment("SteamAppId", str(steam_app_id))
+    OS.set_environment("GameAppId", str(steam_app_id))
 func _ready():
-	initialize_steam()
+    initialize_steam()
 
 func _process(_delta: float) -> void:
-	if is_on_steam:
-		Steam.run_callbacks()
+    if is_on_steam:
+        Steam.run_callbacks()
 
 func initialize_steam() -> void:
-	if Engine.has_singleton("Steam"):
-		var initialize_response: Dictionary = Steam.steamInitEx()
-		print("Did Steam initialize?: %s" % initialize_response)
+    if Engine.has_singleton("Steam"):
+        var initialize_response: Dictionary = Steam.steamInitEx()
+        print("Did Steam initialize?: %s" % initialize_response)
 
-		if initialize_response['status'] > 0:
-			print("Failed to initialize Steam. %s" % initialize_response)
-		else:
-			# Gather additional data
-			is_on_steam_deck = Steam.isSteamRunningOnSteamDeck()
-			is_online = Steam.loggedOn()
-			is_owned = Steam.isSubscribed()
-			steam_id = Steam.getSteamID()
-			steam_username = Steam.getPersonaName()
+        if initialize_response['status'] > 0:
+            print("Failed to initialize Steam. %s" % initialize_response)
+        else:
+            # Gather additional data
+            is_on_steam_deck = Steam.isSteamRunningOnSteamDeck()
+            is_online = Steam.loggedOn()
+            is_owned = Steam.isSubscribed()
+            steam_id = Steam.getSteamID()
+            steam_username = Steam.getPersonaName()
 
-			# Check if account owns the game
-			if is_owned == false:
-				print("User does not own this game")
-				# get_tree().quit()
-			else:
-				print("User has own this game")
+            # Check if account owns the game
+            if is_owned == false:
+                print("User does not own this game")
+                # get_tree().quit()
+            else:
+                print("User has own this game")
 
-		is_on_steam = true
-	else:
-		print("[NOTICE] This is the non-Steam version of the app!")
-		is_on_steam = false
+        is_on_steam = true
+    else:
+        print("[NOTICE] This is the non-Steam version of the app!")
+        is_on_steam = false

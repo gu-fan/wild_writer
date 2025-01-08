@@ -49,6 +49,7 @@ var skip_effect = false
 var is_single_letter = false
 
 var is_ime_input = false
+var is_feed_by_os_ime = false
 
 var ime_state = {
     compose_id = "",
@@ -61,6 +62,9 @@ var ime_state = {
     last_finish_time = 0,      # 最后完成时间
     first_input = "",          # 输入序列的第一个字符
     input_sequence = "",       # 完整的输入序列
+    last_os_ime_compose = "",
+    curr_tiny_ime_buffer = "",
+    last_tiny_ime_buffer = "",
 }
 
 
@@ -152,7 +156,9 @@ func _on_gui_input(event):
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
-        prints(Util.f_usec(), 'input: ', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|')
+        prints(Util.f_usec(),self, 'input: ', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|', event.as_text_key_label(),event.as_text_physical_keycode() )
+        # XXX: 
+        # on macOS, pressing multi key in same time will emit (Unset) and keycode 0, like 'jk'
         
         if last_key_name == 'Space':
             Editor.creative_mode.incr_word()
@@ -160,17 +166,25 @@ func _on_gui_input(event):
             Editor.creative_mode.incr_error()
 
         if event.keycode == 0 or last_key_name == 'Unknown':
-            is_ime_input = true
-            # 记录输入序列
-            if ime_state.first_input == "":
-                ime_state.first_input = last_unicode
-                ime_state.input_sequence = last_unicode
+            # some combined key will trigger this too
+            # check unicode to ignore it
+            if !_is_ascii(last_unicode):
+                is_ime_input = true
+                # 记录输入序列
+                if ime_state.first_input == "":
+                    ime_state.first_input = last_unicode
+                    ime_state.input_sequence = last_unicode
+                else:
+                    ime_state.input_sequence += last_unicode
+                print('len |', last_unicode, '|', last_unicode.length())
+                # Windows/macOS: 在输入时就触发完成效果
+                if Editor.is_macos or Editor.is_windows:
+                    # _handle_ime_finish()
+                    print('try handle by input compose')
+                    ime_state.pending_finish = true
+                    Util.delay('_ime_compose', 0.06, _handle_ime_finish)
             else:
-                ime_state.input_sequence += last_unicode
-            # Windows/macOS: 在输入时就触发完成效果
-            if Editor.is_macos or Editor.is_windows:
-                # _handle_ime_finish()
-                Util.delay('_ime_compose', 0.06, _handle_ime_finish)
+                is_ime_input = false
         else:
             is_ime_input = false
 
@@ -193,7 +207,7 @@ func _on_text_changed():
     var cur_caret_line = get_caret_line()
     var cur_caret_col = get_caret_column()
 
-    Editor.creative_mode.incr_key(len_d)
+    # Editor.creative_mode.incr_key(len_d)
     # Editor.creative_mode.update_stats(len_d, true)
 
     # var current_text = get_line(get_caret_line())
@@ -214,8 +228,8 @@ func _on_text_changed():
         is_text_updated = true
         _time_b = 0.0
         _dc(abs(len_d)*3)
-        if effects.shake:
-            _ss(0.2, 12)
+        if effects.shake: _ss(0.2, 12)
+        Editor.creative_mode.incr_error()
     else: # len_d == 0, it's changed by other words
         var thing = Blip.instantiate()
         thing.pitch_increase = pitch_increase
@@ -228,7 +242,11 @@ func _on_text_changed():
         thing.last_key = last_unicode
         add_child(thing)
         is_text_updated = true
-        _ic(len_d)
+        Editor.creative_mode.incr_key()
+        if last_key_name in ['Ctrl+V', 'Ctrl+Y', 'Command+V', 'Command+Y']:
+            _ic()
+        else:
+            _ic(len_d)
         if effects.shake:
             match font_size:
                 # _ss(0.05, 6)
@@ -251,7 +269,7 @@ func _on_text_changed():
             _ss(0.08, 8)
 
         last_line = get_line(last_caret_line)
-        Editor.creative_mode.update_style_stats(last_line)
+        Editor.creative_mode.update_combo(last_line)
         print('last_line', last_line)
 
         pitch_increase = 0.0
@@ -337,13 +355,26 @@ func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
         if !is_active: return
         var t = DisplayServer.ime_get_text()
-        prints('[%d]' % Time.get_ticks_usec(), 'note ime update', is_ime_input, t)
+        prints('[%d]' % Time.get_ticks_usec(), 'OS IME UPDATE', is_ime_input, t)
+        if t == "" and ime_state.last_os_ime_compose == "":  # macOS always feed empty update
+            ime_state.last_os_ime_compose = t
+            return
+        is_feed_by_os_ime = true
+        ime_state.last_os_ime_compose = t
         _feed_ime_compose(t)
 
-func _on_ime_buffer_changed(buffer):
+func _on_ime_buffer_changed(buffer, is_partial_feed=false):
     if !is_active: return
     # _feed_ime_compose(buffer)
+    # XXX:
+    # there is another problem, that when partial feed candidate
+    # should not consider the delta
+    prints('[%d]' % Time.get_ticks_usec(), 'TINY IME UPDATE', is_ime_input, buffer)
+    is_feed_by_os_ime = false
+    ime_state.is_partial_feed = is_partial_feed
+    ime_state.curr_tiny_ime_buffer = buffer
     _feed_ime_compose(ime.context.get_current_candidate())
+    ime_state.last_tiny_ime_buffer = buffer
 
 class IMECompose extends ColorRect:
     var _label: AnimatedText = null
@@ -373,12 +404,10 @@ class IMECompose extends ColorRect:
 
 func _feed_ime_compose(t: String):
     print('[%d]feed ime compose: %s' % [Time.get_ticks_usec(), t])
-
     
     var current_time = Time.get_ticks_msec()
     prints(Util.f_usec(), 'compose|%s|%s|' % [ime_state.last_compose, t], ime_state.last_compose.length(), t.length(), is_ime_input)
     # prints(Util.f_usec(), 'get state', ime_state)
-
     
     # 如果最近刚完成输入，忽略后续的空字符串通知
     if t.length() == 0 and current_time - ime_state.last_finish_time < 50:  # 50ms 阈值
@@ -386,13 +415,23 @@ func _feed_ime_compose(t: String):
         if _has_ime_compose(id):
             var m = _get_ime_compose(id)
             m.set_text(t)
-            print('is just finished, ignore')
+            print('just finished compose, ignore')
             push_error('set composed text with 0')
         return
 
     # we need a more intutive combo, that per each type
-
     var t_d = _get_delta_len(t, ime_state.last_compose)
+    prints('got t_d', t.length(), '|', ime_state.last_compose, '|', t, '|', is_feed_by_os_ime)
+
+    # for tiny ime, handle by buffer len, not candidate len
+    if !is_feed_by_os_ime:
+        if ime_state.is_partial_feed: # ignore partial feed ones
+            t_d = 0
+        else:
+            var last_buf_len = ime_state.last_tiny_ime_buffer.length()
+            var curr_buf_len = ime_state.curr_tiny_ime_buffer.length()
+            t_d = curr_buf_len - last_buf_len
+
     if t_d >= 0:
         Editor.creative_mode.incr_key()
         if t_d > 0: 
@@ -401,6 +440,8 @@ func _feed_ime_compose(t: String):
             _ic(1)
         _show_char_force(' ')
     elif t_d < 0:
+        # XXX:
+        # FOR MACOS, we should delay the boom to check if it's finished or not
         Editor.creative_mode.incr_error()
         _dc(-t_d * 2)
         var pos = _gfcp()
@@ -430,32 +471,32 @@ func _feed_ime_compose(t: String):
         if ime_state.last_compose.length() != 0 and t.length() == 0:
             if is_ime_input:
                 # Linux: 在这里触发完成效果
-                if Editor.is_linux:
-                    _handle_ime_finish()
                 ime_state.pending_finish = true
+                if Editor.is_linux: _handle_ime_finish()
             else:
-                _handle_ime_cancel()
                 ime_state.pending_cancel = true
-        else:
-            ime_state.last_compose = t
-            if t != "": ime_state.last_non_empty = t
-            ime_state.last_update_time = current_time
+                _handle_ime_cancel()
 
-            if t == '':
-                if _has_ime_compose(ime_state.compose_id):
-                    var m = _get_ime_compose(ime_state.compose_id)
-                    m.set_text(t)
-                    push_error('set composed text with 0')
-                clear_compose()
-            else:
-                var m = _get_ime_compose(ime_state.compose_id)
-                m.set_text(t)
-                print('set ime compose text:', t, '|')
-                if t in ['新年快乐', '万事如意']:
-                    m._label.enable_rainbow = true
-                else:
-                    if m._label.enable_rainbow:
-                        m._label.enable_rainbow = false
+    ime_state.last_compose = t
+    if t != "": ime_state.last_non_empty = t
+    ime_state.last_update_time = current_time
+    print('set last compose', ime_state.last_compose, ime_state.last_non_empty)
+
+    if t == '':
+        if _has_ime_compose(ime_state.compose_id):
+            var m = _get_ime_compose(ime_state.compose_id)
+            m.set_text(t)
+            push_error('set composed text with 0')
+        clear_compose()
+    else:
+        var m = _get_ime_compose(ime_state.compose_id)
+        m.set_text(t)
+        print('set ime compose text:', t, '|')
+        if t in ['新年快乐', '万事如意']:
+            m._label.enable_rainbow = true
+        else:
+            if m._label.enable_rainbow:
+                m._label.enable_rainbow = false
 
 
 func _handle_ime_finish():
@@ -494,7 +535,7 @@ func _handle_ime_finish():
         ime_state.last_compose = ""
         ime_state.last_non_empty = ""
         ime_state.is_composing = false
-        ime_state.pending_finish = true
+        ime_state.pending_finish = false
         ime_state.last_finish_time = Time.get_ticks_msec()
         ime_state.first_input = ""
         ime_state.input_sequence = ""  # 重置输入序列
@@ -508,8 +549,8 @@ func _handle_ime_finish():
     is_ime_input = false
 
 func _handle_ime_cancel():
+    prints(Util.f_usec(), 'cancel ime compose', ime_state.last_compose, ime_state.last_non_empty)
     if not ime_state.pending_cancel and not ime_state.pending_finish:
-        prints(Util.f_usec(), 'cancel ime compose', ime_state.last_compose, ime_state.last_non_empty)
         # 在这里触发取消效果
         var pos = _gfcp()
         var thing = Boom.instantiate()
@@ -525,7 +566,7 @@ func _handle_ime_cancel():
         ime_state.last_compose = ""
         ime_state.last_non_empty = ""
         ime_state.is_composing = false
-        ime_state.pending_cancel = true
+        ime_state.pending_cancel = false
         ime_state.first_input = ""
         ime_state.input_sequence = ""  # 重置输入序列
         print('set state cancel', ime_state)

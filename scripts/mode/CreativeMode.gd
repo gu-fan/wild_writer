@@ -7,6 +7,7 @@ signal combo_updated
 
 # 目标和进度
 var typing_goal: int = 1000  # 默认目标
+var has_reached_goal = false
 
 # 速度统计
 var start_time: float = 0.0
@@ -26,27 +27,37 @@ var speed_rating: String = "NA"
 var style_rating: String = "NA"
 var accuracy_rating: String = "NA"
 
+
+const SPEED_SCORE = {
+    "S": 120.0,
+    "A": 90.0,
+    "B": 60.0,
+    "C": 40.0,
+    "D": 0.0
+}
+const ACCURACY_SCORE = {
+    "S": 98.0,
+    "A": 95.0,
+    "B": 90.0,
+    "C": 85.0,
+    "D": 0.0  
+}
+const STYLE_SCORE = {
+    "S": 95.0,
+    "A": 90.0,
+    "B": 80.0,
+    "C": 65.0,
+    "D": 0.0   
+}
+
 # 风格统计相关变量
 var total_style_score := 0
-var input_sequence: Array = []        # 记录输入序列
-var word_lengths: Array = []          # 词长度统计
-var last_input_time: float = 0.0      # 上次输入时间
-var repeated_words: int = 0           # 重复词计数
-var natural_words: int = 0            # 自然长度的词计数
-var paragraph_words: int = 0
-var paragraph_stats = {}
 
 var _updated_tick = 0
 
-func _physics_process(delta):
-    _updated_tick += delta
-    if _updated_tick > 1.0:
-        update_stats()
-        _updated_tick = 0
-
 # 自然度评估参数
 const NATURAL_WORD_LENGTH = {
-    "en": {"min": 2, "ideal": 6, "max": 16},    # 英文词长度范围
+    "en": {"min": 1, "ideal": 6, "max": 16},    # 英文词长度范围
     "cn": {"min": 1, "ideal": 8, "max": 16}      # 中文词长度范围
 }
 
@@ -57,6 +68,49 @@ const STYLE_WEIGHTS = {
     "rhythm": 0.1             # 节奏权重
 }
 
+var paragraph_stats = {
+    "words": [],         # Array[String]
+    "word_lengths": [],  # Array[int]
+    "puncs": [],         # Array[int]
+    "length": 0,         # int
+    "natural_words": 0,  # int
+    "repeated_words": 0, # int
+    "total_words": 0,    # int
+    # ---------
+    "start_time": 0.0,   # float
+    "end_time": 0.0,     # float
+    "duration": 0.0,          
+    "input_words": 0,    # int
+    "keys": 0,           # int
+    "errors": 0,         # int
+    "chars": 0,          # int
+    "wpm": 0.0,          # float
+    "kpm": 0.0,          # float
+    "accuracy": 100.0,    # float
+    # ---------
+    "score_style": 0,
+    "rating_style": "NA",
+    "rating_speed": "NA",
+    "rating_accuracy": "NA",
+}
+
+var creative_mode_stats = {
+    "start_time": 0.0,   # float
+    "end_time": 0.0,     # float
+    "total_paragraphs": 0,    # int
+}
+var paragraph_scores = []
+var _paragraph_input_sequence: Array = []        # 记录输入序列
+
+# -----------------------
+func _physics_process(delta):
+    _updated_tick += delta
+    if _updated_tick > 1.0:
+        update_stats()
+        _updated_tick = 0
+
+# -----------------------
+
 func _ready() -> void:
     start_time = Time.get_unix_time_from_system()
     _gen_cn_maps()
@@ -64,6 +118,7 @@ func _ready() -> void:
 func set_goal(chars: int) -> void:
     typing_goal = chars
     _reset_stats()
+    _reset_paragraph_stats()
 
 func _reset_stats() -> void:
     start_time = Time.get_unix_time_from_system()
@@ -75,17 +130,64 @@ func _reset_stats() -> void:
     wrong_chars = 0
     accuracy = 100.0
 
+
+func _reset_paragraph_stats():
+    var current_time = Time.get_unix_time_from_system()
+    paragraph_stats = {
+        "words": [],         
+        "puncs": [],         
+        "word_lengths": [],  
+        "natural_words": 0,  
+        "repeated_words": 0, 
+        "total_length": 0,         
+        "total_words": 0,    
+        # -------------
+        "start_time": current_time,
+        "end_time": current_time,     
+        "duration": 0.0,          
+        "input_words": 0,    # int
+        "keys": 0,           
+        "errors": 0,         
+        "chars": 0,          
+        "wpm": 0.0,          
+        "kpm": 0.0,          
+        "accuracy": 100.0,
+        # -------------
+        "score_style": 0,
+        "rating_style": "NA",
+        "rating_speed": "NA",
+        "rating_accuracy": "NA",
+    }
+
+
 func incr_word(n=1):
     total_words += n
     update_stats()
+
+    paragraph_stats.end_time = Time.get_unix_time_from_system()
+    paragraph_stats.input_words += n
+    _update_paragraph_stats()
+
 func incr_error():
     wrong_chars += 1
     total_chars -= 1
     update_stats()
-func incr_key(count = 1):
-    total_keys += count
+
+    paragraph_stats.errors += 1
+    paragraph_stats.end_time = Time.get_unix_time_from_system()
+    _update_paragraph_stats()
+
+func incr_key(n = 1):
+    total_keys += n
     total_chars += 1
     update_stats()
+
+    if paragraph_stats.keys == 0:
+        paragraph_stats.start_time = Time.get_unix_time_from_system()
+    paragraph_stats.keys += n
+    paragraph_stats.chars += 1
+    paragraph_stats.end_time = Time.get_unix_time_from_system()
+    _update_paragraph_stats()
     
 
 func update_stats() -> void:
@@ -109,34 +211,38 @@ func update_stats() -> void:
         accuracy = (correct_chars / float(total_chars)) * 100.0
     
     # 检查是否达到目标
-    if total_words >= typing_goal:
+    if total_words >= typing_goal and !has_reached_goal:
         _calculate_final_rating()
         goal_reached.emit()
     
     stats_updated.emit()
 
 func _calculate_final_rating() -> void:
+    has_reached_goal = true
     # 速度评分 (WPM)
-    speed_rating = match_rating(wpm, {
-        "S": 120.0,  # 120+ WPM
-        "A": 90.0,   # 90-120 WPM
-        "B": 60.0,   # 60-90 WPM
-        "C": 40.0,   # 40-60 WPM
-        "D": 0.0     # <40 WPM
-    })
+    speed_rating = match_rating(wpm, SPEED_SCORE)
     
     # 准确度评分
-    accuracy_rating = match_rating(accuracy, {
-        "S": 98.0,   # 98%+
-        "A": 95.0,   # 95-98%
-        "B": 90.0,   # 90-95%
-        "C": 85.0,   # 85-90%
-        "D": 0.0     # <85%
-    })
+    accuracy_rating = match_rating(accuracy, ACCURACY_SCORE)
     
     # 风格评分 (基于组合和特效使用)
-    # 这部分需要根据具体的组合系统来实现
-    style_rating = "A"  # 临时默认值
+    var style_score = _calc_overall_style_score()
+    style_rating = match_rating(style_score, STYLE_SCORE)
+    prints('overall style rating', style_score, style_rating, speed_rating, accuracy_rating)
+
+func _calc_overall_style_score():
+    if paragraph_scores.is_empty():
+        return 70.0
+
+    var total_weight = 0.0
+    var weight_sum = 0.0
+    for ps in paragraph_scores:
+        var weight = ps.total_length
+        var score = ps.score_style
+        weight_sum += score * weight
+        total_weight += weight
+
+    return weight_sum / total_weight
 
 func match_rating(value: float, thresholds: Dictionary) -> String:
     for rating in thresholds:
@@ -209,22 +315,48 @@ const cn_next_match_word = {
 # const cn_full = ['应对', '应该', '享有', '给予', '视为','及其','因为', '对于', '由于', '关于','可能','因此', '如果', '因果','看见','可以','看到','听说','听见','听到','就是','也在','一些','一定', '其中','自己']
 
 # 更新风格统计
-func update_style_stats(paragraph: String) -> void:
-    if paragraph.length() < 10: return
+func update_combo(paragraph: String) -> void:
+    if paragraph.length() <= 10: 
+        _reset_paragraph_stats()
+        return
+
     var current_time = Time.get_unix_time_from_system()
 
-    paragraph_stats = {}
-    input_sequence = []
-    word_lengths = []
-    natural_words = 0
-    repeated_words = 0
-    paragraph_words = 0
-    
-    # 分割段落为单词
-    var words = []
-    var current_word = ""
-    var puncs = []
+    _paragraph_input_sequence = []
 
+    var ret = split_paragraph_words(paragraph)
+    paragraph_stats.words = ret.words
+    paragraph_stats.puncs = ret.puncs
+    paragraph_stats.total_length = paragraph.length()
+
+    # 分析每个词
+    for word in paragraph_stats.words:
+        if word.strip_edges() != "":
+            _analyze_word(word, current_time)
+
+    _calculate_style_rating()
+    _update_paragraph_stats()
+    combo_updated.emit()
+    paragraph_scores.append({
+        total_length=paragraph_stats.total_length,
+        score_style=paragraph_stats.score_style, 
+        wpm = paragraph_stats.wpm,
+        accuracy = paragraph_stats.accuracy,
+        rating_style = paragraph_stats.rating_style,
+        rating_speed = paragraph_stats.rating_speed,
+        rating_accuracy = paragraph_stats.rating_accuracy,
+    })
+    print('get paragraph stats', paragraph_stats, paragraph_scores)
+
+    await get_tree().process_frame
+    _reset_paragraph_stats()
+
+# --------------
+func split_paragraph_words(paragraph):
+    # 分割段落为单词
+    var current_word = ""
+    var words = []
+    var puncs = []
 
     var i = 0
     while i < paragraph.length():
@@ -279,46 +411,54 @@ func update_style_stats(paragraph: String) -> void:
             else:
                 final_words.append(word)
 
-    # 分析每个词
-    for word in final_words:
-        if word.strip_edges() != "":
-            _analyze_word(word, current_time)
-    
-    last_input_time = current_time
+    return {words=final_words, puncs=puncs}
 
-    paragraph_stats.words = final_words
-    paragraph_stats.puncs = puncs
-    paragraph_stats.length = paragraph.length()
 
-    print('got words', final_words, paragraph_stats)
-    _calculate_style_rating()
-    combo_updated.emit()
+# --------------
+func _update_paragraph_stats() -> void:
+    var elapsed_minutes = (paragraph_stats.end_time - paragraph_stats.start_time) / 60.0
+    if elapsed_minutes > 0:
+        # 计算段落WPM
+        paragraph_stats.wpm = float(paragraph_stats.input_words) / elapsed_minutes
+        paragraph_stats.kpm = float(paragraph_stats.keys) / elapsed_minutes
+        
+        # 计算段落准确度
+        if paragraph_stats.chars > 0:
+            var correct_chars = paragraph_stats.chars - paragraph_stats.errors
+            paragraph_stats.accuracy = (float(correct_chars) / paragraph_stats.chars) * 100.0
+        paragraph_stats.duration = paragraph_stats.end_time - paragraph_stats.start_time
+
+# func get_paragraph_stats():
+#     return {
+#         "wpm": paragraph_stats.wpm,
+#         "accuracy": paragraph_stats.accuracy,
+#         "words": paragraph_stats.total_words,
+#         "natural_ratio": float(paragraph_stats.natural_words) / paragraph_stats.total_words if paragraph_stats.total_words > 0 else 0.0,
+#         "repeat_ratio": float(paragraph_stats.repeated_words) / paragraph_stats.total_words if paragraph_stats.total_words > 0 else 0.0,
+#         "time": paragraph_stats.end_time - paragraph_stats.start_time,
+#         "keys": paragraph_stats.keys,
+#         "errors": paragraph_stats.errors
+#     }
+
 
 # 分析单词
 func _analyze_word(word: String, time: float) -> void:
-    paragraph_words += 1
-    # paragraph_stats.words = paragraph_words
+    paragraph_stats.total_words += 1
 
-    if input_sequence.has(word):
-        repeated_words += 1
-    input_sequence.append(word)
+    if _paragraph_input_sequence.has(word):
+        paragraph_stats.repeated_words += 1
+    _paragraph_input_sequence.append(word)
     
     # 保持最近50个词的记录
-    if input_sequence.size() > 50:
-        input_sequence.pop_front()
-    
+    if _paragraph_input_sequence.size() > 50:
+        _paragraph_input_sequence.pop_front()
     
     var word_length = word.length()
-    # var word_length = _get_word_length(word)
-    word_lengths.append(word_length)
-    print('word_lengths', word_lengths, word)
-    paragraph_stats.word_lengths = word_lengths
+    paragraph_stats.word_lengths.append(word_length)
 
     # 检查是否是自然长度
     if _is_natural_word(word):
-        natural_words += 1
-
-    paragraph_stats.natural_words = natural_words
+        paragraph_stats.natural_words += 1
 
 
 # 获取词长度（考虑中英文混合）
@@ -338,14 +478,6 @@ func _is_natural_word(word: String) -> bool:
         prints('unnatural word:', word, 'length less than min')
         return false
     elif length > params.max: 
-        # if is_chinese:
-        #     var words = split_chinese_sentence(word)
-        #     # split word with cn_seps, and check the length
-        #     var max_size = get_max_size_of_words(words)
-        #     if max_size > params.max:
-        #         prints('unnatural word:', word, 'length more than max')
-        #         return false
-        # else:
         prints('unnatural word:', word, 'length more than max')
         return false
 
@@ -390,17 +522,20 @@ func _has_excessive_repeats(word: String) -> bool:
 
 # 计算风格评分
 func _calculate_style_rating() -> void:
-    if paragraph_words == 0:
+    if paragraph_stats.total_words == 0:
         style_rating = "NA"
         return
     
+    var paragraph_words = paragraph_stats.total_words
+    var natural_words = paragraph_stats.natural_words
     # 计算自然长度得分
     var natural_ratio = float(natural_words) / paragraph_words
     prints('unnatural', (paragraph_words - natural_words), natural_ratio)
     
     # 计算重复度得分（越低越好）
+    var repeated_words = paragraph_stats.repeated_words
     var repetition_ratio = 1.0 - (float(repeated_words) / paragraph_words)
-    prints('repeat', repeated_words, paragraph_words, repetition_ratio)
+    prints('repeat', repeated_words, repetition_ratio)
     
     # 计算节奏得分
     var rhythm_score = _calculate_rhythm_score()
@@ -415,17 +550,18 @@ func _calculate_style_rating() -> void:
     ) * 100.0
     
     # 设置评级
-    style_rating = match_rating(final_score, {
-        "S": 95.0,  # 95+：极其自然的输入
-        "A": 90.0,  # 85-95：非常好的输入
-        "B": 80.0,  # 75-85：良好的输入
-        "C": 65.0,  # 65-75：一般的输入
-        "D": 0.0    # <65：需要改进
-    })
-    prints('style:', natural_ratio, repetition_ratio, rhythm_score, punc_score, final_score, style_rating)
+    print('got final style score', final_score)
+    style_rating = match_rating(final_score, STYLE_SCORE)
+    speed_rating = match_rating(paragraph_stats.wpm, SPEED_SCORE)
+    accuracy_rating = match_rating(paragraph_stats.accuracy, ACCURACY_SCORE)
+    paragraph_stats.score_style = final_score
+    paragraph_stats.rating_style = style_rating
+    paragraph_stats.rating_speed = speed_rating
+    paragraph_stats.rating_accuracy = accuracy_rating
 
 # 计算节奏得分
 func _calculate_rhythm_score() -> float:
+    var word_lengths = paragraph_stats.word_lengths
     if word_lengths.size() < 4:  # 至少需要4个词才能评估节奏
         return 1.0
     
@@ -483,7 +619,7 @@ func _calculate_rhythm_score() -> float:
             # 英文词长度规则
             var all_short = true
             for length in window:
-                if length >= 4:
+                if length >= 3:
                     all_short = false
                     break
             if all_short:
@@ -492,7 +628,7 @@ func _calculate_rhythm_score() -> float:
             
             var all_long = true
             for length in window:
-                if length <= 20:
+                if length <= 16:
                     all_long = false
                     break
             if all_long:
@@ -529,11 +665,10 @@ func _calculate_punc_score() -> float:
     if not paragraph_stats.has("puncs"): return 0.7
         
     var puncs = paragraph_stats.puncs
-    if puncs.size() == 0:
-        return 0.7
+    if puncs.size() == 0: return 0.7
         
-    var text_length = paragraph_stats.length
-    if text_length == 0: return 1.0
+    var total_length = paragraph_stats.total_length
+    if total_length <= 10: return 1.0
         
     var issues = 0
     var last_punc_pos = -1
@@ -554,15 +689,15 @@ func _calculate_punc_score() -> float:
         last_punc_pos = punc_pos
     
     # 检查首尾标点
-    if text_length > 10:
+    if total_length > 10:
         var end_punc = puncs[-1] if puncs.size() else -99
         # 结尾没有标点
-        if text_length - end_punc > 10:
+        if total_length - end_punc > 10:
             issues += 1
-            prints("结尾缺少标点:", text_length - puncs[-1])
+            prints("结尾缺少标点:", total_length - puncs[-1])
     
     # 计算得分
-    var punc_density = float(puncs.size()) / text_length
+    var punc_density = float(puncs.size()) / total_length
     # 理想的标点密度约为 0.1-0.15
     if punc_density < 0.01:
         issues += 1
@@ -691,3 +826,4 @@ func _gen_cn_maps():
     var result = generate_match_maps(cn_full)
     print("cn_full_pre_match = '", result.pre_match, "'")
     print("cn_next_match_word = ", result.next_match)
+
