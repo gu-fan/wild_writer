@@ -1,12 +1,14 @@
 class_name CreativeMode
 extends Node
 
+signal goal_new
 signal goal_reached
+signal goal_finished
 signal stats_updated
 signal combo_updated
 
 # 目标和进度
-var typing_goal: int = 1000  # 默认目标
+var typing_goal: int = 100  # 默认目标
 var has_reached_goal = false
 
 # 速度统计
@@ -26,7 +28,6 @@ var accuracy: float = 100.0
 var speed_rating: String = "NA"
 var style_rating: String = "NA"
 var accuracy_rating: String = "NA"
-
 
 const SPEED_SCORE = {
     "S": 120.0,
@@ -212,19 +213,25 @@ func update_stats() -> void:
     # 检查是否达到目标
     if total_words >= typing_goal and !has_reached_goal:
         has_reached_goal = true
+        goal_reached.emit()
     
     stats_updated.emit()
 
-func start_goal(chars: int) -> void:
-    is_active = true
+func set_goal(chars: int) -> void:
     typing_goal = chars
+
+func new_goal():
+    goal_new.emit()
+
+func start_goal():
+    is_active = true
     _reset_stats()
     _reset_paragraph_stats()
 
 func finish_goal():
     if has_reached_goal:
         _calculate_final_rating()
-        goal_reached.emit()
+        goal_finished.emit()
         is_active = false
     else:
         print('goal is not reached')
@@ -425,7 +432,6 @@ func split_paragraph_words(paragraph):
                 final_words.append(word)
 
     return {words=final_words, puncs=puncs}
-
 
 # --------------
 func _update_paragraph_stats() -> void:
@@ -840,4 +846,3 @@ func _gen_cn_maps():
     var result = generate_match_maps(cn_full)
     print("cn_full_pre_match = '", result.pre_match, "'")
     print("cn_next_match_word = ", result.next_match)
-

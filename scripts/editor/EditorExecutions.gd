@@ -199,8 +199,9 @@ func toggle_setting(args: Dictionary) -> void:
 func toggle_ime(args: Dictionary) -> void:
     TinyIME.toggle()
 
-
 func start_goal(args):
-    Editor.creative_mode.start_goal(100)
+    # Editor.creative_mode.start_goal()
+    Editor.creative_mode.new_goal()
+
 func finish_goal(args):
     Editor.creative_mode.finish_goal()

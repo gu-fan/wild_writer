@@ -180,20 +180,16 @@ func show_command_window() -> void:
     
     current_command_window.command_executed.connect(_on_command_executed)
     
-    if last_focused_editor:
-        last_focused_editor.release_focus()
-        last_focused_editor.get_window().set_ime_active(false)
+    pre_sub_window_show()
+
 
 func _on_command_executed(command: String) -> void:
     motions.execute_command(command)
     logging('mot: %s' % [command])
     
     current_command_window = null
-    
-    await get_tree().process_frame
-    if last_focused_editor:
-        last_focused_editor.get_window().set_ime_active(true)
-        last_focused_editor.grab_focus()
+
+    post_sub_window_hide()
 
 # 执行窗口相关函数
 func show_execution_window() -> void:
@@ -215,9 +211,7 @@ func show_execution_window() -> void:
     current_execution_window.execution_requested.connect(_on_execution_requested)
     current_execution_window.execution_canceled.connect(_on_execution_canceled)
     
-    if last_focused_editor:
-        last_focused_editor.release_focus()
-        last_focused_editor.get_window().set_ime_active(false)
+    pre_sub_window_show()
 
 func _on_execution_requested(command: String, args: Dictionary):
     logging('cmd: %s, args: %s' % [command, args])
@@ -226,7 +220,13 @@ func _on_execution_requested(command: String, args: Dictionary):
 
 func _on_execution_canceled():
     current_execution_window = null
-
+    post_sub_window_hide()
+# ---------------------------
+func pre_sub_window_show():
+    if last_focused_editor:
+        last_focused_editor.release_focus()
+        last_focused_editor.get_window().set_ime_active(false)
+func post_sub_window_hide():
     await get_tree().process_frame
     if last_focused_editor:
         last_focused_editor.get_window().set_ime_active(true)

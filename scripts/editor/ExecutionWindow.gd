@@ -16,6 +16,9 @@ func _ready() -> void:
     size = Vector2(400, 200)
     unresizable = true
     exclusive = true
+    always_on_top = true
+    popup_window = true
+    borderless = true
     
     # 初始化标签
     input.text = ""

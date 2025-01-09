@@ -18,6 +18,9 @@ func _ready() -> void:
     size = Vector2(400, 200)
     unresizable = true
     exclusive = true
+    always_on_top = true
+    popup_window = true
+    borderless = true
     # borderless = true
 
     # set_ime_active(false)

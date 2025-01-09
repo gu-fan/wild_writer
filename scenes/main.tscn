@@ -10,8 +10,8 @@ script = ExtResource("1_i6hjk")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="CreativeMode" parent="CanvasLayer" instance=ExtResource("2_yh8gg")]
-
 [node name="EditorView" parent="CanvasLayer" instance=ExtResource("2_k7h6b")]
 
 [node name="Firework" parent="CanvasLayer" instance=ExtResource("3_8lsmc")]
+
+[node name="CreativeMode" parent="CanvasLayer" instance=ExtResource("2_yh8gg")]
