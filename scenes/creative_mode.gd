@@ -28,10 +28,9 @@ func _ready() -> void:
 
 func set_goal(value):
     goal_input.value = value
-    # creative_mode.set_goal(int(value))
 
 func _on_goal_changed(value: float) -> void:
-    creative_mode.set_goal(int(value))
+    creative_mode.start_goal(int(value))
 
 func _on_stats_updated() -> void:
     var stats = creative_mode.get_stats()

@@ -73,7 +73,6 @@ var compose_nodes : = {}
 # var compose_node_pool :  = []
 # var compose_node_pool_size := 4
 
-
 func _ready():
     print('WildEdit inited')
 
@@ -102,8 +101,6 @@ func _ready():
     # caret_changed.connect(update_compose_position)
 
     ime.ime_buffer_changed.connect(_on_ime_buffer_changed)
-
-
 
 func update_ime_position():
     if !is_active: return

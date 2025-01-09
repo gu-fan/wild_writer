@@ -16,7 +16,6 @@ func _ready():
     Editor.view = editor_view
 
     creative_mode_view = $CanvasLayer/CreativeMode
-    creative_mode_view.set_goal(100)
     creative_mode = creative_mode_view.creative_mode
     Editor.creative_mode = creative_mode
 

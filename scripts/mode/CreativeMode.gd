@@ -104,21 +104,19 @@ var _paragraph_input_sequence: Array = []        # 记录输入序列
 
 # -----------------------
 func _physics_process(delta):
+    if !is_active: return
     _updated_tick += delta
     if _updated_tick > 1.0:
         update_stats()
         _updated_tick = 0
 
 # -----------------------
+var is_active = false
 
 func _ready() -> void:
     start_time = Time.get_unix_time_from_system()
     _gen_cn_maps()
 
-func set_goal(chars: int) -> void:
-    typing_goal = chars
-    _reset_stats()
-    _reset_paragraph_stats()
 
 func _reset_stats() -> void:
     start_time = Time.get_unix_time_from_system()
@@ -191,6 +189,7 @@ func incr_key(n = 1):
     
 
 func update_stats() -> void:
+    if !is_active: return
     # total_keys += 1
     
     # if is_correct:
@@ -212,10 +211,23 @@ func update_stats() -> void:
     
     # 检查是否达到目标
     if total_words >= typing_goal and !has_reached_goal:
-        _calculate_final_rating()
-        goal_reached.emit()
+        has_reached_goal = true
     
     stats_updated.emit()
+
+func start_goal(chars: int) -> void:
+    is_active = true
+    typing_goal = chars
+    _reset_stats()
+    _reset_paragraph_stats()
+
+func finish_goal():
+    if has_reached_goal:
+        _calculate_final_rating()
+        goal_reached.emit()
+        is_active = false
+    else:
+        print('goal is not reached')
 
 func _calculate_final_rating() -> void:
     has_reached_goal = true
@@ -316,6 +328,7 @@ const cn_next_match_word = {
 
 # 更新风格统计
 func update_combo(paragraph: String) -> void:
+    if !is_active: return
     if paragraph.length() <= 10: 
         _reset_paragraph_stats()
         return
@@ -416,6 +429,7 @@ func split_paragraph_words(paragraph):
 
 # --------------
 func _update_paragraph_stats() -> void:
+    if !is_active: return
     var elapsed_minutes = (paragraph_stats.end_time - paragraph_stats.start_time) / 60.0
     if elapsed_minutes > 0:
         # 计算段落WPM

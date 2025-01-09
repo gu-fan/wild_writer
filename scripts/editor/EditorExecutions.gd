@@ -44,7 +44,15 @@ var available_executors = {
     "duel": {
         "description": "Request a typing duel",
         "executor": "duel"
-    }
+    },
+    "goal_start": {
+        "description": "Request a typing duel",
+        "executor": "duel"
+    },
+    "goal_finish": {
+        "description": "Request a typing duel",
+        "executor": "duel"
+    },
 }
 
 var split_container: HSplitContainer
@@ -89,6 +97,10 @@ func execute_command(command: String, args: Dictionary) -> void:
             request_duel(args)
         "setting":
             toggle_setting(args)
+        "goal_start":
+            start_goal(args)
+        "goal_finish":
+            finish_goal(args)
     
 # 执行器实现
 func execute_python(args: Dictionary) -> void:
@@ -186,3 +198,9 @@ func toggle_setting(args: Dictionary) -> void:
 
 func toggle_ime(args: Dictionary) -> void:
     TinyIME.toggle()
+
+
+func start_goal(args):
+    Editor.creative_mode.start_goal(100)
+func finish_goal(args):
+    Editor.creative_mode.finish_goal()
