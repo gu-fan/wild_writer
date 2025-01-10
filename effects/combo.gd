@@ -15,8 +15,8 @@ const COMBO_COLORS = {
     0:   Color(0.5, 1, 0.5),
     8:   Color(0.3, 1, 0.3),
     15:  Color(0, 1, 0),
-    30:  Color(1, 1, 0),
-    45:  Color(1, 0.7, 0),
+    30:  Color(.8, .8, 0),
+    45:  Color(.8, 0.7, 0),
     60:  Color(1, 0.5, 0),
     80:  Color(1, 0.2, 0),
     100: Color(1, 0, 0),
@@ -94,6 +94,16 @@ func color_label():
         dur = 0.25 * get_count_facor_time(),
         trans=Tween.TRANS_QUAD,
     })
+    # TwnLite.at(label).tween({
+    #     prop='modulate',
+    #     from = _current_color,
+    #     to = Color(1, 1, 1),
+    #     dur = 2.0 * get_count_facor_time(),
+    #     trans=Tween.TRANS_QUAD,
+    #     ease= Tween.EASE_OUT,
+    # }).callee(
+    #     _reset_count
+    # )
     TwnLite.at(label).tween({
         prop='self_modulate:a',
         from = 1.0,

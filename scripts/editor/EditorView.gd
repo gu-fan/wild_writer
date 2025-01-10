@@ -1,6 +1,7 @@
 class_name EditorView
 extends Control
 
+var main
 var core: EditorCore
 var motions: EditorMotions
 var executions: EditorExecutions
@@ -91,6 +92,7 @@ func setup_view() -> void:
     text_edit_secondary.wrap_mode = text_edit.wrap_mode
     text_edit_secondary.gutters_draw_line_numbers = text_edit.gutters_draw_line_numbers
     text_edit_secondary.highlight_current_line = text_edit.highlight_current_line
+
     
     # 初始隐藏第二编辑器
     secondary_container.hide()
@@ -116,6 +118,9 @@ func setup_view() -> void:
             var gutter_size_fin = max(4*gutter_size, (3+1)*gutter_size)
             text_edit.set_gutter_width(i, gutter_size_fin)
             print(text_edit.get_gutter_width(i))
+
+    Editor.main.creative_mode_view.combo_rating_changed.connect(text_edit._on_combo_rating_vis_changed)
+    Editor.main.creative_mode_view.combo_rating_changed.connect(text_edit_secondary._on_combo_rating_vis_changed)
 
 
 
@@ -170,7 +175,7 @@ func show_command_window() -> void:
     
     current_command_window = preload("res://scenes/command_window.tscn").instantiate()
     current_command_window.set_available_commands(motions.available_commands)
-    add_child(current_command_window)
+    main.add_child(current_command_window)
     
     await get_tree().process_frame
     
@@ -179,6 +184,7 @@ func show_command_window() -> void:
     current_command_window.position = Vector2i((viewport_size - window_size) / 2)
     
     current_command_window.command_executed.connect(_on_command_executed)
+    current_command_window.command_canceled.connect(_on_command_canceled)
     
     pre_sub_window_show()
 
@@ -191,6 +197,10 @@ func _on_command_executed(command: String) -> void:
 
     post_sub_window_hide()
 
+func _on_command_canceled():
+    current_command_window = null
+    post_sub_window_hide()
+
 # 执行窗口相关函数
 func show_execution_window() -> void:
     if current_execution_window != null and is_instance_valid(current_execution_window):
@@ -199,7 +209,7 @@ func show_execution_window() -> void:
     # last_focused_editor = text_edit if text_edit.has_focus() else text_edit_secondary if text_edit_secondary.has_focus() else null
     
     current_execution_window = preload("res://scenes/execution_window.tscn").instantiate()
-    add_child(current_execution_window)
+    main.add_child(current_execution_window)
     current_execution_window.set_available_executors(executions.available_executors)
     
     await get_tree().process_frame
@@ -223,10 +233,12 @@ func _on_execution_canceled():
     post_sub_window_hide()
 # ---------------------------
 func pre_sub_window_show():
+    main.mask.show()
     if last_focused_editor:
         last_focused_editor.release_focus()
         last_focused_editor.get_window().set_ime_active(false)
 func post_sub_window_hide():
+    main.mask.hide()
     await get_tree().process_frame
     if last_focused_editor:
         last_focused_editor.get_window().set_ime_active(true)

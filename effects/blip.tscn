@@ -88,10 +88,10 @@ scale_max = 4.0
 color_ramp = SubResource("GradientTexture2D_b7f0m")
 
 [node name="Node2D" type="Node2D"]
-texture_filter = 1
 script = ExtResource("1_tp8nq")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
 scale = Vector2(5, 5)
 sprite_frames = SubResource("SpriteFrames_g4ki7")
 
@@ -116,7 +116,7 @@ one_shot = true
 
 [node name="Label" type="Label" parent="."]
 modulate = Color(1.88557, 1.35563, 0.609976, 1)
-texture_filter = 1
+texture_filter = 2
 offset_left = -15.0
 offset_top = -60.0
 offset_right = 55.0

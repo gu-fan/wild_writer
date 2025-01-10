@@ -69,6 +69,9 @@ func callee(params = {}) -> TwnLite:
     var args: Array = params.get('args', [])
     var target: Node = params.get('target', _bind_node)
 
+    if params.get('parallel', false):
+        set_parallel(true)
+
     var t: CallbackTweener
     if method.is_valid():
         t = tween_callback(method.bindv(args) if not args.is_empty() else method)
@@ -78,6 +81,7 @@ func callee(params = {}) -> TwnLite:
             Callable(target, method_name).bindv(args) if not args.is_empty() 
             else Callable(target, method_name)
         )
+
 
     if params.has('delay'):
         t.set_delay(params.delay)

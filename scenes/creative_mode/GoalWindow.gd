@@ -7,7 +7,6 @@ signal window_canceled
 @onready var g_3: Button = $Box/G3
 @onready var g_ok: Button = $OK
 
-
 func _input(event: InputEvent) -> void:
     if not has_focus(): return
 
@@ -24,4 +23,3 @@ func _input(event: InputEvent) -> void:
         elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
             # g_ok.button_pressed = true
             g_ok.pressed.emit()
-

@@ -4,12 +4,13 @@ extends Node
 signal goal_new
 signal goal_reached
 signal goal_finished
-signal stats_updated
+signal stats_updated(is_tick:bool)
 signal combo_updated
 
 # 目标和进度
-var typing_goal: int = 100  # 默认目标
-var has_reached_goal = false
+var typing_goal: int = 10  # 默认目标
+# var has_reached_goal = false
+var has_reached_goal = true
 
 # 速度统计
 var start_time: float = 0.0
@@ -108,7 +109,7 @@ func _physics_process(delta):
     if !is_active: return
     _updated_tick += delta
     if _updated_tick > 1.0:
-        update_stats()
+        update_stats(true)
         _updated_tick = 0
 
 # -----------------------
@@ -189,7 +190,7 @@ func incr_key(n = 1):
     _update_paragraph_stats()
     
 
-func update_stats() -> void:
+func update_stats(is_tick=false) -> void:
     if !is_active: return
     # total_keys += 1
     
@@ -215,7 +216,7 @@ func update_stats() -> void:
         has_reached_goal = true
         goal_reached.emit()
     
-    stats_updated.emit()
+    stats_updated.emit(is_tick)
 
 func set_goal(chars: int) -> void:
     typing_goal = chars
@@ -372,6 +373,8 @@ func update_combo(paragraph: String) -> void:
     _reset_paragraph_stats()
 
 # --------------
+
+
 func split_paragraph_words(paragraph):
     # 分割段落为单词
     var current_word = ""
@@ -550,12 +553,12 @@ func _calculate_style_rating() -> void:
     var natural_words = paragraph_stats.natural_words
     # 计算自然长度得分
     var natural_ratio = float(natural_words) / paragraph_words
-    prints('unnatural', (paragraph_words - natural_words), natural_ratio)
+    # prints('unnatural', (paragraph_words - natural_words), natural_ratio)
     
     # 计算重复度得分（越低越好）
     var repeated_words = paragraph_stats.repeated_words
     var repetition_ratio = 1.0 - (float(repeated_words) / paragraph_words)
-    prints('repeat', repeated_words, repetition_ratio)
+    # prints('repeat', repeated_words, repetition_ratio)
     
     # 计算节奏得分
     var rhythm_score = _calculate_rhythm_score()
@@ -570,10 +573,13 @@ func _calculate_style_rating() -> void:
     ) * 100.0
     
     # 设置评级
-    print('got final style score', final_score)
     style_rating = match_rating(final_score, STYLE_SCORE)
     speed_rating = match_rating(paragraph_stats.wpm, SPEED_SCORE)
     accuracy_rating = match_rating(paragraph_stats.accuracy, ACCURACY_SCORE)
+    paragraph_stats.score_natural = natural_ratio * 100.0
+    paragraph_stats.score_repeat = repetition_ratio * 100.0
+    paragraph_stats.score_punc = punc_score * 100.0
+    paragraph_stats.score_rhythm = rhythm_score * 100.0
     paragraph_stats.score_style = final_score
     paragraph_stats.rating_style = style_rating
     paragraph_stats.rating_speed = speed_rating
@@ -839,10 +845,17 @@ func generate_match_maps(cn_full: Array) -> Dictionary:
 
 # 使用示例
 func _gen_cn_maps():
-    var cn_full = ['应对', '应该', '享有', '给予', '视为', '及其', '因为', '对于', '由于', 
+    var cn_full = ['应对','应该', '享有', '给予', '视为', '及其', '因为', '对于', '由于',
                    '关于', '可能', '因此', '如果', '因果', '看见', '可以', '看到', '听说', 
                    '听见', '听到', '就是', '也在', '一些', '一定', '其中', '自己','还有']
     
     var result = generate_match_maps(cn_full)
     print("cn_full_pre_match = '", result.pre_match, "'")
     print("cn_next_match_word = ", result.next_match)
+
+
+# --------------
+func get_paragraph_word_length(p):
+    var ret = split_paragraph_words(p)
+    prints('got p',p , ret, ret.words.size())
+    return ret.words.size()

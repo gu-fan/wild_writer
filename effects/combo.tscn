@@ -9,7 +9,6 @@ blend_mode = 1
 [node name="Node2D" type="Control"]
 z_index = 30
 z_as_relative = false
-texture_filter = 1
 custom_minimum_size = Vector2(500, 90)
 layout_mode = 3
 anchors_preset = 15
@@ -21,29 +20,27 @@ mouse_filter = 2
 script = ExtResource("1_e78g7")
 
 [node name="Label" type="Label" parent="."]
-modulate = Color(1.88557, 1.35563, 0.609976, 1)
-texture_filter = 1
-custom_minimum_size = Vector2(480, 96)
+texture_filter = 2
+custom_minimum_size = Vector2(500, 96)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -488.0
+offset_left = -499.0
 offset_top = -40.0
-offset_right = -8.0
+offset_right = 1.0
 offset_bottom = 56.0
 grow_horizontal = 0
 scale = Vector2(2, 2)
-pivot_offset = Vector2(480, 0)
+pivot_offset = Vector2(500, 0)
 theme_override_fonts/font = ExtResource("4_ril4g")
 theme_override_font_sizes/font_size = 64
 horizontal_alignment = 2
 
 [node name="Label3" type="Label" parent="Label"]
-modulate = Color(1.88557, 1.35563, 0.609976, 1)
-texture_filter = 1
+texture_filter = 2
 material = SubResource("CanvasItemMaterial_0cflo")
-custom_minimum_size = Vector2(480, 96)
+custom_minimum_size = Vector2(500, 96)
 layout_mode = 1
 offset_right = 240.0
 offset_bottom = 42.0
@@ -52,19 +49,19 @@ theme_override_font_sizes/font_size = 64
 horizontal_alignment = 2
 
 [node name="Label2" type="Label" parent="."]
-texture_filter = 1
-custom_minimum_size = Vector2(480, 96)
+texture_filter = 2
+custom_minimum_size = Vector2(500, 96)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -488.0
+offset_left = -501.0
 offset_top = -40.0
-offset_right = -8.0
+offset_right = -1.0
 offset_bottom = 56.0
 grow_horizontal = 0
 scale = Vector2(2, 2)
-pivot_offset = Vector2(480, 0)
+pivot_offset = Vector2(500, 0)
 theme_override_fonts/font = ExtResource("4_ril4g")
 theme_override_font_sizes/font_size = 64
 horizontal_alignment = 2

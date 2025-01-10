@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3 uid="uid://bmnbjkig3nt6g"]
+
+[ext_resource type="Script" path="res://effects/speed_text.gd" id="1_m8mrd"]
+[ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="1_tx2hl"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_qrqqr"]
+blend_mode = 1
+light_mode = 1
+
+[node name="SpeedText" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_m8mrd")
+
+[node name="Label" type="Label" parent="."]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.3333
+theme_override_fonts/font = ExtResource("1_tx2hl")
+theme_override_font_sizes/font_size = 48
+
+[node name="Label3" type="Label" parent="Label"]
+material = SubResource("CanvasItemMaterial_qrqqr")
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 0
+offset_right = 159.0
+offset_bottom = 70.0
+theme_override_fonts/font = ExtResource("1_tx2hl")
+theme_override_font_sizes/font_size = 48
+
+[node name="Label2" type="Label" parent="."]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.3333
+theme_override_fonts/font = ExtResource("1_tx2hl")
+theme_override_font_sizes/font_size = 48

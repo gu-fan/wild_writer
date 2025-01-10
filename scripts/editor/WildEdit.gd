@@ -102,6 +102,7 @@ func _ready():
 
     ime.ime_buffer_changed.connect(_on_ime_buffer_changed)
 
+
 func update_ime_position():
     if !is_active: return
     if ime_display == null: return
@@ -153,7 +154,7 @@ func _on_gui_input(event):
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
-        prints(Util.f_usec(),self, 'input: ', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|', event.as_text_key_label(),event.as_text_physical_keycode() )
+        prints(Util.f_msec(),self, 'input: ', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|', event.as_text_key_label(),event.as_text_physical_keycode() )
         # XXX: 
         # on macOS, pressing multi key in same time will emit (Unset) and keycode 0, like 'jk'
         
@@ -197,7 +198,7 @@ func _physics_process(delta):
 
 func _on_text_changed():
     if !is_active: return
-    prints(Util.f_usec(), 'on text changed', last_unicode, last_key_name)
+    prints(Util.f_msec(), 'on text changed', last_unicode, last_key_name)
 
     var len_d = len(text) - len(last_text)
     var pos = _gfcp() 
@@ -281,7 +282,7 @@ func _on_caret_changed():
     last_caret_line = caret_line
     caret_line = get_caret_line()
     caret_column = get_caret_column()
-    prints(Util.f_usec(), 'caret_changed', caret_line, caret_column)
+    prints(Util.f_msec(), 'caret_changed', caret_line, caret_column)
     ime_state.first_input = ""
 
 func _gfcp():
@@ -299,6 +300,8 @@ func _ccnin():
         var thing = Combo.instantiate()
         add_child.call_deferred(thing)
         combo_node = thing
+        if _is_combo_rating_shown: combo_node.modulate.a = 0.0
+
 
 func _ic(n=1, delay=0):
     if delay: await get_tree().create_timer(delay).timeout
@@ -348,11 +351,26 @@ func _ssf(duration, intensity):
     shake = duration
     shake_intensity = intensity
 # ---------------
+var _is_combo_rating_shown = false
+func _on_combo_rating_vis_changed(v):
+    _is_combo_rating_shown = v
+    if v:
+        if combo_node: combo_node.modulate.a = 0.0
+    else:
+        if combo_node: 
+            TwnLite.at(combo_node).tween({
+                prop='modulate:a',
+                from = 0.0,
+                to = 1.0,
+                dur= 0.2,
+            })
+
+# ---------------
 func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
         if !is_active: return
         var t = DisplayServer.ime_get_text()
-        prints('[%d]' % Time.get_ticks_usec(), 'OS IME UPDATE', is_ime_input, t)
+        prints(Util.f_msec(), 'OS IME UPDATE', is_ime_input, t)
         if t == "" and ime_state.last_os_ime_compose == "":  # macOS always feed empty update
             ime_state.last_os_ime_compose = t
             return
@@ -366,7 +384,7 @@ func _on_ime_buffer_changed(buffer, is_partial_feed=false):
     # XXX:
     # there is another problem, that when partial feed candidate
     # should not consider the delta
-    prints('[%d]' % Time.get_ticks_usec(), 'TINY IME UPDATE', is_ime_input, buffer)
+    prints(Util.f_msec(), 'TINY IME UPDATE', is_ime_input, buffer)
     is_feed_by_os_ime = false
     ime_state.is_partial_feed = is_partial_feed
     ime_state.curr_tiny_ime_buffer = buffer
@@ -400,11 +418,11 @@ class IMECompose extends ColorRect:
         if is_ready: _label.cancel_compose()
 
 func _feed_ime_compose(t: String):
-    print('[%d]feed ime compose: %s' % [Time.get_ticks_usec(), t])
+    print(Util.f_msec(), 'feed ime compose: %s' % [t])
     
     var current_time = Time.get_ticks_msec()
-    prints(Util.f_usec(), 'compose|%s|%s|' % [ime_state.last_compose, t], ime_state.last_compose.length(), t.length(), is_ime_input)
-    # prints(Util.f_usec(), 'get state', ime_state)
+    prints(Util.f_msec(), 'compose|%s|%s|' % [ime_state.last_compose, t], ime_state.last_compose.length(), t.length(), is_ime_input)
+    # prints(Util.f_msec(), 'get state', ime_state)
     
     # 如果最近刚完成输入，忽略后续的空字符串通知
     if t.length() == 0 and current_time - ime_state.last_finish_time < 50:  # 50ms 阈值
@@ -497,7 +515,7 @@ func _feed_ime_compose(t: String):
 
 
 func _handle_ime_finish():
-    prints(Util.f_usec(), '_handle_ime_finish', last_unicode, last_key_name, ime_state.last_non_empty)
+    prints(Util.f_msec(), '_handle_ime_finish', last_unicode, last_key_name, ime_state.last_non_empty)
     if not ime_state.pending_finish and ime_state.input_sequence != "":
         # 检查输入序列是否与 last_compose 匹配
         # This is only valid on linux
@@ -505,7 +523,7 @@ func _handle_ime_finish():
         #     _handle_ime_cancel()
         #     return
             
-        prints(Util.f_usec(), 'finish ime compose', ime_state.last_compose, ime_state.last_non_empty, ime_state.input_sequence)
+        prints(Util.f_msec(), 'finish ime compose', ime_state.last_compose, ime_state.last_non_empty, ime_state.input_sequence)
         # var m = _get_ime_compose()
         # m.position = Vector2.ZERO
         # m.finish_compose()
@@ -521,7 +539,9 @@ func _handle_ime_finish():
         # add_child.call_deferred(thing)
 
         _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false, {audio=false})
-        Editor.creative_mode.incr_word(ime_state.input_sequence.length())
+        # note: we should split the word with 
+        var word_len = Editor.creative_mode.get_paragraph_word_length(ime_state.input_sequence)
+        Editor.creative_mode.incr_word(word_len)
         
         # if effects.shake:
         #     _ss(0.08, 8)
@@ -546,7 +566,7 @@ func _handle_ime_finish():
     is_ime_input = false
 
 func _handle_ime_cancel():
-    prints(Util.f_usec(), 'cancel ime compose', ime_state.last_compose, ime_state.last_non_empty)
+    prints(Util.f_msec(), 'cancel ime compose', ime_state.last_compose, ime_state.last_non_empty)
     if not ime_state.pending_cancel and not ime_state.pending_finish:
         # 在这里触发取消效果
         var pos = _gfcp()
@@ -616,7 +636,6 @@ func _has_ime_compose(id=''):
 # -----------------------
 func _otc():
     if !is_active: return
-    prints(Util.f_usec(), 'fill with otc', last_unicode, last_key_name)
     if skip_effect:return
     var o=caret_line
     var p=caret_column
@@ -636,7 +655,7 @@ func _otc():
 
 func feed_ime_input(key):
     if !is_active: return
-    prints(Util.f_usec(), 'handle tiny ime', last_unicode, last_key_name, key)
+    prints(Util.f_msec(), 'handle tiny ime', last_unicode, last_key_name, key)
     skip_effect = true
     last_unicode = ''
 

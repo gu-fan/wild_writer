@@ -5,15 +5,18 @@ var canvas:CanvasLayer
 var firework
 var creative_mode_view
 var creative_mode
+var mask
 
 func _ready():
     canvas = $CanvasLayer
+    mask = $CanvasLayer/Mask
     editor_view = $CanvasLayer/EditorView
     firework = $CanvasLayer/Firework
     editor_view.firework = firework
 
     Editor.main = self
     Editor.view = editor_view
+    Editor.view.main = self
 
     creative_mode_view = $CanvasLayer/CreativeMode
     creative_mode = creative_mode_view.creative_mode

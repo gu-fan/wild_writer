@@ -2,6 +2,7 @@ class_name CommandWindow
 extends Window
 
 signal command_executed(command: String)
+signal command_canceled
 
 @onready var label: Label = $Label
 @onready var command_list: ItemList = $CommandList
@@ -96,7 +97,7 @@ func _input(event: InputEvent) -> void:
         
     if event is InputEventKey and event.pressed:
         if event.keycode == KEY_ESCAPE:
-            queue_free()
+            _on_close_requested()
         elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
             execute_command()
         elif event.keycode == KEY_BACKSPACE:
@@ -178,5 +179,5 @@ func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: in
     hide()
 
 func _on_close_requested() -> void:
-    hide()
+    emit_signal("command_canceled")
     queue_free()

@@ -1,31 +1,23 @@
-[gd_scene load_steps=9 format=3 uid="uid://djcnynny2rf2j"]
+[gd_scene load_steps=13 format=3 uid="uid://djcnynny2rf2j"]
 
 [ext_resource type="Script" path="res://scenes/creative_mode.gd" id="1_abcd1"]
 [ext_resource type="Theme" uid="uid://07kcvj2gqhbo" path="res://assets/default_theme.tres" id="2_abcd2"]
 [ext_resource type="ButtonGroup" uid="uid://dnk4nlr3pri53" path="res://scenes/creative_mode_btn_group.tres" id="3_buwhs"]
 [ext_resource type="Script" path="res://scripts/mode/CreativeMode.gd" id="3_bvlxo"]
 [ext_resource type="Script" path="res://scenes/creative_mode/GoalWindow.gd" id="3_tw66d"]
+[ext_resource type="PackedScene" uid="uid://bmnbjkig3nt6g" path="res://effects/speed_text.tscn" id="5_eqhix"]
+[ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="5_fe7cy"]
+[ext_resource type="PackedScene" uid="uid://c1yu0fgugx20g" path="res://effects/speed_text_right.tscn" id="6_oe8qb"]
+[ext_resource type="PackedScene" uid="uid://b0i6xcgmabpru" path="res://scenes/creative_mode/final_panel.tscn" id="8_7oill"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yfo53"]
+bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.1, 0.1, 0.1, 0.8)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
-bg_color = Color(0.2, 0.6, 1, 0.8)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
-bg_color = Color(0.15, 0.15, 0.15, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+bg_color = Color(0.868985, 0.868985, 0.868985, 0.8)
 
 [node name="CreativeMode" type="Control"]
 layout_mode = 3
@@ -37,17 +29,19 @@ grow_vertical = 2
 mouse_filter = 2
 theme = ExtResource("2_abcd2")
 script = ExtResource("1_abcd1")
+metadata/_edit_lock_ = true
 
 [node name="GoalPanel" type="Window" parent="."]
 gui_embed_subwindows = true
-initial_position = 2
-size = Vector2i(300, 200)
+position = Vector2i(664, 366)
+size = Vector2i(500, 300)
+visible = false
 exclusive = true
 unresizable = true
 borderless = true
 always_on_top = true
 popup_window = true
-min_size = Vector2i(300, 200)
+min_size = Vector2i(500, 300)
 content_scale_size = Vector2i(1, 1)
 script = ExtResource("3_tw66d")
 
@@ -57,28 +51,41 @@ custom_minimum_size = Vector2(300, 200)
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="ColorRect" type="ColorRect" parent="GoalPanel"]
+custom_minimum_size = Vector2(50, 40)
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 80.0
+offset_bottom = 110.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
 [node name="Title" type="Label" parent="GoalPanel"]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -53.5
-offset_top = 20.0
-offset_right = 53.5
-offset_bottom = 46.0
+offset_left = -160.5
+offset_top = 5.0
+offset_right = 160.5
+offset_bottom = 75.0
 grow_horizontal = 2
-text = "Creative Mode"
+theme_override_fonts/font = ExtResource("5_fe7cy")
+theme_override_font_sizes/font_size = 48
+text = "Speed Mode"
 vertical_alignment = 1
 
 [node name="Label" type="Label" parent="GoalPanel"]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -130.5
-offset_top = 60.0
-offset_right = 130.5
-offset_bottom = 86.0
+offset_left = -130.0
+offset_top = 80.0
+offset_right = 131.0
+offset_bottom = 115.0
 grow_horizontal = 2
-text = "Goal: 100"
+theme_override_fonts/font = ExtResource("5_fe7cy")
+theme_override_font_sizes/font_size = 32
+text = "Goal: 100 word"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -89,11 +96,14 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -41.0
-offset_top = -41.333
+offset_top = -50.0
 offset_right = 41.0
-offset_bottom = -9.99966
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("5_fe7cy")
+theme_override_styles/normal = SubResource("StyleBoxFlat_yfo53")
 text = "OK"
 
 [node name="Box" type="HBoxContainer" parent="GoalPanel"]
@@ -115,6 +125,7 @@ alignment = 1
 custom_minimum_size = Vector2(80, 30)
 layout_mode = 2
 focus_mode = 0
+theme_override_fonts/font = ExtResource("5_fe7cy")
 toggle_mode = true
 button_pressed = true
 button_group = ExtResource("3_buwhs")
@@ -124,6 +135,7 @@ text = "100"
 custom_minimum_size = Vector2(80, 30)
 layout_mode = 2
 focus_mode = 0
+theme_override_fonts/font = ExtResource("5_fe7cy")
 toggle_mode = true
 button_group = ExtResource("3_buwhs")
 text = "200"
@@ -132,19 +144,21 @@ text = "200"
 custom_minimum_size = Vector2(80, 30)
 layout_mode = 2
 focus_mode = 0
+theme_override_fonts/font = ExtResource("5_fe7cy")
 toggle_mode = true
 button_group = ExtResource("3_buwhs")
 text = "500"
 
-[node name="StatsPanel" type="Panel" parent="."]
+[node name="StatsPanel" type="Control" parent="."]
 layout_mode = 1
+anchors_preset = 0
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 304.0
 offset_bottom = 124.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 
 [node name="Label" type="Label" parent="StatsPanel"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -156,8 +170,19 @@ offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "WPM: 0.0
-KPM: 0.0
-Accuracy: 100.0%"
+KPM: 0.0"
+
+[node name="WPM" parent="StatsPanel" instance=ExtResource("5_eqhix")]
+offset_left = -8.0
+offset_top = 21.0
+offset_right = -8.0
+offset_bottom = 21.0
+
+[node name="KPM" parent="StatsPanel" instance=ExtResource("5_eqhix")]
+offset_left = -8.0
+offset_top = -19.0
+offset_right = -8.0
+offset_bottom = -19.0
 
 [node name="StatsDetail" type="Panel" parent="."]
 layout_mode = 1
@@ -178,23 +203,53 @@ offset_right = -20.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "WPM: 0.0
-KPM: 0.0
-Accuracy: 100.0%"
 
-[node name="ComboPanel" type="Panel" parent="."]
+[node name="ComboPanel" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -304.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = 124.0
+offset_left = -303.0
+offset_top = 9.0
+offset_right = -23.0
+offset_bottom = 109.0
 grow_horizontal = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="Speed" parent="ComboPanel" instance=ExtResource("6_oe8qb")]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -401.0
+offset_top = -3.0
+offset_right = -1.0
+offset_bottom = 27.0
+grow_horizontal = 0
+
+[node name="Style" parent="ComboPanel" instance=ExtResource("6_oe8qb")]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -401.0
+offset_top = 25.0
+offset_right = -1.0
+offset_bottom = 55.0
+grow_horizontal = 0
+
+[node name="Accuracy" parent="ComboPanel" instance=ExtResource("6_oe8qb")]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -401.0
+offset_top = 53.0
+offset_right = -1.0
+offset_bottom = 83.0
+grow_horizontal = 0
 
 [node name="Label" type="Label" parent="ComboPanel"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -217,7 +272,7 @@ anchor_right = 1.0
 offset_left = -304.0
 offset_top = 176.0
 offset_right = -24.0
-offset_bottom = 276.0
+offset_bottom = 333.0
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 
@@ -232,119 +287,20 @@ offset_right = -20.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Speed: S
-Style: A
-Accuracy: C"
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
+custom_minimum_size = Vector2(5, 5)
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 24.0
+offset_bottom = 5.0
 grow_horizontal = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_1")
 theme_override_styles/fill = SubResource("StyleBoxFlat_2")
 step = 1.0
+show_percentage = false
 
-[node name="FinalPanel" type="Panel" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -118.0
-offset_right = 200.0
-offset_bottom = 182.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_3")
-
-[node name="Title" type="Label" parent="FinalPanel"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_top = 20.0
-offset_right = 100.0
-offset_bottom = 60.0
-grow_horizontal = 2
-theme_override_font_sizes/font_size = 32
-text = "Final Rating"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="SpeedRating" type="Label" parent="FinalPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -60.0
-offset_right = 100.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 24
-text = "Speed: S"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="StyleRating" type="Label" parent="FinalPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -20.0
-offset_right = 100.0
-offset_bottom = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 24
-text = "Style: A"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="AccuracyRating" type="Label" parent="FinalPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = 20.0
-offset_right = 100.0
-offset_bottom = 60.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 24
-text = "Accuracy: S"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="CloseButton" type="Button" parent="FinalPanel"]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -60.0
-offset_top = -50.0
-offset_right = 60.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "Close"
+[node name="FinalPanel" parent="." instance=ExtResource("8_7oill")]
 
 [node name="CreativeMode" type="Node" parent="."]
 script = ExtResource("3_bvlxo")
