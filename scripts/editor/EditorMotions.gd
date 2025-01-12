@@ -86,7 +86,15 @@ var available_commands = {
     "v2": {
         "description": "goto view 2",
         "action": "goto_view_2"
-    }
+    },
+    "ms": {
+        "description": "mode speed",
+        "action": "mode_speed"
+    },
+    "mf": {
+        "description": "mode finish",
+        "action": "mode_finish"
+    },
 }
 
 # 命令执行函数
@@ -195,6 +203,8 @@ func call_action(action: String, count: int = 1) -> void:
         'swap_view': swap_view()
         'goto_view_1': goto_view(1)
         'goto_view_2': goto_view(2)
+        'mode_speed': mode_speed()
+        'mode_finish': mode_finish()
 
 # 具体的命令实现
 func move_down(count: int = 1) -> void:
@@ -515,3 +525,9 @@ func goto_view(n=1) -> void:
                 last_focused_editor = text_edit
             else:
                 last_focused_editor = text_edit_secondary
+
+
+func mode_speed():
+    Editor.creative_mode.new_goal()
+func mode_finish():
+    Editor.creative_mode.finish_goal()

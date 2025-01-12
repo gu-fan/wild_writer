@@ -5,14 +5,15 @@ signal combo_rating_changed
 
 @onready var creative_mode: CreativeMode = $CreativeMode
 
-@onready var goal_window: Window = $GoalPanel
+@onready var goal_window: GoalWindow = $GoalPanel
 @onready var g_1: Button = $GoalPanel/Box/G1
 @onready var g_2: Button = $GoalPanel/Box/G2
 @onready var g_3: Button = $GoalPanel/Box/G3
 @onready var g_ok: Button = $GoalPanel/OK
-@onready var g_label: Label = $GoalPanel/Label
+@onready var g_label: Control = $GoalPanel/Label
 
 @onready var progress_bar: ProgressBar = $ProgressBar
+@onready var progress_label: Control = $ProgressPanel/Label
 
 @onready var stats_panel: Control = $StatsPanel
 @onready var stats_label: Label = $StatsPanel/Label
@@ -29,7 +30,7 @@ signal combo_rating_changed
 @onready var c_style: Control = $ComboPanel/Style
 @onready var c_accuracy: Control = $ComboPanel/Accuracy
 
-@onready var final_window: Window = $FinalPanel
+@onready var final_window: FinalWindow = $FinalPanel
 @onready var final_close: Button = $FinalPanel/OK
 
 func _ready() -> void:
@@ -51,6 +52,10 @@ func _ready() -> void:
     # 初始隐藏评分面板
     goal_window.hide()
     progress_bar.hide()
+
+    progress_bar.value_changed.connect(_on_progress_changed)
+    progress_label.text = ''
+
     stats_panel.hide()
     stats_detail_panel.hide()
     combo_panel.hide()
@@ -65,13 +70,20 @@ func _ready() -> void:
     s_wpm.count = 0
     s_kpm.count = 0
     s_kpm.COMBO_COLORS = {
-        0:    Color(0, 1, 0),
-        100:  Color(0.5, 1, 0),
-        200:  Color(1, 1, 0),
-        300:  Color(1, 0.5, 0),
-        400:  Color(1, 0, 0),
-        500:  Color(1, 0, 0.5),
-        600:  Color(1, 0, 1),
+        # 0:    Color(0, 1, 0),
+        # 100:  Color(0.5, 1, 0),
+        # 200:  Color(1, 1, 0),
+        # 300:  Color(1, 0.5, 0),
+        # 400:  Color(1, 0, 0),
+        # 500:  Color(1, 0, 0.5),
+        # 600:  Color(1, 0, 1),
+        0:     Color('00FF33'),
+        100:   Color('00FF33'),
+        200:  Color('99FF00'),
+        300:  Color('FF9900'),
+        400:  Color('FF3333'),
+        500:  Color('FF3399'),
+        600:  Color('FF00FF'),
     }
 
     # c_speed.set_font_size(32)
@@ -89,18 +101,30 @@ func _ready() -> void:
 
     _origin_stats_position.wpm = s_wpm.position
     _origin_stats_position.kpm = s_kpm.position
+    _origin_stats_position.progress = progress_label.position
     _origin_stats_text.wpm = s_wpm
     _origin_stats_text.kpm = s_kpm
     s_wpm.modulate.a = 0.0
     s_kpm.modulate.a = 0.0
 
     final_window.get_node('Title').focus_mode = Control.FOCUS_ALL
+    
+    g_label.COMBO_COLORS = {
+        # 0:  Color(0, 1, 0),
+        # 100:  Color(0, 1, 0),
+        # 200:  Color(.8, 0.5, 0),
+        # 500: Color(1, 0, 1),
+        0:   Color('00FF33'),
+        100:  Color('00FF33'),
+        200:  Color('FF3300'),
+        500: Color('FF00FF'),
+    }
 
 
 func show_goal_window():
     var window_size = Vector2(500, 300)
     var viewport_size = get_viewport_rect().size
-    var win_pos = Vector2((viewport_size - window_size) / 2) + Vector2(0, -100)
+    var win_pos = Vector2((viewport_size - window_size) / 2) + Vector2(0, -50)
     var win_rect = Rect2(window_size, win_pos)
     goal_window.popup()
     goal_window.position = win_pos
@@ -116,7 +140,11 @@ func _on_goal_canceled():
 func _on_goal_changed(v:bool, value: int) -> void:
     if v:
         creative_mode.set_goal(value)
-        g_label.text = 'Goal: %d word' % value
+        # g_label.text = 'Goal: %d' % value
+        g_label.text = '%d' % value
+        g_label.count = value
+        g_label.update_color()
+        g_label.update_label()
 
 func _on_goal_started():
 
@@ -130,6 +158,7 @@ func _on_goal_started():
     # stats_detail_panel.show()
     combo_panel.show()
     # combo_detail_panel.show()
+    progress_label.text = '0%'
 
     _trans_in_stats_label()
 
@@ -139,36 +168,44 @@ func _on_stats_updated(is_tick:bool) -> void:
     # 更新进度条
     progress_bar.value = stats.progress * 100
     
-    # 更新统计信息
-    stats_label.text = """
-    WPM: %.1f
-    KPM: %.1f
-    """ % [stats.wpm, stats.kpm]
-
-    s_wpm.count = stats.wpm
-    if !is_tick: 
-        s_wpm.update_label()
-        s_wpm.update_color()
-    s_kpm.count = stats.kpm
-    if !is_tick: 
+    var last_wpm_count = s_wpm.count
+    var last_kpm_count = s_kpm.count
+    if is_tick:
+        TwnLite.at(s_kpm, false, '_twn_num').tween({
+            prop='count',
+            from = last_kpm_count,
+            to = stats.kpm,
+            dur= 0.98,
+        })
+        TwnLite.at(s_wpm, false, '_twn_num').tween({
+            prop='count',
+            from = last_wpm_count,
+            to = stats.wpm,
+            dur= 0.98,
+        })
+    else:
+        TwnLite.off(s_kpm, '_twn_num')
+        s_kpm.count = stats.kpm
+        TwnLite.off(s_wpm, '_twn_num')
+        s_wpm.count = stats.wpm
         s_kpm.update_label()
-        s_kpm.update_color()
+        s_wpm.update_label()
 
-    stats_detail_label.text = """
-    accuracy: %.1f%%
-    time: %.1f
-    key: %.1f
-    word: %.1f
-    delete: %.1f
-    """ % [stats.accuracy, stats.time, stats.key, stats.word, stats.delete]
+#     stats_detail_label.text = """
+#     accuracy: %.1f%%
+#     time: %.1f
+#     key: %.1f
+#     word: %.1f
+#     delete: %.1f
+#     """ % [stats.accuracy, stats.time, stats.key, stats.word, stats.delete]
 
 func _on_combo_updated():
     var ps = creative_mode.paragraph_stats
-    combo_label.text = """
-    Speed: %s
-    Style: %s
-    Accuracy: %s
-    """ % [ps.rating_speed, ps.rating_style, ps.rating_accuracy]
+    # combo_label.text = """
+    # Speed: %s
+    # Style: %s
+    # Accuracy: %s
+    # """ % [ps.rating_speed, ps.rating_style, ps.rating_accuracy]
 
     c_speed.text = 'Speed: %s' % ps.rating_speed
     c_style.text = 'Style: %s' % ps.rating_style
@@ -188,13 +225,13 @@ func _on_combo_updated():
     # Util.pos_x_out(c_accuracy, 2.2)
     _trans_in_combo_rating({speed=ps.rating_speed,style=ps.rating_style,accuracy=ps.rating_accuracy})
 
-    combo_detail_label.text = """
-    natural: %.1f
-    repeat: %.1f
-    punctuation: %.1f
-    rhythm: %.1f
-    style final: %.1f
-    """ % [ps.score_natural, ps.score_repeat, ps.score_punc, ps.score_rhythm, ps.score_style]
+    # combo_detail_label.text = """
+    # natural: %.1f
+    # repeat: %.1f
+    # punctuation: %.1f
+    # rhythm: %.1f
+    # style final: %.1f
+    # """ % [ps.score_natural, ps.score_repeat, ps.score_punc, ps.score_rhythm, ps.score_style]
 
 func _on_goal_reached() -> void:
     print('goal reached')
@@ -206,13 +243,15 @@ func _on_goal_finished() -> void:
     stats_detail_panel.hide()
     combo_panel.hide()
     combo_detail_panel.hide()
+    progress_label.text = ''
 
     var stats = creative_mode.get_stats()
     
     # 显示最终评分面板
-    var window_size = Vector2(800, 700)
+    var window_size = Vector2(700, 650)
     var viewport_size = get_viewport_rect().size
-    var win_pos = Vector2((viewport_size - window_size) / 2) + Vector2(0, -50)
+    # var win_pos = Vector2((viewport_size - window_size) / 2) + Vector2(0, -50)
+    var win_pos = Vector2((viewport_size - window_size) / 2)
     final_window.show()
     final_window.position = win_pos
     final_window.reset_stats()
@@ -302,6 +341,7 @@ var _origin_stats_text = {
     kpm = null,
 }
 func _trans_in_stats_label():
+    # stats_panel.modulate.a = 0.5
     s_wpm.modulate.a = 0.0
     s_kpm.modulate.a = 0.0
     var i = 0
@@ -316,15 +356,43 @@ func _trans_in_stats_label():
             to = 1.0,
             dur=0.2,
             parallel= true,
-            delay = i * 0.1 + 0.1,
+            delay = i * 0.15 + 0.1,
         }).tween({
             prop='position:x',
             from = o_pos_x,
             to = pos.x,
             dur=0.2,
             parallel= true,
-            delay = i * 0.1 + 0.1,
+            delay = i * 0.15 + 0.1,
         })
         print('lb', lb.modulate.a)
 
         i += 1
+
+    i = 2
+    progress_label.modulate.a = 0.0
+    var lb = progress_label 
+    var pos = _origin_stats_position.progress
+    var alpha = 0.0
+    var o_pos_x = pos.x + 30
+    TwnLite.at(lb).tween({
+        prop='modulate:a',
+        from = alpha, 
+        to = 1.0,
+        dur=0.2,
+        parallel= true,
+        delay = i * 0.15 + 0.1,
+    }).tween({
+        prop='position:x',
+        from = o_pos_x,
+        to = pos.x,
+        dur=0.2,
+        parallel= true,
+        delay = i * 0.15 + 0.1,
+    })
+
+func _on_progress_changed(v:float):
+    progress_label.text = '%d%%' % int(v)
+    progress_label.count = int(v)
+    progress_label.update_color()
+    progress_label.update_label()

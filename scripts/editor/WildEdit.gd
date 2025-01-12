@@ -1,7 +1,54 @@
-class_name WildEdit extends CodeEdit
+class_name WildEdit
+extends CodeEdit
+
+# TODO
+# 当输入input的时候，应该清掉之前的ime_compose,有时会残留
+
+# Input Process Direction
+# KEY_PRESSED -> gui_input -> text_changed
+# OS IME 
+#   KEY_PRESSED(NA) -> OS IME UPDATE
+# OS IME FINISH
+#   KEY_PRESSED(NA) -> OS IME UPDATE ( prev 1, curr 0, wait finish or cancel ) -> gui_input got input sequence of unicode -> FINISH COMPOSE -> text_changed
+# OS IME CANCEL
+#   KEY_PRESSED(NA) -> OS IME UPDATE ( prev 1, curr 0, wait finish or cancel ) -> after wait, no gui input handle finish compose -> CANCEL COMPOSE -> text_changed
+# TINY IME
+# KEY_PRESSED -> TINY IME UPDATE
+
+# Check List
+# 1. type:
+#    english
+#      keys
+#      word
+#      sentence
+#      delete
+#    chinese
+#      keys
+#      word
+#      sentence
+#      delete
+# 2. ime compose
+#    OS ime
+#      start
+#      finish
+#      cancel
+#      delete
+#      partial update
+#      change caret pos
+#      start motions etc
+#    Tiny ime
+#      start
+#      finish
+#      cancel
+#      delete
+#      partial update
+#      change caret pos
+#      start motions etc
+
 
 var is_active = false
 
+const Dust: PackedScene    = preload("res://effects/dust.tscn")
 const Boom: PackedScene    = preload("res://effects/boom.tscn")
 const Combo: PackedScene   = preload("res://effects/combo.tscn")
 const Laser: PackedScene   = preload("res://effects/laser.tscn")
@@ -48,8 +95,7 @@ var ime_display
 var skip_effect = false
 var is_single_letter = false
 
-var is_ime_input = false
-var is_feed_by_os_ime = false
+var is_ime_input = false   # 认为该key input 是 ime的输入
 
 var ime_state = {
     compose_id = "",
@@ -74,7 +120,6 @@ var compose_nodes : = {}
 # var compose_node_pool_size := 4
 
 func _ready():
-    print('WildEdit inited')
 
     gui_input.connect(_on_gui_input)
     text_changed.connect(_otc)
@@ -180,7 +225,7 @@ func _on_gui_input(event):
                     # _handle_ime_finish()
                     print('try handle by input compose')
                     ime_state.pending_finish = true
-                    Util.delay('_ime_compose', 0.06, _handle_ime_finish)
+                    Util.delay('_ime_compose', 0.04, _handle_ime_finish)
             else:
                 is_ime_input = false
         else:
@@ -228,6 +273,7 @@ func _on_text_changed():
         _dc(abs(len_d)*3)
         if effects.shake: _ss(0.2, 12)
         Editor.creative_mode.incr_error()
+        print('incr error', 1, 'text changed')
     else: # len_d == 0, it's changed by other words
         var thing = Blip.instantiate()
         thing.pitch_increase = pitch_increase
@@ -277,6 +323,7 @@ func _on_text_changed():
     if is_text_updated: last_text = text
     caret_line = cur_caret_line
     caret_column = cur_caret_col
+    prints('TEXT CHANGED updated', is_text_updated, last_unicode, len_d)
 
 func _on_caret_changed():
     last_caret_line = caret_line
@@ -374,9 +421,9 @@ func _notification(what):
         if t == "" and ime_state.last_os_ime_compose == "":  # macOS always feed empty update
             ime_state.last_os_ime_compose = t
             return
-        is_feed_by_os_ime = true
+        # is_feed_by_os_ime = true
         ime_state.last_os_ime_compose = t
-        _feed_ime_compose(t)
+        _feed_ime_compose(t, true)
 
 func _on_ime_buffer_changed(buffer, is_partial_feed=false):
     if !is_active: return
@@ -385,10 +432,10 @@ func _on_ime_buffer_changed(buffer, is_partial_feed=false):
     # there is another problem, that when partial feed candidate
     # should not consider the delta
     prints(Util.f_msec(), 'TINY IME UPDATE', is_ime_input, buffer)
-    is_feed_by_os_ime = false
+    # is_feed_by_os_ime = false
     ime_state.is_partial_feed = is_partial_feed
     ime_state.curr_tiny_ime_buffer = buffer
-    _feed_ime_compose(ime.context.get_current_candidate())
+    _feed_ime_compose(ime.context.get_current_candidate(), false)
     ime_state.last_tiny_ime_buffer = buffer
 
 class IMECompose extends ColorRect:
@@ -417,26 +464,29 @@ class IMECompose extends ColorRect:
     func cancel_compose():
         if is_ready: _label.cancel_compose()
 
-func _feed_ime_compose(t: String):
+func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
     print(Util.f_msec(), 'feed ime compose: %s' % [t])
     
     var current_time = Time.get_ticks_msec()
     prints(Util.f_msec(), 'compose|%s|%s|' % [ime_state.last_compose, t], ime_state.last_compose.length(), t.length(), is_ime_input)
     # prints(Util.f_msec(), 'get state', ime_state)
     
-    # 如果最近刚完成输入，忽略后续的空字符串通知
-    if t.length() == 0 and current_time - ime_state.last_finish_time < 50:  # 50ms 阈值
-        var id = ime_state.compose_id
-        if _has_ime_compose(id):
-            var m = _get_ime_compose(id)
-            m.set_text(t)
-            print('just finished compose, ignore')
-            push_error('set composed text with 0')
-        return
+    # # 如果最近刚完成输入，忽略后续的空字符串通知
+    # if t.length() == 0 and current_time - ime_state.last_finish_time < 50:  # 50ms 阈值
+    #     var id = ime_state.compose_id
+    #     if _has_ime_compose(id):
+    #         var m = _get_ime_compose(id)
+    #         m.set_text(t)
+    #         print('just finished compose, ignore')
+    #         push_error('set composed text with 0')
+    #     return
 
     # we need a more intutive combo, that per each type
     var t_d = _get_delta_len(t, ime_state.last_compose)
-    prints('got t_d', t.length(), '|', ime_state.last_compose, '|', t, '|', is_feed_by_os_ime)
+
+    var is_feed_empty = false
+    if t.length() == 0:
+        is_feed_empty = true
 
     # for tiny ime, handle by buffer len, not candidate len
     if !is_feed_by_os_ime:
@@ -446,29 +496,20 @@ func _feed_ime_compose(t: String):
             var last_buf_len = ime_state.last_tiny_ime_buffer.length()
             var curr_buf_len = ime_state.curr_tiny_ime_buffer.length()
             t_d = curr_buf_len - last_buf_len
+            print('got tiny delta', t_d)
+            if curr_buf_len != 0: 
+                is_feed_empty = false
+            else:
+                is_feed_empty = true
 
-    if t_d >= 0:
-        Editor.creative_mode.incr_key()
-        if t_d > 0: 
-            _ic(t_d)
-        else:
-            _ic(1)
-        _show_char_force(' ')
-    elif t_d < 0:
-        # XXX:
-        # FOR MACOS, we should delay the boom to check if it's finished or not
-        Editor.creative_mode.incr_error()
-        _dc(-t_d * 2)
-        var pos = _gfcp()
-        var thing = Boom.instantiate()
-        thing.position = pos
-        thing.destroy = true
-        thing.audio = effects.audio
-        thing.blips = effects.particles
-        add_child.call_deferred(thing)
+    prints('got t_d', t.length(), t_d, is_feed_empty, '|', ime_state.last_compose, '|', t, '|', is_feed_by_os_ime)
+
+    
+    # Trigger the delta VFX
+    _trigger_ime_compose_effect(t_d, is_feed_empty)
     
     # 开始新的输入
-    if not ime_state.is_composing and t.length() != 0:
+    if not ime_state.is_composing and t.length() == 0:
         ime_state.is_composing = true
         ime_state.pending_finish = false
         ime_state.pending_cancel = false
@@ -481,23 +522,25 @@ func _feed_ime_compose(t: String):
         ime_state.last_update_time = current_time
         var m = _get_ime_compose(ime_state.compose_id)
         m.set_text(t)
+        is_ime_input = false # ?? fix the error of ime_input reset?
     else:
         # 检测输入完成或取消
-        if ime_state.last_compose.length() != 0 and t.length() == 0:
-            if is_ime_input:
+        if ime_state.last_compose.length() != 0 and is_feed_empty:
+            if is_ime_input: # XXX: this is errorness, here, as it's not reset after last ime
                 # Linux: 在这里触发完成效果
                 ime_state.pending_finish = true
                 if Editor.is_linux: _handle_ime_finish()
             else:
                 ime_state.pending_cancel = true
-                _handle_ime_cancel()
+                # _handle_ime_cancel()
+                _wait_ime_cancel_or_finish()
 
     ime_state.last_compose = t
     if t != "": ime_state.last_non_empty = t
     ime_state.last_update_time = current_time
     print('set last compose', ime_state.last_compose, ime_state.last_non_empty)
 
-    if t == '':
+    if is_feed_empty:
         if _has_ime_compose(ime_state.compose_id):
             var m = _get_ime_compose(ime_state.compose_id)
             m.set_text(t)
@@ -515,8 +558,8 @@ func _feed_ime_compose(t: String):
 
 
 func _handle_ime_finish():
-    prints(Util.f_msec(), '_handle_ime_finish', last_unicode, last_key_name, ime_state.last_non_empty)
-    if not ime_state.pending_finish and ime_state.input_sequence != "":
+    prints(Util.f_msec(), '_handle_ime_finish', last_unicode, last_key_name, ime_state.last_non_empty, ime_state.input_sequence)
+    if ime_state.pending_finish and ime_state.input_sequence != "":
         # 检查输入序列是否与 last_compose 匹配
         # This is only valid on linux
         # if ime_state.first_input != "" and ime_state.last_non_empty[0] != ime_state.first_input:
@@ -567,18 +610,17 @@ func _handle_ime_finish():
 
 func _handle_ime_cancel():
     prints(Util.f_msec(), 'cancel ime compose', ime_state.last_compose, ime_state.last_non_empty)
-    if not ime_state.pending_cancel and not ime_state.pending_finish:
+    if ime_state.pending_cancel and ime_state.last_non_empty:
         # 在这里触发取消效果
         var pos = _gfcp()
-        var thing = Boom.instantiate()
+        var thing = Dust.instantiate()
         thing.position = pos
         thing.destroy = true
         thing.audio = effects.audio
         thing.blips = effects.particles
         add_child.call_deferred(thing)
         
-        if effects.shake:
-            _ss(0.05, 6)
+        if effects.shake: _ss(0.05, 6)
         
         ime_state.last_compose = ""
         ime_state.last_non_empty = ""
@@ -639,6 +681,7 @@ func _otc():
     if skip_effect:return
     var o=caret_line
     var p=caret_column
+    print(Util.f_msec(), 'OTC char', last_key_name)
     caret_line=get_caret_line()
     caret_column=get_caret_column()
     last_line=get_line(caret_line)
@@ -648,6 +691,7 @@ func _otc():
             var _last = last_line.substr(p,caret_column-p)
             _show_multi_char(_last)
             _incr_multi_combo(_last)
+            print('OTC out', _last)
             # emit_signal('typing')
             # update_editor_stats()
             last_unicode=''
@@ -665,11 +709,9 @@ func feed_ime_input(key):
     # _show_multi_char(key)
     # _incr_multi_combo(key)
 
-    
-    ime_state.pending_finish = false
+    ime_state.pending_finish = true
     ime_state.input_sequence = key
     _handle_ime_finish()
-    ime_state.pending_finish = true
 
     # emit_signal('typing')
     # update_editor_stats()
@@ -726,6 +768,13 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
         
 func _is_ascii(c):
     return c.unicode_at(0) <= 127
+func _is_cjk(c):
+    var v = c.unicode_at(0)
+    return v >= 0x3000 and v <= 0x9FFF
+    # return v >= 0x4E00 and v <= 0x9FFF
+func _is_emoji(c):
+    var v = c.unicode_at(0)
+    return v >= 0x1F600 and v <= 0x1FFFF
 func _get_w_len(s: String) -> int:
     var length := 0
     for c in s:
@@ -774,7 +823,6 @@ func _launch_firework(config):
     var delay = config.get('delay', 0)
     print('get delay', delay)
     # if delay: await get_tree().create_timer(delay)
-    # if delay: await get_tree().create_timer(delay)
     await Util.wait(delay)
     var projectile = FireworkProjectile.create(
         PackedFireworkProjectile,
@@ -784,3 +832,39 @@ func _launch_firework(config):
         config.get('char', ''),
     )
     add_child(projectile)
+
+# -----------------------------------
+# handle the pending feed of ime
+func _wait_ime_cancel_or_finish():
+    Util.delay('_ime_wait', 0.06, __wait_ime_cancel_or_finish)
+
+func __wait_ime_cancel_or_finish():
+    var current_time = Time.get_ticks_msec()
+    if current_time - ime_state.last_finish_time < 60:
+        print('has just finished compose')
+    else:
+        print('not finished, will cancel compose')
+        ime_state.pending_cancel = true
+        _handle_ime_cancel()
+
+func _trigger_ime_compose_effect(t_d, is_feed_empty):
+    if t_d >= 0:
+        Editor.creative_mode.incr_key()
+        if t_d > 0: 
+            _ic(t_d)
+        else:
+            _ic(1)
+        _show_char_force(' ')
+    elif t_d < 0 and !is_feed_empty: # if == 0, will go cancel
+        # XXX:
+        # FOR MACOS, we should delay the boom to check if it's finished or not
+        Editor.creative_mode.incr_error()
+        print('incr error', 1, 'ime compose')
+        _dc(-t_d * 2)
+        var pos = _gfcp()
+        var thing = Dust.instantiate()
+        thing.position = pos
+        thing.destroy = true
+        thing.audio = effects.audio
+        thing.blips = effects.particles
+        add_child.call_deferred(thing)

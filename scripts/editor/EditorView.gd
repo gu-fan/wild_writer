@@ -80,6 +80,7 @@ func init():
                 last_focused_editor.set_caret_column(caret_col)
                 last_focused_editor.center_viewport_to_caret()
 
+
     await get_tree().create_timer(0.1).timeout
     last_focused_editor.call_deferred('grab_focus')
     
@@ -145,7 +146,7 @@ func setup_key_bindings() -> void:
     )
 
     core.key_system.add_binding(
-        ["Ctrl+I"],
+        ["Option+Escape"],
         "toggle_ime",
         "editorFocus"
     )
@@ -165,7 +166,6 @@ func _on_ime_state_changed(v):
         lb_ime.text  = 'CN'
     else:
         lb_ime.text  = 'EN'
-
 
 func show_command_window() -> void:
     if current_command_window != null and is_instance_valid(current_command_window):
@@ -234,15 +234,24 @@ func _on_execution_canceled():
 # ---------------------------
 func pre_sub_window_show():
     main.mask.show()
+
     if last_focused_editor:
         last_focused_editor.release_focus()
         last_focused_editor.get_window().set_ime_active(false)
+
+    text_edit.editable = false
+    text_edit.is_active = false
+    text_edit_secondary.editable = false
+    text_edit_secondary.is_active = false
 func post_sub_window_hide():
     main.mask.hide()
+    text_edit.editable = true
+    text_edit_secondary.editable = true
     await get_tree().process_frame
     if last_focused_editor:
         last_focused_editor.get_window().set_ime_active(true)
         last_focused_editor.grab_focus()
+        last_focused_editor.is_active = true
 
 # ---------------------------
 # 文件操作相关函数
@@ -388,3 +397,5 @@ func _update_font_size(f):
             1: te.set("theme_override_font_sizes/font_size", 32)
             2: te.set("theme_override_font_sizes/font_size", 48)
             3: te.set("theme_override_font_sizes/font_size", 96)
+
+

@@ -9,6 +9,7 @@ signal command_canceled
 
 var current_text: String = ""
 var available_commands = {}
+var viewport
 
 # 添加正则表达式用于匹配数字前缀
 var number_regex: RegEx
@@ -18,9 +19,9 @@ func _ready() -> void:
     title = ""
     size = Vector2(400, 200)
     unresizable = true
-    exclusive = true
+    # exclusive = true
     always_on_top = true
-    popup_window = true
+    # popup_window = true
     borderless = true
     # borderless = true
 
@@ -44,6 +45,9 @@ func _ready() -> void:
 
     # 确保窗口可以接收输入
     set_process_input(true)
+
+    viewport = get_tree().current_scene.get_viewport()
+    viewport.size_changed.connect(_on_viewport_resized)
     
     # 设置标签可聚焦
     label.focus_mode = Control.FOCUS_ALL
@@ -51,6 +55,7 @@ func _ready() -> void:
     # 延迟一帧再获取焦点，确保窗口已完全创建
     await get_tree().process_frame
     label.grab_focus()
+
 
 func set_available_commands(commands: Dictionary) -> void:
     available_commands = commands
@@ -181,3 +186,8 @@ func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: in
 func _on_close_requested() -> void:
     emit_signal("command_canceled")
     queue_free()
+
+func _on_viewport_resized():
+    var window_size = Vector2(size)
+    var viewport_size = Vector2(get_tree().current_scene.get_viewport_rect().size)
+    position = Vector2((viewport_size - window_size) / 2)

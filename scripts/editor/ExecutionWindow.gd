@@ -9,15 +9,16 @@ signal execution_canceled
 
 var current_text: String = ""
 var available_executors: Dictionary = {}
+var viewport
 
 func _ready() -> void:
     # 设置窗口属性
     title = "Execute"
     size = Vector2(400, 200)
     unresizable = true
-    exclusive = true
+    # exclusive = true
     always_on_top = true
-    popup_window = true
+    # popup_window = true
     borderless = true
     
     # 初始化标签
@@ -28,6 +29,9 @@ func _ready() -> void:
     
     # 确保窗口可以接收输入
     set_process_input(true)
+
+    viewport = get_tree().current_scene.get_viewport()
+    viewport.size_changed.connect(_on_viewport_resized)
     
     # 设置标签可聚焦
     input.focus_mode = Control.FOCUS_ALL
@@ -49,6 +53,7 @@ func setup_command_list() -> void:
 
 func update_command_list(filter_text: String) -> void:
     command_list.clear()
+    filter_text = filter_text.strip_edges()
 
     var parts = filter_text.split(' ', true, 2)  # 最多分割成3部分
     var cmd_filter = parts[0]
@@ -161,3 +166,8 @@ func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: in
     var command = item_text.split(" - ")[0]
     emit_signal("execution_requested", command, {})
     queue_free() 
+
+func _on_viewport_resized():
+    var window_size = Vector2(size)
+    var viewport_size = Vector2(get_tree().current_scene.get_viewport_rect().size)
+    position = Vector2((viewport_size - window_size) / 2)

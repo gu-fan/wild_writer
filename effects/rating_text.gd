@@ -1,5 +1,5 @@
 extends Control
-class_name SpeedText
+class_name RatingText
 
 @onready var label: Label = $Label
 @onready var label2: Label = $Label2
@@ -14,13 +14,19 @@ var text := ''  :
 var count : float = 0 :
     set(v):
         count = v
-        update_color()
+        # update_color()
         if template: text = template % count
 
 var template = ''
 
 # 定义颜色阶段
 var COMBO_COLORS = {
+    0:   Color('00FF33'),
+    20:  Color('99FF00'),
+    40:  Color('FF9900'),
+    60:  Color('FF3333'),
+    80:  Color('FF3399'),
+    100: Color('FF00FF'),
     # 0:  Color(0, 1, 0),
     # 20:  Color(0.5, .8, 0),
     # 40:  Color(.8, .8, 0),
@@ -28,12 +34,6 @@ var COMBO_COLORS = {
     # 80:  Color(1, 0, 0),
     # 90: Color(1, 0, 0.3),
     # 100: Color(1, 0, 1),
-    0:   Color('00FF33'),
-    20:  Color('99FF00'),
-    40:  Color('FF9900'),
-    60:  Color('FF3333'),
-    80:  Color('FF3399'),
-    100: Color('FF00FF'),
 }
 
 var _current_color: Color = Color.WHITE
@@ -69,14 +69,14 @@ func update_label():
         dur = 0.28 * get_count_facor_time(),
         trans=Tween.TRANS_QUAD,
     })
-    # TwnLite.at(label).tween({
-    #     prop='modulate',
-    #     from = _current_color,
-    #     to = Color(1,1,1),
-    #     dur = 0.28 * get_count_facor_time(),
-    #     trans=Tween.TRANS_QUAD,
-    #     ease= Tween.EASE_OUT,
-    # })
+    TwnLite.at(label).tween({
+        prop='modulate',
+        from = _current_color,
+        to = Color(1,1,1),
+        dur = 0.28 * get_count_facor_time(),
+        trans=Tween.TRANS_QUAD,
+        ease= Tween.EASE_OUT,
+    })
     TwnLite.at(label3).tween({
         prop='self_modulate:a',
         from = 1.3,
@@ -99,7 +99,7 @@ func update_label():
         from = Vector2(.9,.9) * 1.1 *  get_count_facor_scale(extra_scale),
         to = Vector2(1, 1) * extra_scale * 1.05,
         dur = 0.26 * get_count_facor_time(),
-        parallel=  true,
+        parallel= true,
         trans=Tween.TRANS_EXPO,
     })
 
@@ -113,27 +113,10 @@ func get_count_facor_time():
 func update_color():
     # 找到当前combo对应的颜色阶段
     var target_color = COMBO_COLORS[0]  # 默认颜色
-    var previous_threshold = 0
-    var next_threshold = 0
-    var previous_color = COMBO_COLORS[0]
-    var next_color = COMBO_COLORS[0]
-    
     for threshold in COMBO_COLORS:
         if count >= threshold:
-            previous_threshold = threshold
-            previous_color = COMBO_COLORS[threshold]
-        else:
-            next_threshold = threshold
-            next_color = COMBO_COLORS[threshold]
-            break
+            target_color = COMBO_COLORS[threshold]
     
-    # 计算插值权重
-    var weight = 0.0
-    if next_threshold > previous_threshold:
-        weight = float(count - previous_threshold) / float(next_threshold - previous_threshold)
-    
-    # 平滑过渡到目标颜色
-    target_color = previous_color.lerp(next_color, weight)
     _current_color = target_color
     label.modulate = _current_color
     label3.modulate = Color(_current_color).lightened(0.2)
@@ -149,16 +132,8 @@ func update_color_by_rating(rating:String):
     count = score
     update_color()
     
-
 # ----------
 func set_font_size(v: int):
-    # label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    # label2.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    # label3.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    # UI.set_layout(label, UI.PRESET_TOP_RIGHT)
-    # UI.set_layout(label2, UI.PRESET_TOP_RIGHT)
-    # label.pivot_offset = Vector2(200, 0)
-    # label2.pivot_offset = Vector2(200, 0)
     UI.set_font_size(label, v)
     UI.set_font_size(label2, v)
     UI.set_font_size(label3, v)

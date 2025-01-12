@@ -45,13 +45,13 @@ var available_executors = {
         "description": "Request a typing duel",
         "executor": "duel"
     },
-    "goal_start": {
+    "mode": {
         "description": "Request a typing duel",
-        "executor": "duel"
-    },
-    "goal_finish": {
-        "description": "Request a typing duel",
-        "executor": "duel"
+        "executor": "duel",
+        "sub_commands": {
+            "speed": "Toggle auto save",
+            "finish": "Toggle auto open recent",
+        }
     },
 }
 
@@ -76,7 +76,6 @@ func _init(_editor_view: Node) -> void:
     text_edit = editor_view.text_edit
     text_edit_secondary = editor_view.text_edit_secondary
 
-
 func execute_command(command: String, args: Dictionary) -> void:
     prints("Executing command:", command, "with args:", args)
     
@@ -97,10 +96,8 @@ func execute_command(command: String, args: Dictionary) -> void:
             request_duel(args)
         "setting":
             toggle_setting(args)
-        "goal_start":
-            start_goal(args)
-        "goal_finish":
-            finish_goal(args)
+        "mode":
+            execute_mode(args)
     
 # 执行器实现
 func execute_python(args: Dictionary) -> void:
@@ -179,7 +176,7 @@ func toggle_setting(args: Dictionary) -> void:
         
     # 获取设置值（如果提供）
     var setting_value = args.get("value")
-    prints('get arg', args, setting_name, )
+    prints('get arg', args, setting_name)
     
     # 检查是否是有效的设置名
     if setting_name in available_executors.setting.sub_commands:
@@ -199,9 +196,14 @@ func toggle_setting(args: Dictionary) -> void:
 func toggle_ime(args: Dictionary) -> void:
     TinyIME.toggle()
 
-func start_goal(args):
+func execute_mode(args):
     # Editor.creative_mode.start_goal()
-    Editor.creative_mode.new_goal()
+    var mode_name = args.get("args", "").strip_edges()
+    var mode_value = args.get("value")
+    prints('get arg', args, mode_name, mode_value)
 
-func finish_goal(args):
-    Editor.creative_mode.finish_goal()
+    # if setting_name in available_executors.mode.sub_commands:
+    if mode_name == 'speed':
+        Editor.creative_mode.new_goal()
+    elif mode_name == 'finish':
+        Editor.creative_mode.finish_goal()

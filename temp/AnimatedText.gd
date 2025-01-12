@@ -301,7 +301,6 @@ func set_text(new_text: String) -> void:
         var shaped_text_rid = text_server.create_shaped_text()
         text_server.shaped_text_add_string(shaped_text_rid, char, fonts, font_size)
         text_server.shaped_text_shape(shaped_text_rid)
-        print('create char', char)
         
         var size = text_server.shaped_text_get_size(shaped_text_rid)
         var baseline = text_server.shaped_text_get_ascent(shaped_text_rid)

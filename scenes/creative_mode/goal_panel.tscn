@@ -1,0 +1,188 @@
+[gd_scene load_steps=7 format=3 uid="uid://fgcp82efs1w7"]
+
+[ext_resource type="Script" path="res://scenes/creative_mode/GoalWindow.gd" id="1_xnuk8"]
+[ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="2_1da4x"]
+[ext_resource type="ButtonGroup" uid="uid://dnk4nlr3pri53" path="res://scenes/creative_mode_btn_group.tres" id="3_fviwb"]
+[ext_resource type="Script" path="res://effects/rating_text.gd" id="3_ih72q"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_qrqqr"]
+blend_mode = 1
+light_mode = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yfo53"]
+bg_color = Color(0, 0, 0, 1)
+
+[node name="GoalPanel" type="Window"]
+auto_translate_mode = 1
+gui_embed_subwindows = true
+position = Vector2i(664, 366)
+size = Vector2i(500, 300)
+unresizable = true
+borderless = true
+always_on_top = true
+min_size = Vector2i(500, 300)
+content_scale_size = Vector2i(1, 1)
+script = ExtResource("1_xnuk8")
+
+[node name="Panel" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(300, 200)
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Top" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(50, 65)
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Bot" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(50, 30)
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="Title" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -160.5
+offset_right = 160.5
+offset_bottom = 70.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_1da4x")
+theme_override_font_sizes/font_size = 48
+text = "Speed Mode"
+vertical_alignment = 1
+
+[node name="GoalLabel" type="Label" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -70.0
+offset_right = 190.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_1da4x")
+theme_override_font_sizes/font_size = 32
+text = "Goal:"
+vertical_alignment = 1
+
+[node name="Label2" type="Label" parent="."]
+visible = false
+offset_left = 230.0
+offset_top = 200.0
+offset_right = 470.0
+offset_bottom = 340.0
+theme_override_fonts/font = ExtResource("2_1da4x")
+theme_override_font_sizes/font_size = 96
+text = "100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Label" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 260.0
+offset_top = 210.0
+offset_right = 260.0
+offset_bottom = 210.0
+script = ExtResource("3_ih72q")
+
+[node name="Label" type="Label" parent="Label"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.3333
+theme_override_fonts/font = ExtResource("2_1da4x")
+theme_override_font_sizes/font_size = 96
+text = "100"
+
+[node name="Label3" type="Label" parent="Label/Label"]
+material = SubResource("CanvasItemMaterial_qrqqr")
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 0
+offset_right = 159.0
+offset_bottom = 70.0
+theme_override_fonts/font = ExtResource("2_1da4x")
+theme_override_font_sizes/font_size = 96
+text = "100"
+
+[node name="Label2" type="Label" parent="Label"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.3333
+theme_override_fonts/font = ExtResource("2_1da4x")
+theme_override_font_sizes/font_size = 96
+text = "100"
+
+[node name="OK" type="Button" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -41.0
+offset_top = -110.0
+offset_right = 41.0
+offset_bottom = -78.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_1da4x")
+theme_override_styles/normal = SubResource("StyleBoxFlat_yfo53")
+text = "OK"
+
+[node name="Box" type="HBoxContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -163.5
+offset_top = -40.0
+offset_right = 163.5
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="G1" type="Button" parent="Box"]
+custom_minimum_size = Vector2(80, 30)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_1da4x")
+toggle_mode = true
+button_pressed = true
+button_group = ExtResource("3_fviwb")
+text = "100"
+
+[node name="G2" type="Button" parent="Box"]
+custom_minimum_size = Vector2(80, 30)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_1da4x")
+toggle_mode = true
+button_group = ExtResource("3_fviwb")
+text = "200"
+
+[node name="G3" type="Button" parent="Box"]
+custom_minimum_size = Vector2(80, 30)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_1da4x")
+toggle_mode = true
+button_group = ExtResource("3_fviwb")
+text = "500"

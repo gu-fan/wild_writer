@@ -1050,11 +1050,8 @@ func blink(node:Node, time:float=0.2):
     if is_valid(node): unshade(node)
 
 func shake(node:Node, time:float=0.0):
-    var tn = TwnMisc.new()
-    tn.target = node
-    node.set_meta('twn_misc', tn)
     TwnLite.at(node)\
-           .follow({call=tn._follow_shake})
+           .follow({call=TwnMisc.of(node)._follow_shake})
 
 func outline(node:Node):
     shade(node, 'res://temp/shaders/outline.gdshader', {outline_color=Color('Ffffff')})

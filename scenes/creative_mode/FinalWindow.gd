@@ -4,6 +4,11 @@ signal window_canceled
 
 @onready var g_ok: Button = $OK
 
+var viewport
+func _ready():
+    viewport = get_tree().current_scene.get_viewport()
+    viewport.size_changed.connect(_on_viewport_resized)
+
 func _input(event: InputEvent) -> void:
     if not has_focus(): return
     if !is_finished_loading: return
@@ -24,6 +29,7 @@ func reset_stats():
     $BarBottom.hide()
     $TotalTime.hide()
     $TotalWord.hide()
+    $MaxCombo.hide()
     $SpeedRating.hide()
     $KPM.hide()
     $WPM.hide()
@@ -37,68 +43,179 @@ func reset_stats():
     $FinalRating.hide()
     $FinalLabel.hide()
     $OK.hide()
+
 func start_loading_stats(stats={}):
     is_finished_loading = false
     Util.wait_set(2.0, self, 'is_finished_loading', true)
-    _trans_in_node_left($BarTop, 0.1)
-    _trans_in_node_left($Title, 0.3)
-    _trans_in_node_left($TotalTime, 0.4)
-    _trans_in_node_left($TotalWord, 0.5)
-    _trans_in_node_right($KPM, 0.6)
-    _trans_in_node_right($WPM, 0.7)
-    _trans_in_node_left($SpeedRating, 0.8)
-    _trans_in_node_right($Natural, 0.9)
-    _trans_in_node_right($Repeat, 1.0)
-    _trans_in_node_right($Punctuation, 1.1)
-    _trans_in_node_right($Rhythm, 1.2)
-    _trans_in_node_left($StyleRating, 1.3)
-    _trans_in_node_right($Accuracy, 1.4)
-    _trans_in_node_left($AccuracyRating, 1.5)
-    _trans_in_node_left($FinalLabel, 1.6)
-    _trans_in_node_right($BarBottom, 1.7)
-    _trans_in_node_right($FinalRating, 1.8)
-    _trans_in_node_left($OK, 2.0)
+    stats = {
+        rating_speed = 'S',
+        rating_style= 'B',
+        rating_accuracy= 'B',
+        rating_final = 'A',
+        }
+    var t = 0.3
+    t = _trans_in_node_left($BarTop, t)
+    t = _trans_in_node_left($Title, t)
+    t = _trans_in_node_time($TotalTime, t, 'Total Time: %s', 0, 192, 0.8)
+    t = _trans_in_node_left($TotalWord, t, 'Total Word: %d', 0, 399,0.8)
+    t = _trans_in_node_left($MaxCombo, t, 'Max Combo: %d', 0, 199, 0.6) +0.5
 
+    t = _trans_in_node_right($KPM, t, 'KPM: %d', 0, 841, 0.6)
+    t = _trans_in_node_right($WPM, t, 'WPM: %d', 0, 74, 0.6) + 0.4
+    $SpeedRating.text = 'Speed: %s' % stats.rating_speed
+    t = _trans_in_rating($SpeedRating, t) + 0.5
 
-func _trans_in_node_left(nd, delay=0.0):
+    t = _trans_in_node_right($Natural, t, 'Natural: %d', 0, 85, 0.6)
+    t = _trans_in_node_right($Repeat, t, 'Repeat: %d', 0, 95, 0.6)
+    t = _trans_in_node_right($Punctuation, t, 'Punctuation: %d', 0, 80, 0.6)
+    t = _trans_in_node_right($Rhythm, t, 'Rhythm: %d', 0, 70, 0.6) + 0.4
+    $StyleRating.text = 'Style: %s' % stats.rating_style
+    t = _trans_in_rating($StyleRating, t) + 0.5
+
+    t = _trans_in_node_right($Accuracy, t, 'Accuracy: %.1f%%', 0.0, 97.5, 0.6) + 0.4
+    $AccuracyRating.text = 'Accuracy: %s' % stats.rating_accuracy
+    t = _trans_in_rating($AccuracyRating, t) + 0.5
+
+    t = _trans_in_node_right($BarBottom, t)
+    t = _trans_in_node_left($FinalLabel, t) + 0.5
+    $FinalRating.text = stats.rating_final
+    t = _trans_in_final($FinalRating, t, stats.rating_final)
+    # _trans_in_node_left($OK, 3.0)
+
+func _trans_in_node_left(nd, delay=0.0, tpl='', from=0.0, to=1.0, dur=1.0):
+    return _trans_in_node(nd, -1, delay, tpl, from, to, dur)
+
+func _trans_in_node_right(nd, delay=0.0, tpl='', from=0.0, to=1.0, dur=1.0):
+    return _trans_in_node(nd, 1, delay, tpl, from, to, dur)
+
+func _trans_in_node(nd, dir=1, delay=0.0, tpl='', from=0.0, to=1.0, dur=1.0):
     nd.show()
     nd.modulate.a = 0.0
     var pos_x = Util._get_orig(nd, 'position:x')
-    var from_pos_x = pos_x - 20
-    TwnLite.at(nd).tween({
-        prop='modulate:a',
+    var from_pos_x = pos_x + 20 * dir
+    var twn = TwnLite.at(nd)
+    twn.tween({
+        prop = 'modulate:a',
         from = 0.0, 
         to = 1.0,
         dur=0.2,
-        parallel= true,
+        parallel=true,
         delay = delay,
     }).tween({
-        prop='position:x',
+        prop = 'position:x',
         from = from_pos_x,
         to = pos_x,
         dur=0.2,
-        parallel= true,
+        parallel=true,
         delay = delay,
     })
-func _trans_in_node_right(nd, delay=0.0):
+    if tpl:
+        twn.follow({call=TwnMisc.of(nd)._follow_number.bind(tpl), from=from, to=to, dur=dur+0.05, delay=delay+0.15, parallel=true})
+        return dur + delay + 0.05
+    else:
+        return 0.1 + delay
+
+func _trans_in_rating(nd, delay=0.0, rating='A'):
     nd.show()
     nd.modulate.a = 0.0
     var pos_x = Util._get_orig(nd, 'position:x')
-    var from_pos_x = pos_x + 20
-    TwnLite.at(nd).tween({
-        prop='modulate:a',
+    var from_pos_x = pos_x + 50 * -1
+    var twn = TwnLite.at(nd)
+    twn.tween({
+        prop = 'modulate:a',
         from = 0.0, 
         to = 1.0,
         dur=0.2,
-        parallel= true,
+        parallel=true,
         delay = delay,
     }).tween({
-        prop='position:x',
+        prop = 'position:x',
         from = from_pos_x,
         to = pos_x,
-        dur=0.2,
-        parallel= true,
+        dur=0.3,
+        parallel=true,
         delay = delay,
+        ease=Tween.EASE_OUT,
+        trans=Tween.TRANS_EXPO,
+    }).callee({
+        call=nd.update_color_by_rating,
+        args=[rating],
+        parallel = true,
+        delay=delay+0.05,
+    }).callee({
+        call=nd.update_label,
+        parallel = true,
+        delay=delay+0.05,
     })
+    return 0.1 + delay
+
+func _trans_in_final(nd, delay=0.0, rating='A'):
+    nd.show()
+    nd.modulate.a = 0.0
+    var _scale_from = Vector2.ONE * 8
+    var _scale_to = Vector2.ONE
+    nd.scale = _scale_from
+    nd.pivot_offset = nd.size / 2.0
+    var twn = TwnLite.at(nd)
+    twn.tween({
+        prop = 'modulate:a',
+        from = 0.0, 
+        to = 1.0,
+        dur=0.2,
+        parallel=true,
+        delay = delay,
+    }).tween({
+        prop = 'scale',
+        from = _scale_from,
+        to = _scale_to,
+        dur=0.5,
+        parallel=true,
+        delay = delay,
+        ease=Tween.EASE_OUT,
+        trans=Tween.TRANS_EXPO,
+    }).callee({
+        call=nd.update_color_by_rating,
+        args=[rating],
+        parallel = true,
+        delay=delay+0.2,
+    }).callee({
+        call=nd.run_glitch,
+        parallel = true,
+        delay=delay+0.3,
+    })
+    return 0.1 + delay
+
 func _trans_in_bar():
-    pass
+    return 0.1
+
+func _trans_in_node_time(nd, delay=0.0, tpl='', from=0.0, to=1.0, dur=1.0):
+    nd.show()
+    nd.modulate.a = 0.0
+    var pos_x = Util._get_orig(nd, 'position:x')
+    var from_pos_x = pos_x + 20 * -1
+    var twn = TwnLite.at(nd)
+    twn.tween({
+        prop = 'modulate:a',
+        from = 0.0, 
+        to = 1.0,
+        dur=0.2,
+        parallel=true,
+        delay = delay,
+    }).tween({
+        prop = 'position:x',
+        from = from_pos_x,
+        to = pos_x,
+        dur=0.2,
+        parallel=true,
+        delay = delay,
+    })
+    if tpl:
+        twn.follow({call=TwnMisc.of(nd)._follow_time.bind(tpl), from=from, to=to, dur=dur+0.05, delay=delay+0.15, parallel=true})
+        return dur + delay + 0.05
+    else:
+        return 0.1 + delay
+
+func _on_viewport_resized():
+    var window_size = Vector2(size)
+    var viewport_size = Vector2(get_tree().current_scene.get_viewport_rect().size)
+    position = Vector2((viewport_size - window_size) / 2)

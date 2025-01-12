@@ -7,6 +7,11 @@ signal window_canceled
 @onready var g_3: Button = $Box/G3
 @onready var g_ok: Button = $OK
 
+var viewport
+func _ready():
+    viewport = get_tree().current_scene.get_viewport()
+    viewport.size_changed.connect(_on_viewport_resized)
+
 func _input(event: InputEvent) -> void:
     if not has_focus(): return
 
@@ -23,3 +28,8 @@ func _input(event: InputEvent) -> void:
         elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
             # g_ok.button_pressed = true
             g_ok.pressed.emit()
+
+func _on_viewport_resized():
+    var window_size = Vector2(size)
+    var viewport_size = Vector2(get_tree().current_scene.get_viewport_rect().size)
+    position = Vector2((viewport_size - window_size) / 2)

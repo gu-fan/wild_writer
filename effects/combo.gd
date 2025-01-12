@@ -12,16 +12,22 @@ var combo_count : float = 0 :
 
 # 定义颜色阶段
 const COMBO_COLORS = {
-    0:   Color(0.5, 1, 0.5),
-    8:   Color(0.3, 1, 0.3),
-    15:  Color(0, 1, 0),
-    30:  Color(.8, .8, 0),
-    45:  Color(.8, 0.7, 0),
-    60:  Color(1, 0.5, 0),
-    80:  Color(1, 0.2, 0),
-    100: Color(1, 0, 0),
-    150: Color(1, 0, 0.5),
-    200: Color(1, 0, 1),
+    # 0:   Color(0.5, 1, 0.5),
+    # 8:   Color(0.3, 1, 0.3),
+    # 15:  Color(0, 1, 0),
+    # 30:  Color(.8, .8, 0),
+    # 45:  Color(.8, 0.7, 0),
+    # 60:  Color(1, 0.5, 0),
+    # 80:  Color(1, 0.2, 0),
+    # 100: Color(1, 0, 0),
+    # 150: Color(1, 0, 0.5),
+    # 200: Color(1, 0, 1),
+    0:   Color('00FF33'),
+    40:  Color('99FF00'),
+    80:  Color('FF9900'),
+    120:  Color('FF3333'),
+    160:  Color('FF3399'),
+    200: Color('FF00FF'),
 }
 
 # 当前颜色
@@ -52,13 +58,29 @@ func _update_text():
         _update_color()
 
 func _update_color():
-    # 找到当前combo对应的颜色阶段
+
     var target_color = COMBO_COLORS[0]  # 默认颜色
+    var previous_threshold = 0
+    var next_threshold = 0
+    var previous_color = COMBO_COLORS[0]
+    var next_color = COMBO_COLORS[0]
+    
     for threshold in COMBO_COLORS:
         if combo_count >= threshold:
-            target_color = COMBO_COLORS[threshold]
+            previous_threshold = threshold
+            previous_color = COMBO_COLORS[threshold]
+        else:
+            next_threshold = threshold
+            next_color = COMBO_COLORS[threshold]
+            break
+    
+    # 计算插值权重
+    var weight = 0.0
+    if next_threshold > previous_threshold:
+        weight = float(combo_count - previous_threshold) / float(next_threshold - previous_threshold)
     
     # 平滑过渡到目标颜色
+    target_color = previous_color.lerp(next_color, weight)
     _current_color = target_color
     label.modulate = _current_color
     label3.modulate = Color(_current_color).lightened(0.2)
