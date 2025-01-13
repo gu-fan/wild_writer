@@ -3,6 +3,12 @@ extends CodeEdit
 
 # TODO
 # 当输入input的时候，应该清掉之前的ime_compose,有时会残留
+# 当使用gfcp的时候，如果是TinyIME，其在0 col时位置会上移半格，OS IME则正常
+# ?ime compose bonus使用glitch text. seems not 
+# is delete (incr_error) duplicated?
+# line number gutter
+# DONE on_text_changed: Ctrl+V should consider Command+V
+# Option key in Key Capture (Option seems is Alt?)
 
 # Input Process Direction
 # KEY_PRESSED -> gui_input -> text_changed
@@ -12,48 +18,56 @@ extends CodeEdit
 #   KEY_PRESSED(NA) -> OS IME UPDATE ( prev 1, curr 0, wait finish or cancel ) -> gui_input got input sequence of unicode -> FINISH COMPOSE -> text_changed
 # OS IME CANCEL
 #   KEY_PRESSED(NA) -> OS IME UPDATE ( prev 1, curr 0, wait finish or cancel ) -> after wait, no gui input handle finish compose -> CANCEL COMPOSE -> text_changed
+# OS IME PARTIAL
+#   KEY_PRESSED(NA) -> OS IME UPDATE -> check the cjk_len to consider is partial -> skip the delete effect
 # TINY IME
-# KEY_PRESSED -> TINY IME UPDATE
+# KEY_PRESSED -> TINY IME UPDATE -> BUFFER/CANDIDATE CHANGED -> IME COMPOSE
 
-# Check List
-# 1. type:
+# CHECKLIST of TYPE AND IME COMPOSE
+# 1. speed type:
 #    english
-#      keys
-#      word
-#      sentence
-#      delete
+#      keys OK
+#      word OK
+#      delete OK
+#      sentence style OK
+#      Ctrl+C/V/Z/Y
 #    chinese
-#      keys
-#      word
-#      sentence
-#      delete
+#      keys OK
+#      word OK
+#      delete OK
+#      sentence style OK
+#      Ctrl+C/V/Z/Y
 # 2. ime compose
 #    OS ime
-#      start
-#      finish
-#      cancel
-#      delete
-#      partial update
-#      change caret pos
-#      start motions etc
+#      start   Ok
+#      finish  OK
+#      cancel  OK
+#      delete  OK
+#      partial update (XXX: this is not reconginzed now, and will trigger as delete in compose) (FIXED)
+#      change caret pos   (this will keep the os ime and ime compose , but seems same behavior, so not fix)
+#      start motions etc (will remove)
+#      refocus window (will apply)
 #    Tiny ime
-#      start
-#      finish
-#      cancel
-#      delete
-#      partial update
-#      change caret pos
-#      start motions etc
-
+#      start  OK
+#      finish  OK
+#      cancel  OK
+#      delete  OK
+#      partial update OK
+#      change caret pos  (this can keep the origin compose, and follow the ime_display, seems ok)
+#      start motions etc (can keep)
+#      refocus window (can keep)
+# 3. special symbols
+# 4. emojis (next version)
 
 var is_active = false
 
-const Dust: PackedScene    = preload("res://effects/dust.tscn")
 const Boom: PackedScene    = preload("res://effects/boom.tscn")
+const BoomBig: PackedScene    = preload("res://effects/boom_big.tscn")
 const Combo: PackedScene   = preload("res://effects/combo.tscn")
 const Laser: PackedScene   = preload("res://effects/laser.tscn")
 const Blip: PackedScene    = preload("res://effects/blip.tscn")
 const Newline: PackedScene = preload("res://effects/newline.tscn")
+const Dust: PackedScene    = preload("res://effects/dust.tscn")
 const PackedFireworkProjectile: PackedScene = preload("res://effects/firework_projectile.tscn")
 
 var effects = {
@@ -74,13 +88,17 @@ var pitch_increase: float = 0.0
 
 var caret_line := 0
 var caret_column := 0
+var last_caret_line: = 0  # the last caret line pos
+var caret_pos := Vector2.ZERO
+var last_caret_pos: = Vector2.ZERO
 
+var is_mod_key = false
 var last_line: String = ''
 var last_unicode: String = ''
 var last_key_name: String = ''
 var last_text: String = ''
-var last_caret_newline: = 0
-var last_caret_line: = 0
+var last_caret_newline: = 0  # to detect if it's a newline
+var pre_key_name : String = ''
 
 const TIME_BOOM_INTERVAL = 0.1
 const TIME_CHAR_INTERVAL = 0.1
@@ -101,6 +119,7 @@ var ime_state = {
     compose_id = "",
     is_composing = false,      # 是否正在输入中
     last_compose = "",         # 上一次的混合文本
+    last_compose_alt = "",         # 上一次的混合文本
     last_non_empty = "",       # 上一次非空的混合文本
     pending_finish = false,    # 是否有待处理的完成事件
     pending_cancel = false,    # 是否有待处理的取消事件
@@ -141,6 +160,7 @@ func _ready():
         else:
             # ime_button.text = 'EN'
             ime_display.hide()
+            clear_compose()
     )
     caret_changed.connect(update_ime_position)
     # caret_changed.connect(update_compose_position)
@@ -196,20 +216,93 @@ func _on_gui_input(event):
     if event is InputEventKey and event.pressed:
         if event.unicode:
             last_unicode = String.chr(event.unicode)
+            is_mod_key = false
+        else:
+            # last_unicode = ''
+            is_mod_key = true
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
-        prints(Util.f_msec(),self, 'input: ', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|', event.as_text_key_label(),event.as_text_physical_keycode() )
-        # XXX: 
-        # on macOS, pressing multi key in same time will emit (Unset) and keycode 0, like 'jk'
-        
-        if last_key_name == 'Space':
+        prints(Util.f_msec(), 'INPUT:', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|', event.as_text_key_label(),event.as_text_physical_keycode() )
+
+        # XXX:
+        # some key is not repeating 
+        # if last_key_name in '1234567890FJQPXVBM' and is_mod_key:
+        if last_key_name in '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' and is_mod_key:
+            # print('insert echo f/j ??')
+            insert_text_at_caret(last_unicode)
+
+        elif last_key_name in ['Space', 'Enter'] and pre_key_name not in ['Space', 'Enter']:
             Editor.creative_mode.incr_word()
-        if last_key_name == 'Delete' or last_key_name == 'Backspace':
-            Editor.creative_mode.incr_error()
+        # if last_key_name == 'Delete' or last_key_name == 'Backspace':
+        #     clear_compose()
+        #     Editor.creative_mode.incr_error()
+        elif last_key_name in ['Ctrl+X', 'Cmd+X', 'Command+X']:
+            last_text = text
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name in ['Ctrl+Z', 'Cmd+Z', 'Command+Z']:
+            last_text = text
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name in ['Ctrl+Y', 'Cmd+Y', 'Command+Y']:
+            last_text = text
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name in ['Ctrl+C', 'Cmd+C', 'Command+C']:
+            _show_char_force(last_key_name)
+            Editor.creative_mode.incr_key()
+            skip_effect = true
+        elif last_key_name in ['Ctrl+V', 'Cmd+V', 'Command+V']:
+            last_text = text
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name in ['Ctrl+D', 'Cmd+D', 'Command+D']:
+            set_caret_line(caret_line+10)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+        elif last_key_name in ['Ctrl+U', 'Cmd+U', 'Command+U']:
+            set_caret_line(caret_line-10)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+        elif last_key_name in ['Ctrl+J', 'Cmd+J', 'Command+J']:
+            set_caret_line(caret_line+1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+        elif last_key_name in ['Ctrl+K', 'Cmd+K', 'Command+K']:
+            set_caret_line(caret_line-1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+        elif last_key_name in ['Ctrl+H', 'Cmd+H', 'Command+H']:
+            set_caret_column(caret_column-1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+        elif last_key_name in ['Ctrl+L', 'Cmd+L', 'Command+L']:
+            set_caret_column(caret_column+1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+        elif last_key_name in ['Up', 'Down', 'Right', 'Left']:
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name in ['Ctrl+A', 'Cmd+A', 'Command+A']:
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
 
         if event.keycode == 0 or last_key_name == 'Unknown':
-            # some combined key will trigger this too
+            # XXX: 
+            # on macOS, pressing multi key in same time will emit (Unset) and keycode 0, like 'jk'
             # check unicode to ignore it
             if !_is_ascii(last_unicode):
                 is_ime_input = true
@@ -220,16 +313,25 @@ func _on_gui_input(event):
                 else:
                     ime_state.input_sequence += last_unicode
                 print('len |', last_unicode, '|', last_unicode.length())
-                # Windows/macOS: 在输入时就触发完成效果
-                if Editor.is_macos or Editor.is_windows:
-                    # _handle_ime_finish()
-                    print('try handle by input compose')
-                    ime_state.pending_finish = true
-                    Util.delay('_ime_compose', 0.04, _handle_ime_finish)
+                # NOW DELAY ALL OS, and OS IME UPDATE WAIT CANCEL IS DELAYED TOO
+                # 0.04 (try_handle_finish)
+                # 0.07 (_wait_ime_cancel_or_finish)
+                # TWO SEQUENCE ON DIFFERENT OS WILL BOTH BE HANDLED
+                # A.
+                # 0 -> 0.04 try handle
+                # 0.01 -->  0.08 wait ime cancel
+                # B.
+                # 0 -->  0.07 wait ime cancel
+                # 0.01 -> 0.05 try handle
+
+                ime_state.pending_finish = true
+                Util.delay('_ime_compose', 0.04, _handle_ime_finish)
             else:
                 is_ime_input = false
         else:
             is_ime_input = false
+
+        pre_key_name = last_key_name
 
 func _physics_process(delta):
     _time_b += delta
@@ -242,6 +344,7 @@ func _physics_process(delta):
         position = Vector2.ZERO
 
 func _on_text_changed():
+    if skip_effect:return
     if !is_active: return
     prints(Util.f_msec(), 'on text changed', last_unicode, last_key_name)
 
@@ -261,19 +364,9 @@ func _on_text_changed():
     
     var is_text_updated = false
     if len_d < 0 and _time_b > TIME_BOOM_INTERVAL:
-        var thing = Boom.instantiate()
-        thing.position = pos
-        thing.destroy = true
-        thing.last_key = last_unicode
-        thing.audio = effects.audio
-        thing.blips = effects.particles
-        add_child(thing)
         is_text_updated = true
-        _time_b = 0.0
         _dc(abs(len_d)*3)
-        if effects.shake: _ss(0.2, 12)
-        Editor.creative_mode.incr_error()
-        print('incr error', 1, 'text changed')
+        _show_boom_extra(len_d)
     else: # len_d == 0, it's changed by other words
         var thing = Blip.instantiate()
         thing.pitch_increase = pitch_increase
@@ -287,10 +380,7 @@ func _on_text_changed():
         add_child(thing)
         is_text_updated = true
         Editor.creative_mode.incr_key()
-        if last_key_name in ['Ctrl+V', 'Ctrl+Y', 'Command+V', 'Command+Y']:
-            _ic()
-        else:
-            _ic(len_d)
+        _ic(len_d)
         if effects.shake:
             match font_size:
                 # _ss(0.05, 6)
@@ -319,6 +409,7 @@ func _on_text_changed():
         pitch_increase = 0.0
         is_text_updated = true
         last_caret_newline = cur_caret_line
+        clear_compose()
 
     if is_text_updated: last_text = text
     caret_line = cur_caret_line
@@ -327,9 +418,11 @@ func _on_text_changed():
 
 func _on_caret_changed():
     last_caret_line = caret_line
+    last_caret_pos = caret_pos
     caret_line = get_caret_line()
     caret_column = get_caret_column()
-    prints(Util.f_msec(), 'caret_changed', caret_line, caret_column)
+    caret_pos = _gfcp()
+    prints(Util.f_msec(), 'caret_changed', caret_line, caret_column, caret_pos)
     ime_state.first_input = ""
 
 func _gfcp():
@@ -347,7 +440,8 @@ func _ccnin():
         var thing = Combo.instantiate()
         add_child.call_deferred(thing)
         combo_node = thing
-        if _is_combo_rating_shown: combo_node.modulate.a = 0.0
+        if _is_combo_rating_shown: 
+            combo_node.modulate.a = 0.0
 
 
 func _ic(n=1, delay=0):
@@ -378,7 +472,7 @@ func _fc(pos):
                 if effects.shake:
                     var size = EffectLaser.get_count_size(count)
                     _ssf(EffectLaser.get_main_duration(count)-0.3, size * 3)
-            combo_node.queue_free()
+            TwnLite.at(combo_node).tween({prop='modulate:a', to=0.0, dur=0.3}).callee(combo_node.queue_free)
             combo_node = null
 
 func _rc():
@@ -423,6 +517,7 @@ func _notification(what):
             return
         # is_feed_by_os_ime = true
         ime_state.last_os_ime_compose = t
+        ime_state.is_composing = true  # make it always true, so it can be canceld when is_feed_empty
         _feed_ime_compose(t, true)
 
 func _on_ime_buffer_changed(buffer, is_partial_feed=false):
@@ -435,6 +530,8 @@ func _on_ime_buffer_changed(buffer, is_partial_feed=false):
     # is_feed_by_os_ime = false
     ime_state.is_partial_feed = is_partial_feed
     ime_state.curr_tiny_ime_buffer = buffer
+    # if buffer.length() == 0: ime_state.is_composing = false
+    ime_state.is_composing = true  # make it always true, so it can be canceld when is_feed_empty
     _feed_ime_compose(ime.context.get_current_candidate(), false)
     ime_state.last_tiny_ime_buffer = buffer
 
@@ -446,6 +543,7 @@ class IMECompose extends ColorRect:
         # color = '336633'
         _label = AnimatedText.new()
         add_child(_label)
+        _label.position = Vector2(0, -10)
 
     func _ready():
         is_ready = true
@@ -482,7 +580,9 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
     #     return
 
     # we need a more intutive combo, that per each type
-    var t_d = _get_delta_len(t, ime_state.last_compose)
+    var _alt_t = t.replace(' ', '').replace('\'', '')
+    var t_d = _get_delta_len(_alt_t, ime_state.last_compose_alt)
+    prints('got alt len', _alt_t, t_d)
 
     var is_feed_empty = false
     if t.length() == 0:
@@ -501,16 +601,24 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
                 is_feed_empty = false
             else:
                 is_feed_empty = true
+    else:
+        if t_d < 0:
+            # this is partial feed of OS IME
+            if _get_cjk_len(_alt_t) > _get_cjk_len(ime_state.last_compose_alt):
+                t_d = 0
+                print('got partial feed of OS IME')
 
     prints('got t_d', t.length(), t_d, is_feed_empty, '|', ime_state.last_compose, '|', t, '|', is_feed_by_os_ime)
-
     
     # Trigger the delta VFX
-    _trigger_ime_compose_effect(t_d, is_feed_empty)
+    _trigger_ime_compose_effect(t_d, is_feed_empty, is_feed_by_os_ime)
     
     # 开始新的输入
     if not ime_state.is_composing and t.length() == 0:
+        # XXX: not runing here
+        push_error(' create new ???? ')
         ime_state.is_composing = true
+        ime_state.last_compose_alt = ""
         ime_state.pending_finish = false
         ime_state.pending_cancel = false
         ime_state.first_input = ""
@@ -529,26 +637,28 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
             if is_ime_input: # XXX: this is errorness, here, as it's not reset after last ime
                 # Linux: 在这里触发完成效果
                 ime_state.pending_finish = true
-                if Editor.is_linux: _handle_ime_finish()
+                # if Editor.is_linux: _handle_ime_finish()
             else:
                 ime_state.pending_cancel = true
                 # _handle_ime_cancel()
                 _wait_ime_cancel_or_finish()
 
+    prints('set last compose', ime_state, is_feed_empty)
+
     ime_state.last_compose = t
+    ime_state.last_compose_alt = _alt_t
     if t != "": ime_state.last_non_empty = t
     ime_state.last_update_time = current_time
-    print('set last compose', ime_state.last_compose, ime_state.last_non_empty)
 
     if is_feed_empty:
         if _has_ime_compose(ime_state.compose_id):
             var m = _get_ime_compose(ime_state.compose_id)
             m.set_text(t)
-            push_error('set composed text with 0')
+            push_error('set prev composed text to 0')
         clear_compose()
     else:
         var m = _get_ime_compose(ime_state.compose_id)
-        m.set_text(t)
+        m.set_text(_alt_t)
         print('set ime compose text:', t, '|')
         if t in ['新年快乐', '万事如意']:
             m._label.enable_rainbow = true
@@ -583,7 +693,8 @@ func _handle_ime_finish():
 
         _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false, {audio=false})
         # note: we should split the word with 
-        var word_len = Editor.creative_mode.get_paragraph_word_length(ime_state.input_sequence)
+        var word_len = Editor.creative_mode.get_paragraph_word_length_cjk(ime_state.input_sequence)
+        prints('got word len', word_len, ime_state.input_sequence)
         Editor.creative_mode.incr_word(word_len)
         
         # if effects.shake:
@@ -593,6 +704,7 @@ func _handle_ime_finish():
             start_fireworks(ime_state.input_sequence)
         
         ime_state.last_compose = ""
+        ime_state.last_compose_alt = ""
         ime_state.last_non_empty = ""
         ime_state.is_composing = false
         ime_state.pending_finish = false
@@ -621,8 +733,11 @@ func _handle_ime_cancel():
         add_child.call_deferred(thing)
         
         if effects.shake: _ss(0.05, 6)
+
+        Editor.creative_mode.incr_error()
         
         ime_state.last_compose = ""
+        ime_state.last_compose_alt = ""
         ime_state.last_non_empty = ""
         ime_state.is_composing = false
         ime_state.pending_cancel = false
@@ -647,7 +762,6 @@ func cancel_compose():
     _free_ime_compose(id)
 
 func clear_compose():
-    push_warning('CLEAR COMPOSE')
     for id in compose_nodes:
         _free_ime_compose(id)
 
@@ -670,7 +784,7 @@ func _free_ime_compose(id=''):
         await Util.wait(1.0)
         nd.queue_free()
     else:
-        push_error('free invalid id', id)
+        push_error('try to free invalid id', id)
 
 func _has_ime_compose(id=''):
     return compose_nodes.has(id)
@@ -689,9 +803,9 @@ func _otc():
         if caret_line==o:
             is_single_letter=false
             var _last = last_line.substr(p,caret_column-p)
-            _show_multi_char(_last)
-            _incr_multi_combo(_last)
-            print('OTC out', _last)
+            # _show_multi_char(_last)
+            # _incr_multi_combo(_last)
+            print('OTC captured, not print now', _last)
             # emit_signal('typing')
             # update_editor_stats()
             last_unicode=''
@@ -767,7 +881,8 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
             3: _ss(0.05, 6)
         
 func _is_ascii(c):
-    return c.unicode_at(0) <= 127
+    # return c.unicode_at(0) <= 127
+    return c.unicode_at(0) <= 0x3000
 func _is_cjk(c):
     var v = c.unicode_at(0)
     return v >= 0x3000 and v <= 0x9FFF
@@ -778,15 +893,20 @@ func _is_emoji(c):
 func _get_w_len(s: String) -> int:
     var length := 0
     for c in s:
-        # 检查字符的 Unicode 值
-        # ASCII 字符的 Unicode 值在 0-127 之间
-        if c.unicode_at(0) <= 127:
+        if c.unicode_at(0) <= 0x3000:
             length += 1
         else:
             length += 2
     return length
 func _get_delta_len(s1, s2):
     return _get_w_len(s1) - _get_w_len(s2)
+func _get_cjk_len(s: String):
+    var length := 0
+    for c in s:
+        if c.unicode_at(0) > 0x3000:
+            length += 1
+    return length
+
 # ----------------------------
 func start_fireworks(chars:String):
     # 获取视口中心位置
@@ -836,30 +956,29 @@ func _launch_firework(config):
 # -----------------------------------
 # handle the pending feed of ime
 func _wait_ime_cancel_or_finish():
-    Util.delay('_ime_wait', 0.06, __wait_ime_cancel_or_finish)
+    Util.delay('_ime_wait', 0.07, __wait_ime_cancel_or_finish)
 
 func __wait_ime_cancel_or_finish():
     var current_time = Time.get_ticks_msec()
-    if current_time - ime_state.last_finish_time < 60:
+    if current_time - ime_state.last_finish_time < 70:
         print('has just finished compose')
     else:
         print('not finished, will cancel compose')
         ime_state.pending_cancel = true
         _handle_ime_cancel()
 
-func _trigger_ime_compose_effect(t_d, is_feed_empty):
+func _trigger_ime_compose_effect(t_d, is_feed_empty, is_feed_by_os_ime):
     if t_d >= 0:
         Editor.creative_mode.incr_key()
-        if t_d > 0: 
-            _ic(t_d)
-        else:
-            _ic(1)
+        if t_d > 0: _ic(t_d)
+        else: _ic(1)
         _show_char_force(' ')
-    elif t_d < 0 and !is_feed_empty: # if == 0, will go cancel
-        # XXX:
+    elif t_d < 0:
         # FOR MACOS, we should delay the boom to check if it's finished or not
+        # if is_feed_by_os_ime and is_feed_empty: return
+        # NOTE: if is_feed_empty for tiny ime, it will use cancel, not go down.
+        if is_feed_empty: return
         Editor.creative_mode.incr_error()
-        print('incr error', 1, 'ime compose')
         _dc(-t_d * 2)
         var pos = _gfcp()
         var thing = Dust.instantiate()
@@ -868,3 +987,53 @@ func _trigger_ime_compose_effect(t_d, is_feed_empty):
         thing.audio = effects.audio
         thing.blips = effects.particles
         add_child.call_deferred(thing)
+
+
+# -----------------
+
+func _show_boom_extra(delta=0):
+    await get_tree().process_frame
+    _time_b = 0.0
+    if effects.shake: _ss(0.2, 12)
+    Editor.creative_mode.incr_error()
+    prints('incr error', 1, 'text changed', caret_pos, last_caret_pos, delta)
+    var thing
+    var has_explode = false
+    if abs(delta) > 10:
+        if abs(caret_pos.y - last_caret_pos.y) > 100:
+            thing = BoomBig.instantiate()
+            thing.position = (last_caret_pos + caret_pos) / 2.0
+            thing.destroy = true
+            thing.last_key = ''
+            thing.audio = effects.audio
+            thing.blips = effects.particles
+            print('add extra boom at y')
+            # thing.scale = Vector2.ONE
+            thing.animation = '2'
+            thing.particle_scale = 3
+            thing.sprite_scale = 3
+            add_child(thing)
+            has_explode = true
+        elif abs(caret_pos.x - last_caret_pos.x) > 100:
+            thing = Boom.instantiate()
+            thing.position =  (last_caret_pos + caret_pos) / 2.0
+            thing.destroy = true
+            thing.last_key = ''
+            thing.audio = effects.audio
+            thing.blips = effects.particles
+            thing.sprite_scale = Vector2.ONE * 1.5
+            # thing.scale.x = 2.0
+            add_child(thing)
+            has_explode = true
+
+    if not has_explode:
+        thing = Boom.instantiate()
+        thing.position = caret_pos
+        thing.destroy = true
+        if is_mod_key:
+            thing.last_key = last_key_name
+        else:
+            thing.last_key = last_unicode
+        thing.audio = effects.audio
+        thing.blips = effects.particles
+        add_child(thing)

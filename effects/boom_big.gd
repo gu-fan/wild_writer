@@ -12,9 +12,9 @@ var chars: bool = true
 @onready var label: Label = $Label
 @onready var gpu_particle_2d: GPUParticles2D = $GPUParticles2D
 
-var animation = '1'
-var particle_scale = 1.0
-var sprite_scale = 1.0
+var animation = '2'
+var particle_scale = 3.0
+var sprite_scale = 3.0
 
 func _ready():
 
@@ -34,10 +34,10 @@ func _ready():
     if blips:
         gpu_particle_2d.process_material.scale_min = 4 * extra_scale * particle_scale
         gpu_particle_2d.process_material.scale_max = 4 * extra_scale * particle_scale
-        gpu_particle_2d.process_material.initial_velocity_min = 500  + 40 * font_size + 100 * (particle_scale - 1 )
-        gpu_particle_2d.process_material.initial_velocity_max = 800 +40 * font_size + 100 * (particle_scale - 1)
+        gpu_particle_2d.process_material.initial_velocity_min = 900  + 40 * font_size + 100 * (particle_scale - 1 )
+        gpu_particle_2d.process_material.initial_velocity_max = 1200 +40 * font_size + 100 * (particle_scale - 1)
         if particle_scale > 1:
-            gpu_particle_2d.lifetime = 0.8
+            gpu_particle_2d.lifetime = 0.9
         gpu_particle_2d.emitting = true
         animated_sprite_2d.show()
         animated_sprite_2d.frame = 0

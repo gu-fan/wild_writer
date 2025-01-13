@@ -80,8 +80,8 @@ func _ready():
         parallel=true,
     }).tween({
         prop='position',
-        from=Vector2(-35+20, -60) + char_offset,
-        to=Vector2(-35-150, -110)*extra_scale + char_offset if !move_right else Vector2(-35+200, -110)*extra_scale + char_offset,
+        from=Vector2(-35+20, -70) + char_offset,
+        to=Vector2(-35-150, -120)*extra_scale + char_offset if !move_right else Vector2(-35+200, -120)*extra_scale + char_offset,
         dur=0.9,
         parallel=true,
         ease=Tween.EASE_OUT,
@@ -101,7 +101,6 @@ func _ready():
         parallel=true,
         delay=0.45,
     })
-
 
 func _on_Timer_timeout():
     if destroy:

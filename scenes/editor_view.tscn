@@ -50,8 +50,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
+drag_and_drop_selection_enabled = false
 wrap_mode = 1
 caret_blink = true
+caret_move_on_right_click = false
+caret_multiple = false
 highlight_current_line = true
 script = ExtResource("2_dol8c")
 
@@ -77,8 +80,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
+drag_and_drop_selection_enabled = false
 wrap_mode = 1
 caret_blink = true
+caret_move_on_right_click = false
+caret_multiple = false
 highlight_current_line = true
 script = ExtResource("2_dol8c")
 

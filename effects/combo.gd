@@ -111,7 +111,7 @@ func color_label():
         extra_scale = 2
     TwnLite.at(label, true, '_twn_scale').tween({
         prop='scale',
-        from = Vector2(.8,.8) * randf_range(1.05, 1.1) * get_count_facor_scale(extra_scale), 
+        from = Vector2(.9,.9) * randf_range(1.05, 1.08) * get_count_facor_scale(extra_scale), 
         to = Vector2(1, 1) * extra_scale,
         dur = 0.25 * get_count_facor_time(),
         trans=Tween.TRANS_QUAD,
@@ -127,12 +127,22 @@ func color_label():
     #     _reset_count
     # )
     TwnLite.at(label).tween({
-        prop='self_modulate:a',
+        prop='modulate:a',
         from = 1.0,
         to = 0.0,
-        dur = 2.0 * get_count_facor_time(),
+        dur = 0.3 * get_count_facor_time(),
         trans=Tween.TRANS_QUAD,
         ease= Tween.EASE_OUT,
+    })
+    label2.modulate.a = 1.0
+    TwnLite.at(label2, true, '_twn_lite_lb2').tween({
+        prop='modulate:a',
+        from = 1.0,
+        to = 0.0,
+        dur = 1.0 * get_count_facor_time(),
+        trans=Tween.TRANS_SINE,
+        ease= Tween.EASE_OUT,
+        delay=1.0 * get_count_facor_time(),
     }).callee(
         _reset_count
     )
@@ -140,22 +150,22 @@ func color_label():
         prop='self_modulate:a',
         from = 1.0,
         to = 0.0,
-        dur = 2.0 * get_count_facor_time(),
+        dur = 0.3 * get_count_facor_time(),
         trans=Tween.TRANS_QUAD,
         ease= Tween.EASE_OUT,
     })
     TwnLite.at(label2).tween({
-        prop='modulate:a',
-        from = 2.0,
-        to = 0.0,
-        dur = 0.3,
-        parallel= true,
-        trans=Tween.TRANS_SINE,
-    }).tween({
+        # prop='modulate:a',
+        # from = 2.0,
+        # to = 0.0,
+        # dur = 0.3,
+        # parallel= true,
+        # trans=Tween.TRANS_SINE,
+    # }).tween({
         prop='scale',
-        from = Vector2(.8,.8) * 1.1 *  get_count_facor_scale(extra_scale),
+        from = Vector2(.9,.9) * 1.1 *  get_count_facor_scale(extra_scale),
         to = Vector2(1, 1) * extra_scale,
-        dur = 0.2 * get_count_facor_time(),
+        dur = 0.26 * get_count_facor_time(),
         parallel=  true,
         trans=Tween.TRANS_EXPO,
     })

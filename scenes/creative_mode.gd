@@ -155,9 +155,9 @@ func _on_goal_started():
     progress_bar.show()
     progress_bar.modulate.a = 0.7
     stats_panel.show()
-    # stats_detail_panel.show()
+    stats_detail_panel.show()
     combo_panel.show()
-    # combo_detail_panel.show()
+    combo_detail_panel.show()
     progress_label.text = '0%'
 
     _trans_in_stats_label()
@@ -191,21 +191,16 @@ func _on_stats_updated(is_tick:bool) -> void:
         s_kpm.update_label()
         s_wpm.update_label()
 
-#     stats_detail_label.text = """
-#     accuracy: %.1f%%
-#     time: %.1f
-#     key: %.1f
-#     word: %.1f
-#     delete: %.1f
-#     """ % [stats.accuracy, stats.time, stats.key, stats.word, stats.delete]
+    stats_detail_label.text = """
+    accuracy: %.1f%%
+    time: %.1f
+    key: %.1f
+    word: %.1f
+    delete: %.1f
+    """ % [stats.accuracy, stats.time, stats.key, stats.word, stats.delete]
 
 func _on_combo_updated():
     var ps = creative_mode.paragraph_stats
-    # combo_label.text = """
-    # Speed: %s
-    # Style: %s
-    # Accuracy: %s
-    # """ % [ps.rating_speed, ps.rating_style, ps.rating_accuracy]
 
     c_speed.text = 'Speed: %s' % ps.rating_speed
     c_style.text = 'Style: %s' % ps.rating_style
@@ -225,13 +220,13 @@ func _on_combo_updated():
     # Util.pos_x_out(c_accuracy, 2.2)
     _trans_in_combo_rating({speed=ps.rating_speed,style=ps.rating_style,accuracy=ps.rating_accuracy})
 
-    # combo_detail_label.text = """
-    # natural: %.1f
-    # repeat: %.1f
-    # punctuation: %.1f
-    # rhythm: %.1f
-    # style final: %.1f
-    # """ % [ps.score_natural, ps.score_repeat, ps.score_punc, ps.score_rhythm, ps.score_style]
+    combo_detail_label.text = """
+    natural: %.1f
+    repeat: %.1f
+    punctuation: %.1f
+    rhythm: %.1f
+    style final: %.1f
+    """ % [ps.score_natural, ps.score_repeat, ps.score_punc, ps.score_rhythm, ps.score_style]
 
 func _on_goal_reached() -> void:
     print('goal reached')

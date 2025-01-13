@@ -32,7 +32,7 @@ var COMBO_COLORS = {
     20:  Color('99FF00'),
     40:  Color('FF9900'),
     60:  Color('FF3333'),
-    80:  Color('FF3399'),
+    80:  Color('FF1199'),
     100: Color('FF00FF'),
 }
 
@@ -64,10 +64,17 @@ func update_label():
     #     extra_scale = 2
     TwnLite.at(label, true, '_twn_scale').tween({
         prop='scale',
-        from = Vector2(.9,.9) * randf_range(1.05, 1.1) * get_count_facor_scale(extra_scale), 
+        from = Vector2(.9,.9) * randf_range(1.10, 1.15) * get_count_facor_scale(extra_scale), 
         to = Vector2(1, 1) * extra_scale,
         dur = 0.28 * get_count_facor_time(),
         trans=Tween.TRANS_QUAD,
+    # }).tween({
+    #     prop='position:x',
+    #     from = -10.0,
+    #     to = 0.0,
+    #     dur = 0.1 * get_count_facor_time(),
+    #     ease= Tween.EASE_OUT,
+    #     trans=Tween.TRANS_QUAD,
     })
     # TwnLite.at(label).tween({
     #     prop='modulate',
@@ -87,17 +94,19 @@ func update_label():
     })
     label2.modulate.a = 1.0
     label2.scale = Vector2.ONE * extra_scale
-    TwnLite.at(label2).tween({
-        prop='modulate:a',
-        from = 2.0,
-        to = 0.0,
-        dur = 0.3,
-        parallel= true,
-        trans=Tween.TRANS_SINE,
-    }).tween({
+    TwnLite.at(label2
+    ).tween({
+        # prop='modulate:a',
+        # from = 2.0,
+        # to = 0.0,
+        # dur = 0.3,
+        # parallel= true,
+        # trans=Tween.TRANS_SINE,
+    # }).tween({
         prop='scale',
         from = Vector2(.9,.9) * 1.1 *  get_count_facor_scale(extra_scale),
-        to = Vector2(1, 1) * extra_scale * 1.05,
+        # to = Vector2(1, 1) * extra_scale * 1.05,
+        to = Vector2(1, 1) * extra_scale,
         dur = 0.26 * get_count_facor_time(),
         parallel=  true,
         trans=Tween.TRANS_EXPO,

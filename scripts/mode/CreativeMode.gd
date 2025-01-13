@@ -176,6 +176,7 @@ func incr_error():
     paragraph_stats.errors += 1
     paragraph_stats.end_time = Time.get_unix_time_from_system()
     _update_paragraph_stats()
+    print('incr error', wrong_chars, paragraph_stats.errors)
 
 func incr_key(n = 1):
     total_keys += n
@@ -857,5 +858,55 @@ func _gen_cn_maps():
 # --------------
 func get_paragraph_word_length(p):
     var ret = split_paragraph_words(p)
-    prints('got p',p , ret, ret.words.size())
+    return ret.words.size()
+
+# -------------------
+func split_paragraph_words_cjk(paragraph):
+    # 分割段落为单词
+    var current_word = ""
+    var words = []
+    var puncs = []
+
+    var i = 0
+    while i < paragraph.length():
+        var c = paragraph[i]
+        # 检查是否是中文字符
+        if c.unicode_at(0) > 127:
+            if c in cn_symbols:
+                if current_word != "":
+                    words.append(current_word)
+                    current_word = ""
+                    if c != '　': puncs.append(i)
+            else:
+                if current_word != "":
+                    words.append(current_word)
+                    current_word = c
+                else:
+                    current_word = c
+        # 检查分隔符
+        elif c in en_symbols:
+            if current_word != "":
+                words.append(current_word)
+                current_word = ""
+                if c != ' ': puncs.append(i)
+        else:
+            if current_word != "":
+                if current_word[0].unicode_at(0) < 127:
+                    current_word += c
+                else:
+                    words.append(current_word)
+                    current_word = c
+            else:
+                current_word = c
+        i += 1
+    
+    # 处理最后一个单词
+    if current_word != "":
+        words.append(current_word)
+
+    return {words=words, puncs=puncs}
+
+func get_paragraph_word_length_cjk(p):
+    var ret = split_paragraph_words_cjk(p)
+    print('ret', ret)
     return ret.words.size()
