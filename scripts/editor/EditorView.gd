@@ -328,7 +328,6 @@ func save_document_as() -> void:
         current_file_path = file_path
         save_document()
 
-
 # ---------------------------
 func toggle_locale():
     var locale = TranslationServer.get_locale()

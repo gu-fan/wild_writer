@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://effects/dust.gd" id="1_dcasn"]
 [ext_resource type="Texture2D" uid="uid://d1tio2ceqgm7m" path="res://effects/blip.png" id="2_45mll"]
-[ext_resource type="AudioStream" uid="uid://buwjbd6nfd4sd" path="res://temp/sfx/punch3.ogg" id="3_m064b"]
+[ext_resource type="AudioStream" uid="uid://4vk876dnnx4t" path="res://effects/dust/drop_004.wav" id="3_qkvdw"]
 [ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="4_fh64y"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hp4ed"]
@@ -97,8 +97,7 @@ scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_g4ki7")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer2D" parent="."]
-stream = ExtResource("3_m064b")
-volume_db = 1.0
+stream = ExtResource("3_qkvdw")
 max_distance = 20000.0
 attenuation = 0.12
 

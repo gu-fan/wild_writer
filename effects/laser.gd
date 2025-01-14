@@ -33,11 +33,11 @@ const SIZE_POSITION = {
     5: 600,
 }
 const SIZE_MIN = {
-    1: 400,
-    2: 600,
-    3: 800,
-    4: 1000,
-    5: 1200,
+    1: 600,
+    2: 1000,
+    3: 1200,
+    4: 1500,
+    5: 1800,
 }
 
 static func can_finish_combo(n: int):
@@ -103,12 +103,12 @@ func _ready():
         from=Vector2(1, 1),
         to=Vector2(2, 2) * target_size * extra_scale,
         dur=0.3,
-    }).delay(ls_dur+ 0.1).tween({
+    }).delay(ls_dur+ 0.1).callee(animated_sprite_2d.play.bind('fade')).tween({
         prop='scale',
         from=Vector2(2, 2) * target_size * extra_scale,
-        to=Vector2(0, 0),
-        dur=0.5,
-    }).callee(line_2d.hide)
+        to=Vector2(.2, .2),
+        dur=0.4,
+    }).callee(line_2d.hide).callee(animated_sprite_2d.hide)
 
     TwnLite.at(circle).tween({
         prop='scale',

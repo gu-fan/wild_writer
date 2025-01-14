@@ -1,9 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://b0i6xcgmabpru"]
+[gd_scene load_steps=9 format=3 uid="uid://b0i6xcgmabpru"]
 
 [ext_resource type="Script" path="res://scenes/creative_mode/FinalWindow.gd" id="1_brleo"]
 [ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="2_rex7o"]
 [ext_resource type="PackedScene" uid="uid://bdg1ilk3dcola" path="res://effects/rating_text.tscn" id="3_whkgw"]
 [ext_resource type="PackedScene" uid="uid://bbhcs48nyd3q0" path="res://effects/glitch_text.tscn" id="4_waocp"]
+[ext_resource type="AudioStream" uid="uid://cghgeynlpxeo7" path="res://scenes/creative_mode/scroll_004.wav" id="5_t588d"]
+[ext_resource type="AudioStream" uid="uid://bxkegkefuumjk" path="res://scenes/creative_mode/scratch_004.wav" id="6_p55l4"]
+[ext_resource type="AudioStream" uid="uid://dhear2iug85an" path="res://scenes/creative_mode/confirmation_004.wav" id="7_755l6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p4wk6"]
 bg_color = Color(0, 0, 0, 1)
@@ -261,3 +264,19 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_styles/normal = SubResource("StyleBoxFlat_p4wk6")
 text = "OK"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_t588d")
+volume_db = -5.0
+pitch_scale = 0.95
+max_polyphony = 3
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_p55l4")
+volume_db = -5.0
+pitch_scale = 1.1
+
+[node name="AudioStreamPlayer3" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_755l6")
+volume_db = 3.0
+pitch_scale = 1.1

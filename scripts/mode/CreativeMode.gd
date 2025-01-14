@@ -29,8 +29,37 @@ var accuracy: float = 100.0
 var speed_rating: String = "NA"
 var style_rating: String = "NA"
 var accuracy_rating: String = "NA"
+var final_rating: String = "NA"
+var final_style_scores = {
+        "natural": 0.0,
+        "repeat": 0.0,
+        "punc": 0.0,
+        "rhythm": 0.0
+    }
 
+const SPEED_SCORE_S = {
+    "S": 120.0,
+    "A": 90.0,
+    "B": 60.0,
+    "C": 40.0,
+    "D": 0.0
+}
+const ACCURACY_SCORE_S = {
+    "S": 95.0,
+    "A": 90.0,
+    "B": 85.0,
+    "C": 80.0,
+    "D": 0.0  
+}
+const STYLE_SCORE_S = {
+    "S": 95.0,
+    "A": 90.0,
+    "B": 80.0,
+    "C": 60.0,
+    "D": 0.0   
+}
 const SPEED_SCORE = {
+    "SS": 140.0,
     "S": 120.0,
     "A": 90.0,
     "B": 60.0,
@@ -38,17 +67,34 @@ const SPEED_SCORE = {
     "D": 0.0
 }
 const ACCURACY_SCORE = {
-    "S": 98.0,
-    "A": 95.0,
-    "B": 90.0,
-    "C": 85.0,
+    "SS": 100.0,
+    "S": 95.0,
+    "A": 90.0,
+    "B": 85.0,
+    "C": 80.0,
     "D": 0.0  
 }
 const STYLE_SCORE = {
+    "SS": 99.0,
     "S": 95.0,
     "A": 90.0,
     "B": 80.0,
-    "C": 65.0,
+    "C": 60.0,
+    "D": 0.0   
+}
+const FINAL_SCORE_S = {
+    "S": 95.0,
+    "A": 90.0,
+    "B": 80.0,
+    "C": 60.0,
+    "D": 0.0   
+}
+const FINAL_SCORE = {
+    "SS": 98.0,
+    "S": 95.0,
+    "A": 90.0,
+    "B": 80.0,
+    "C": 60.0,
     "D": 0.0   
 }
 
@@ -64,10 +110,10 @@ const NATURAL_WORD_LENGTH = {
 }
 
 const STYLE_WEIGHTS = {
-    "natural_length": 0.4,    # 自然词长度权重
-    "repetition": 0.3,        # 重复度权重
-    "punctuation": 0.2,       # 标点
-    "rhythm": 0.1             # 节奏权重
+    "natural_length": 0.4,     # 自然词长度权重
+    "repetition": 0.3,         # 重复度权重
+    "punctuation": 0.15,       # 标点
+    "rhythm": 0.15             # 节奏权重
 }
 
 var paragraph_stats = {
@@ -241,29 +287,132 @@ func finish_goal():
 func _calculate_final_rating() -> void:
     has_reached_goal = true
     # 速度评分 (WPM)
-    speed_rating = match_rating(wpm, SPEED_SCORE)
+    speed_rating = match_rating(wpm, SPEED_SCORE_S)
+    var speed_score = _calculate_lerped_score(wpm, SPEED_SCORE)
     
     # 准确度评分
-    accuracy_rating = match_rating(accuracy, ACCURACY_SCORE)
+    accuracy_rating = match_rating(accuracy, ACCURACY_SCORE_S)
+    var accuracy_score = _calculate_lerped_score(wpm, SPEED_SCORE)
+
     
     # 风格评分 (基于组合和特效使用)
     var style_score = _calc_overall_style_score()
-    style_rating = match_rating(style_score, STYLE_SCORE)
-    prints('overall style rating', style_score, style_rating, speed_rating, accuracy_rating)
+    style_rating = match_rating(style_score, STYLE_SCORE_S)
+
+    var final_score = _calc_final_score([speed_score, accuracy_score, style_score])
+    final_rating = match_rating(final_score, FINAL_SCORE_S)
+
+    prints('overall rating', speed_rating, accuracy_rating, style_rating)
+    prints('got score', speed_score, accuracy_score, style_score, final_score, final_rating)
+    print('final style scores', final_style_scores)
+
+func _calc_final_score(scores):
+
+    var total_score = 0.0
+    for s in scores:
+        total_score += s
+
+    return total_score / scores.size()
+
+
+func _calculate_lerped_score(value: float, thresholds: Dictionary) -> float:
+    # 获取评级阈值的有序列表
+    var ordered_thresholds = []
+    for rating in thresholds:
+        ordered_thresholds.append({
+            "rating": rating,
+            "value": thresholds[rating]
+        })
+    ordered_thresholds.sort_custom(func(a, b): return a.value < b.value)
+    
+    # 找到value所在的区间
+    var prev_threshold = null
+    var next_threshold = null
+    
+    for i in ordered_thresholds.size():
+        if value >= ordered_thresholds[i].value:
+            prev_threshold = ordered_thresholds[i]
+            if i + 1 < ordered_thresholds.size():
+                if value < ordered_thresholds[i + 1].value:
+                    next_threshold = ordered_thresholds[i + 1]
+                    break
+    
+    # 如果低于最低阈值
+    if prev_threshold == null:
+        return 60.0
+    
+    # 如果高于最高阈值
+    if next_threshold == null:
+        return 100.0
+    
+    # 使用实际的评分区间
+    var base_score = {
+        "SS": 100.0,
+        "S": 90.0,
+        "A": 80.0,
+        "B": 70.0,
+        "C": 60.0,
+        "D": 30.0
+    }
+    
+    var prev_score = base_score[prev_threshold.rating]
+    var next_score = base_score[next_threshold.rating]
+
+    
+    # 计算插值权重
+    var range_size = next_threshold.value - prev_threshold.value
+    if value > next_threshold.value: 
+        value = next_threshold.value
+    var value_in_range = value - prev_threshold.value
+    var weight = value_in_range / range_size
+
+    
+    # 在实际分数区间内插值
+    return lerpf(next_score, prev_score, weight)
 
 func _calc_overall_style_score():
     if paragraph_scores.is_empty():
         return 70.0
 
+    final_style_scores = {
+        "natural": 0.0,
+        "repeat": 0.0,
+        "punc": 0.0,
+        "rhythm": 0.0
+    }
+
     var total_weight = 0.0
-    var weight_sum = 0.0
+    var weighted_sums = {
+        "natural": 0.0,
+        "repeat": 0.0,
+        "punc": 0.0,
+        "rhythm": 0.0,
+        "overall": 0.0
+    }
+
+    # 计算加权总和
     for ps in paragraph_scores:
         var weight = ps.total_length
-        var score = ps.score_style
-        weight_sum += score * weight
         total_weight += weight
+        
+        # 累加各个分项的加权分数
+        weighted_sums.natural += ps.score_natural * weight
+        weighted_sums.repeat += ps.score_repeat * weight
+        weighted_sums.punc += ps.score_punc * weight
+        weighted_sums.rhythm += ps.score_rhythm * weight
+        weighted_sums.overall += ps.score_style * weight
 
-    return weight_sum / total_weight
+    # 计算最终加权平均分
+    if total_weight > 0:
+        final_style_scores.natural = weighted_sums.natural / total_weight
+        final_style_scores.repeat = weighted_sums.repeat / total_weight
+        final_style_scores.punc = weighted_sums.punc / total_weight
+        final_style_scores.rhythm = weighted_sums.rhythm / total_weight
+        
+        # 返回总体风格分数
+        return weighted_sums.overall / total_weight
+
+    return 70.0  # 默认分数
 
 func match_rating(value: float, thresholds: Dictionary) -> String:
     for rating in thresholds:
@@ -278,13 +427,15 @@ func get_stats() -> Dictionary:
         "kpm": kpm,
         "accuracy": accuracy,
         "progress": float(total_words) / typing_goal,
-        "speed_rating": speed_rating,
-        "style_rating": style_rating,
-        "accuracy_rating": accuracy_rating,
+        "rating_speed": speed_rating,
+        "rating_style": style_rating,
+        "rating_accuracy": accuracy_rating,
+        "rating_final": final_rating,
         "time": elapsed_seconds,
         "key": total_keys,
         "delete": wrong_chars,
         "word": total_words,
+        "style_scores": final_style_scores,
     }
 
 # const en_symbols = [" ", ".", ",", "!", "?", ";", ":", "'", "\"", "`", "\n", "\t", "{", "}", "(", ")", "[", "]", "<", ">", "+", "-", "=", "*", "/"]
@@ -367,6 +518,10 @@ func update_combo(paragraph: String) -> void:
         rating_style = paragraph_stats.rating_style,
         rating_speed = paragraph_stats.rating_speed,
         rating_accuracy = paragraph_stats.rating_accuracy,
+        score_natural = paragraph_stats.score_natural,
+        score_repeat = paragraph_stats.score_repeat,
+        score_punc = paragraph_stats.score_punc,
+        score_rhythm = paragraph_stats.score_rhythm,
     })
     print('get paragraph stats', paragraph_stats, paragraph_scores)
 
@@ -574,9 +729,9 @@ func _calculate_style_rating() -> void:
     ) * 100.0
     
     # 设置评级
-    style_rating = match_rating(final_score, STYLE_SCORE)
-    speed_rating = match_rating(paragraph_stats.wpm, SPEED_SCORE)
-    accuracy_rating = match_rating(paragraph_stats.accuracy, ACCURACY_SCORE)
+    style_rating = match_rating(final_score, STYLE_SCORE_S)
+    speed_rating = match_rating(paragraph_stats.wpm, SPEED_SCORE_S)
+    accuracy_rating = match_rating(paragraph_stats.accuracy, ACCURACY_SCORE_S)
     paragraph_stats.score_natural = natural_ratio * 100.0
     paragraph_stats.score_repeat = repetition_ratio * 100.0
     paragraph_stats.score_punc = punc_score * 100.0
@@ -689,10 +844,10 @@ func _calculate_rhythm_score() -> float:
 
 # 计算标点符号得分
 func _calculate_punc_score() -> float:
-    if not paragraph_stats.has("puncs"): return 0.7
+    if not paragraph_stats.has("puncs"): return 0.8
         
     var puncs = paragraph_stats.puncs
-    if puncs.size() == 0: return 0.7
+    if puncs.size() == 0: return 0.8
         
     var total_length = paragraph_stats.total_length
     if total_length <= 10: return 1.0

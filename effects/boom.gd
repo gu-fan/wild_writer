@@ -50,6 +50,18 @@ func _ready():
         label.text = last_key
         if last_key == 'Backspace': 
             label.text='←'
+        elif last_key == 'Shift+Backspace': 
+            label.text='Shift+←'
+        elif last_key == 'Option+Backspace': 
+            label.text='Option+←'
+        elif last_key == 'Alt+Backspace': 
+            label.text='Alt+←'
+        elif last_key == 'Ctrl+Backspace': 
+            label.text='Ctrl+←'
+        elif last_key == 'Command+Backspace': 
+            label.text='Cmd+←'
+        elif last_key == 'Windows+Backspace': 
+            label.text='Windows+←'
         if last_key == 'Ctrl+X':
             label.hide()
             return

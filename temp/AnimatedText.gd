@@ -43,7 +43,7 @@ class CharNode extends Node2D:
     var clear_duration := 0.15
     var bounce_scale := 0.5
     var appear_offset := 50.0
-    var disappear_offset := 80.0
+    var disappear_offset := 70.0
     var disappear_scale := 0.5
     
     # 动画时间追踪
@@ -85,7 +85,7 @@ class CharNode extends Node2D:
         # 处理彩虹效果
         if enable_rainbow:
             var time = Time.get_ticks_msec() / 1000.0
-            var hue = wrapf(fmod(-time * rainbow_speed + rainbow_offset, 1.0) * 0.5 + 0.7, 0.0, 1.0)
+            var hue = wrapf(fmod(-time * rainbow_speed + rainbow_offset, 1.0) * 0.3 + 0.6, 0.0, 1.0)
             text_color = Color.from_hsv(hue, rainbow_saturation, rainbow_value)
 
         
@@ -137,7 +137,7 @@ class CharNode extends Node2D:
                 else:
                     modulate.a = 1.0 - t
                     scale = Vector2.ONE * (1.0 + t * disappear_scale)
-                    position.y = wave_position.y - t * disappear_offset
+                    position.y = base_position.y  -t* disappear_offset
                     queue_redraw()
         
     

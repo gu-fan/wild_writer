@@ -1,11 +1,11 @@
 [gd_resource type="FontVariation" load_steps=7 format=3 uid="uid://nrx67heb2sgn"]
 
-[ext_resource type="FontFile" uid="uid://c8v5degxetmxa" path="res://assets/fonts/YouSheBiaoTiHei/YouSheBiaoTiHei-2.ttf" id="1_h0ux7"]
+[ext_resource type="FontFile" uid="uid://cy8qgauqpei7q" path="res://assets/fonts/ZhaiZaiJiaFenTiaoTian.ttf" id="1_n15n4"]
 [ext_resource type="FontFile" uid="uid://b5n65c1fx4c2t" path="res://assets/fonts/Agave/AgaveNerdFontMono-Regular.ttf" id="2_7r7ip"]
 [ext_resource type="FontFile" uid="uid://b7ot58evs2iel" path="res://assets/fonts/NotoSans/NotoSansSC-Bold.ttf" id="2_trgab"]
 
 [sub_resource type="FontVariation" id="FontVariation_odby7"]
-base_font = ExtResource("1_h0ux7")
+base_font = ExtResource("1_n15n4")
 
 [sub_resource type="FontVariation" id="FontVariation_0nxwu"]
 base_font = ExtResource("2_7r7ip")

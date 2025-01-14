@@ -240,7 +240,6 @@ func _on_goal_finished() -> void:
     combo_detail_panel.hide()
     progress_label.text = ''
 
-    var stats = creative_mode.get_stats()
     
     # 显示最终评分面板
     var window_size = Vector2(700, 650)
@@ -251,14 +250,15 @@ func _on_goal_finished() -> void:
     final_window.position = win_pos
     final_window.reset_stats()
 
-    final_window.get_node("SpeedRating").text = "Speed: %s" % stats.speed_rating
-    final_window.get_node("StyleRating").text = "Style: %s" % stats.style_rating
-    final_window.get_node("AccuracyRating").text = "Accuracy: %s" % stats.accuracy_rating
+    # final_window.get_node("SpeedRating").text = "Speed: %s" % stats.speed_rating
+    # final_window.get_node("StyleRating").text = "Style: %s" % stats.style_rating
+    # final_window.get_node("AccuracyRating").text = "Accuracy: %s" % stats.accuracy_rating
 
     await get_tree().process_frame
     Editor.view.pre_sub_window_show()
     final_window.get_node('Title').grab_focus()
-    final_window.start_loading_stats()
+    var stats = creative_mode.get_stats()
+    final_window.start_loading_stats(stats)
 
 func _on_final_close_pressed() -> void:
     final_window.hide()

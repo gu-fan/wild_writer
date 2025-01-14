@@ -2,13 +2,20 @@ class_name WildEdit
 extends CodeEdit
 
 # TODO
-# 当输入input的时候，应该清掉之前的ime_compose,有时会残留
-# 当使用gfcp的时候，如果是TinyIME，其在0 col时位置会上移半格，OS IME则正常
+# FIXED 当输入input的时候，应该清掉之前的ime_compose,有时会残留 (when reset ime, clear compose)
+# FIXED 当使用gfcp的时候，如果是TinyIME，其在0 col时位置会上移半格，OS IME则正常 (not used gfcp)
 # ?ime compose bonus使用glitch text. seems not 
-# is delete (incr_error) duplicated?
-# line number gutter
+# FIXED is delete (incr_error) duplicated?
+# DONE line number gutter
 # DONE on_text_changed: Ctrl+V should consider Command+V
-# Option key in Key Capture (Option seems is Alt?)
+# FIXED Option key in Key Capture (Option seems is Alt)
+# DONE Big Boom for big delete
+# DONE laser effect
+# DONE animated text anim fix
+# settings
+# font
+# rating final
+
 
 # Input Process Direction
 # KEY_PRESSED -> gui_input -> text_changed
@@ -30,13 +37,13 @@ extends CodeEdit
 #      word OK
 #      delete OK
 #      sentence style OK
-#      Ctrl+C/V/Z/Y
+#      Ctrl+C/V/Z/Y OK
 #    chinese
 #      keys OK
 #      word OK
 #      delete OK
 #      sentence style OK
-#      Ctrl+C/V/Z/Y
+#      Ctrl+C/V/Z/Y Ok
 # 2. ime compose
 #    OS ime
 #      start   Ok
@@ -99,6 +106,7 @@ var last_key_name: String = ''
 var last_text: String = ''
 var last_caret_newline: = 0  # to detect if it's a newline
 var pre_key_name : String = ''
+var pre_unicode : String = ''
 
 const TIME_BOOM_INTERVAL = 0.1
 const TIME_CHAR_INTERVAL = 0.1
@@ -167,6 +175,8 @@ func _ready():
 
     ime.ime_buffer_changed.connect(_on_ime_buffer_changed)
 
+    await get_tree().process_frame
+    _init_gutter()
 
 func update_ime_position():
     if !is_active: return
@@ -217,8 +227,9 @@ func _on_gui_input(event):
         if event.unicode:
             last_unicode = String.chr(event.unicode)
             is_mod_key = false
+            pre_unicode = last_unicode
         else:
-            # last_unicode = ''
+            last_unicode = ''
             is_mod_key = true
         last_key_name = event.as_text_keycode()
         is_single_letter = true
@@ -228,9 +239,9 @@ func _on_gui_input(event):
         # XXX:
         # some key is not repeating 
         # if last_key_name in '1234567890FJQPXVBM' and is_mod_key:
-        if last_key_name in '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' and is_mod_key:
+        if last_key_name in '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' and is_mod_key and event.echo:
             # print('insert echo f/j ??')
-            insert_text_at_caret(last_unicode)
+            insert_text_at_caret(pre_unicode)
 
         elif last_key_name in ['Space', 'Enter'] and pre_key_name not in ['Space', 'Enter']:
             Editor.creative_mode.incr_word()
@@ -257,9 +268,9 @@ func _on_gui_input(event):
             Editor.creative_mode.incr_key()
             skip_effect = true
         elif last_key_name in ['Ctrl+V', 'Cmd+V', 'Command+V']:
-            last_text = text
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
+            last_text = text
             skip_effect = true
         elif last_key_name in ['Ctrl+D', 'Cmd+D', 'Command+D']:
             set_caret_line(caret_line+10)
@@ -344,8 +355,10 @@ func _physics_process(delta):
         position = Vector2.ZERO
 
 func _on_text_changed():
-    if skip_effect:return
     if !is_active: return
+    if skip_effect:
+        last_text = text
+        return
     prints(Util.f_msec(), 'on text changed', last_unicode, last_key_name)
 
     var len_d = len(text) - len(last_text)
@@ -361,13 +374,12 @@ func _on_text_changed():
     # if last_unicode in [" ", ".", ",", "!", "?", ";", ":", "\n"]:
     #     is_word_complete = true
     # Editor.creative_mode.update_style_stats(current_text, is_word_complete)
-    
     var is_text_updated = false
     if len_d < 0 and _time_b > TIME_BOOM_INTERVAL:
         is_text_updated = true
         _dc(abs(len_d)*3)
         _show_boom_extra(len_d)
-    else: # len_d == 0, it's changed by other words
+    elif len_d > 0: # len_d == 0, it's changed by other words
         var thing = Blip.instantiate()
         thing.pitch_increase = pitch_increase
         pitch_increase += 1.0
@@ -415,6 +427,8 @@ func _on_text_changed():
     caret_line = cur_caret_line
     caret_column = cur_caret_col
     prints('TEXT CHANGED updated', is_text_updated, last_unicode, len_d)
+    update_gutter()
+
 
 func _on_caret_changed():
     last_caret_line = caret_line
@@ -691,7 +705,8 @@ func _handle_ime_finish():
         # thing.last_key = ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty
         # add_child.call_deferred(thing)
 
-        _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false, {audio=false})
+        # _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false, {audio=false})
+        _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false)
         # note: we should split the word with 
         var word_len = Editor.creative_mode.get_paragraph_word_length_cjk(ime_state.input_sequence)
         prints('got word len', word_len, ime_state.input_sequence)
@@ -845,14 +860,16 @@ func _show_multi_char(s: String, f: bool = false, params = {}) -> void:
     var x = 0.0
     var o = []
     for c in s: x += h * (2 if c.unicode_at(0) > 127 else 1); o.append(x)
-    var p = get_caret_draw_pos() + Vector2(0, -get_line_height()/2.0) + Vector2(x, 0) if f else Vector2.ZERO
+    # var p = get_caret_draw_pos() + Vector2(0, -get_line_height()/2.0) + Vector2(x, 0) if f else Vector2.ZERO
+    var p = _gfcp() + Vector2(x, 0) if f else Vector2.ZERO
     for i in l: _show_char_force(s[i], t * i / l, -x + o[i], p, params)
 
 func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
     await get_tree().process_frame
     if p == Vector2.ZERO:
         var line_height = get_line_height()
-        p = get_caret_draw_pos() + Vector2(0,-line_height/2.0)
+        # p = get_caret_draw_pos() + Vector2(0,-line_height/2.0)
+        p = _gfcp()
     if params.has('position'): p = params.position
     if d: await get_tree().create_timer(d).timeout
     
@@ -865,7 +882,8 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
         thing.char_offset = Vector2(x, 0)
         thing.destroy = true
         if d:
-            thing.audio = params.get('audio', effects.audio)
+            # thing.audio = params.get('audio', effects.audio)
+            thing.audio = false
             thing.blips = false
         else:
             thing.audio = params.get('audio', effects.audio)
@@ -881,9 +899,11 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
             3: _ss(0.05, 6)
         
 func _is_ascii(c):
+    if c.is_empty(): return true
     # return c.unicode_at(0) <= 127
     return c.unicode_at(0) <= 0x3000
 func _is_cjk(c):
+    if c.is_empty(): return false
     var v = c.unicode_at(0)
     return v >= 0x3000 and v <= 0x9FFF
     # return v >= 0x4E00 and v <= 0x9FFF
@@ -1007,24 +1027,24 @@ func _show_boom_extra(delta=0):
             thing.last_key = ''
             thing.audio = effects.audio
             thing.blips = effects.particles
-            print('add extra boom at y')
             # thing.scale = Vector2.ONE
             thing.animation = '2'
-            thing.particle_scale = 3
-            thing.sprite_scale = 3
+            thing.particle_scale = 2
+            thing.sprite_scale = 2
             add_child(thing)
             has_explode = true
-        elif abs(caret_pos.x - last_caret_pos.x) > 100:
-            thing = Boom.instantiate()
-            thing.position =  (last_caret_pos + caret_pos) / 2.0
-            thing.destroy = true
-            thing.last_key = ''
-            thing.audio = effects.audio
-            thing.blips = effects.particles
-            thing.sprite_scale = Vector2.ONE * 1.5
-            # thing.scale.x = 2.0
-            add_child(thing)
-            has_explode = true
+        # elif abs(caret_pos.x - last_caret_pos.x) > 100:
+        #     thing = Boom.instantiate()
+        #     thing.position =  (last_caret_pos + caret_pos) / 2.0
+        #     thing.destroy = true
+        #     thing.last_key = ''
+        #     thing.audio = effects.audio
+        #     thing.blips = effects.particles
+        #     thing.sprite_scale = 1.5
+        #     thing.particle_scale = 1.5
+        #     # thing.scale.x = 2.0
+        #     add_child(thing)
+        #     has_explode = true
 
     if not has_explode:
         thing = Boom.instantiate()
@@ -1037,3 +1057,45 @@ func _show_boom_extra(delta=0):
         thing.audio = effects.audio
         thing.blips = effects.particles
         add_child(thing)
+
+# ---------------------
+var gutter_index_line = 0
+func _init_gutter():
+    # print('====== init gutter ======')
+    gutter_index_line = get_gutter_count()
+    add_gutter(gutter_index_line)
+    # for i in c:
+    #     var n = get_gutter_name(i)
+    #     if n == 'line_numbers':
+    #         gutter_index_line = i
+
+    set_gutter_type(gutter_index_line, TextEdit.GUTTER_TYPE_STRING)
+    update_gutter()
+
+var _line_number_setted = 1
+const SIZE_GUTTER_W = {
+    0: 20,
+    1: 20,
+    2: 25,
+    3: 50,
+}
+func update_gutter():
+    var line_count = get_line_count()
+    var len = str(line_count).length()
+    var font_size = Editor.config.get_basic_setting("font_size")
+    var gutter_size = SIZE_GUTTER_W[font_size]
+    set_gutter_width(gutter_index_line, max(4*gutter_size, (len+1)*gutter_size))
+    if Editor.config.get_basic_setting('line_number'):
+        for line in get_line_count():
+            var t = '%4d' % [line+1]
+            if get_line_gutter_text(line, gutter_index_line ) != t:
+                set_line_gutter_text(line, gutter_index_line, t)
+                set_line_gutter_item_color(line, gutter_index_line, '666666')
+        _line_number_setted = 1
+    else:
+        if _line_number_setted:
+            for line in get_line_count():
+                set_line_gutter_text(line, gutter_index_line, '')
+            _line_number_setted = 0
+
+# ---------------------

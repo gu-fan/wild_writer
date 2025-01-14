@@ -10,6 +10,7 @@ var chars: bool = true
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var timer: Timer = $Timer
 @onready var label: Label = $Label
+@onready var circle: Sprite2D= $Circle
 @onready var gpu_particle_2d: GPUParticles2D = $GPUParticles2D
 
 var animation = '2'
@@ -27,23 +28,33 @@ func _ready():
     elif font_size == 3: 
         extra_scale = 2
 
-    if audio:
-        audio_stream_player.pitch_scale += randf_range(-0.1, 0.1)
-        audio_stream_player.play()
-
     if blips:
-        gpu_particle_2d.process_material.scale_min = 4 * extra_scale * particle_scale
-        gpu_particle_2d.process_material.scale_max = 4 * extra_scale * particle_scale
-        gpu_particle_2d.process_material.initial_velocity_min = 900  + 40 * font_size + 100 * (particle_scale - 1 )
-        gpu_particle_2d.process_material.initial_velocity_max = 1200 +40 * font_size + 100 * (particle_scale - 1)
-        if particle_scale > 1:
-            gpu_particle_2d.lifetime = 0.9
-        gpu_particle_2d.emitting = true
-        animated_sprite_2d.show()
-        animated_sprite_2d.frame = 0
-        # animated_sprite_2d.play("1")
-        animated_sprite_2d.play(animation)
-        animated_sprite_2d.scale = Vector2(3, 3) * extra_scale * sprite_scale
+        TwnLite.at(circle).tween({
+            prop='self_modulate:a',
+            from=1.0,
+            to=0.0,
+            dur=0.12,
+            parallel=true,
+            ease=Tween.EASE_IN,
+            trans=Tween.TRANS_QUAD,
+        # }).tween({
+        #     prop='modulate',
+        #     from=Color('33FFFF'),
+        #     to=Color('FF3333'),
+        #     dur=0.13,
+        #     parallel=true,
+        }).tween({
+            prop='scale',
+            from=Vector2(3, 3)*extra_scale,
+            to=Vector2(1, 1)*extra_scale,
+            dur=0.14,
+            parallel=true,
+            ease=Tween.EASE_OUT,
+            trans=Tween.TRANS_QUAD,
+        })
+        Util.wait(0.08, _play_animation.bind(font_size, extra_scale))
+    else:
+        circle.modulate.a = 0
 
     if chars:
         label.set("theme_override_font_sizes/font_size", 96)
@@ -88,3 +99,21 @@ func _ready():
 func _on_Timer_timeout():
     if destroy:
         queue_free()
+
+func _play_animation(font_size, extra_scale):
+    animated_sprite_2d.show()
+    animated_sprite_2d.frame = 0
+    animated_sprite_2d.play(animation)
+    animated_sprite_2d.scale = Vector2(4, 4) * extra_scale * sprite_scale
+
+    gpu_particle_2d.process_material.scale_min = 4 * extra_scale * particle_scale
+    gpu_particle_2d.process_material.scale_max = 4 * extra_scale * particle_scale
+    gpu_particle_2d.process_material.initial_velocity_min = 1100  + 40 * font_size + 100 * (particle_scale - 1 )
+    gpu_particle_2d.process_material.initial_velocity_max = 1400 + 40 * font_size + 100 * (particle_scale - 1)
+    if particle_scale > 1:
+        gpu_particle_2d.lifetime = 0.9
+    gpu_particle_2d.emitting = true
+
+    if audio:
+        audio_stream_player.pitch_scale += randf_range(-0.1, 0.1)
+        audio_stream_player.play()

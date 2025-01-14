@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cmujtnd5lbedv"
+path="res://.godot/imported/Tech Appear.wav-eb960478d0b4ebe61f910d0074d92fdf.sample"
+
+[deps]
+
+source_file="res://scenes/creative_mode/Tech Appear.wav"
+dest_files=["res://.godot/imported/Tech Appear.wav-eb960478d0b4ebe61f910d0074d92fdf.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0

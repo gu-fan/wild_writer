@@ -24,10 +24,12 @@ func _ready():
         extra_scale = 2
 
     if audio:
-        audio_stream_player.stream = load(Rnd.pick(['res://temp/sfx/punch1.ogg', 'res://temp/sfx/punch2.ogg','res://temp/sfx/punch3.ogg']))
+        # audio_stream_player.stream = load(Rnd.pick(['res://temp/sfx/punch1.ogg', 'res://temp/sfx/punch2.ogg','res://temp/sfx/punch3.ogg']))
         # audio_stream_player.pitch_scale = 1.0 + pitch_increase * 0.01
-        audio_stream_player.pitch_scale = 1.0 + Rnd.rangef(-0.1, 0.1)
+        # audio_stream_player.pitch_scale += Rnd.rangef(-0.02, 0.02)
+        audio_stream_player.pitch_scale = 1.0 + Rnd.rangef(-0.02, 0.02)
         audio_stream_player.play()
+        print('pitch', audio_stream_player.pitch_scale)
     
     if blips:
         animated_sprite_2d.frame = 0
