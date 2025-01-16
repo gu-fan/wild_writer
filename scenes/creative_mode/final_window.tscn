@@ -61,7 +61,7 @@ offset_right = 550.0
 offset_bottom = 135.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Total Time: 8:12"
+text = "Total Time: 00:00"
 vertical_alignment = 1
 
 [node name="TotalWord" type="Label" parent="."]
@@ -72,7 +72,7 @@ offset_right = 550.0
 offset_bottom = 165.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Total Word: 73"
+text = "Total Word: 0"
 vertical_alignment = 1
 
 [node name="MaxCombo" type="Label" parent="."]
@@ -83,7 +83,7 @@ offset_right = 550.0
 offset_bottom = 195.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Max Combo: 173"
+text = "Max Combo: 0"
 vertical_alignment = 1
 
 [node name="SpeedRating2" type="Label" parent="."]
@@ -112,7 +112,7 @@ offset_right = 670.0
 offset_bottom = 241.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "KPM: 771"
+text = "KPM: 0"
 vertical_alignment = 1
 
 [node name="WPM" type="Label" parent="."]
@@ -123,7 +123,7 @@ offset_right = 670.0
 offset_bottom = 271.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "WPM: 731"
+text = "WPM: 0"
 vertical_alignment = 1
 
 [node name="StyleRating2" type="Label" parent="."]
@@ -152,7 +152,7 @@ offset_right = 660.0
 offset_bottom = 321.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Natural: 85
+text = "Natural: 0
 "
 vertical_alignment = 1
 
@@ -164,7 +164,7 @@ offset_right = 662.0
 offset_bottom = 352.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Repeat: 85
+text = "Repeat: 0
 "
 vertical_alignment = 1
 
@@ -176,7 +176,7 @@ offset_right = 630.0
 offset_bottom = 380.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Punctuation: 85
+text = "Punctuation: 0
 "
 vertical_alignment = 1
 
@@ -188,7 +188,7 @@ offset_right = 660.0
 offset_bottom = 408.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Rhythm: 73"
+text = "Rhythm: 0"
 vertical_alignment = 1
 
 [node name="AccuracyRating2" type="Label" parent="."]
@@ -217,7 +217,7 @@ offset_right = 630.0
 offset_bottom = 465.0
 theme_override_fonts/font = ExtResource("2_rex7o")
 theme_override_font_sizes/font_size = 24
-text = "Accuracy: 98.1%"
+text = "Accuracy: 0.0%"
 vertical_alignment = 1
 
 [node name="FinalLabel" type="Label" parent="."]
@@ -267,7 +267,7 @@ text = "OK"
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_t588d")
-volume_db = -5.0
+volume_db = -10.0
 pitch_scale = 0.95
 max_polyphony = 3
 
@@ -279,4 +279,4 @@ pitch_scale = 1.1
 [node name="AudioStreamPlayer3" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("7_755l6")
 volume_db = 3.0
-pitch_scale = 1.1
+pitch_scale = 1.08

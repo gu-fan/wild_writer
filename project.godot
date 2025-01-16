@@ -74,7 +74,7 @@ setting={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://translations/text.en.translation", "res://translations/text.es.translation", "res://translations/text.ja.translation", "res://translations/text.ru.translation", "res://translations/text.zh.translation")
+locale/translations=PackedStringArray("res://translations/en/en.po", "res://translations/zh/zh.po")
 
 [rendering]
 

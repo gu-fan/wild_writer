@@ -18,7 +18,6 @@ func show_save_dialog() -> void:
     file_dialog.filters = TXT_FILES
     file_dialog.popup_centered()
 
-
     if DirAccess.dir_exists_absolute(dir):
         if dir.right(1) != '/':
             file_dialog.current_dir = dir + '/'
@@ -36,7 +35,6 @@ func show_save_dialog() -> void:
         emit_signal('file_selected', '')
         file_dialog.queue_free()
     )
-
 
 func show_open_dialog(file_path='') -> void:
     var file_dialog = FileDialog.new()

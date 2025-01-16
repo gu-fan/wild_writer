@@ -1,21 +1,7 @@
 class_name WildEdit
 extends CodeEdit
 
-# TODO
-# FIXED 当输入input的时候，应该清掉之前的ime_compose,有时会残留 (when reset ime, clear compose)
-# FIXED 当使用gfcp的时候，如果是TinyIME，其在0 col时位置会上移半格，OS IME则正常 (not used gfcp)
-# ?ime compose bonus使用glitch text. seems not 
-# FIXED is delete (incr_error) duplicated?
-# DONE line number gutter
-# DONE on_text_changed: Ctrl+V should consider Command+V
-# FIXED Option key in Key Capture (Option seems is Alt)
-# DONE Big Boom for big delete
-# DONE laser effect
-# DONE animated text anim fix
-# settings
-# font
-# rating final
-
+signal changed
 
 # Input Process Direction
 # KEY_PRESSED -> gui_input -> text_changed
@@ -67,6 +53,12 @@ extends CodeEdit
 # 4. emojis (next version)
 
 var is_active = false
+var is_dirty = false
+var document: DocumentManager.Document = null  :
+    set(v):
+        document = v
+        text = document.content
+        reset_editor_stats()
 
 const Boom: PackedScene    = preload("res://effects/boom.tscn")
 const BoomBig: PackedScene    = preload("res://effects/boom_big.tscn")
@@ -273,32 +265,32 @@ func _on_gui_input(event):
             last_text = text
             skip_effect = true
         elif last_key_name in ['Ctrl+D', 'Cmd+D', 'Command+D']:
-            set_caret_line(caret_line+10)
+            move_caret_line(10)
             skip_effect = true
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
         elif last_key_name in ['Ctrl+U', 'Cmd+U', 'Command+U']:
-            set_caret_line(caret_line-10)
+            move_caret_line(-10)
             skip_effect = true
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
         elif last_key_name in ['Ctrl+J', 'Cmd+J', 'Command+J']:
-            set_caret_line(caret_line+1)
+            move_caret_line(1)
             skip_effect = true
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
         elif last_key_name in ['Ctrl+K', 'Cmd+K', 'Command+K']:
-            set_caret_line(caret_line-1)
+            move_caret_line(-1)
             skip_effect = true
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
         elif last_key_name in ['Ctrl+H', 'Cmd+H', 'Command+H']:
-            set_caret_column(caret_column-1)
+            move_caret_column(-1)
             skip_effect = true
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
         elif last_key_name in ['Ctrl+L', 'Cmd+L', 'Command+L']:
-            set_caret_column(caret_column+1)
+            move_caret_column(1)
             skip_effect = true
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
@@ -355,11 +347,12 @@ func _physics_process(delta):
         position = Vector2.ZERO
 
 func _on_text_changed():
+    is_dirty = true
     if !is_active: return
+    emit_signal('changed')
     if skip_effect:
         last_text = text
         return
-    prints(Util.f_msec(), 'on text changed', last_unicode, last_key_name)
 
     var len_d = len(text) - len(last_text)
     var pos = _gfcp() 
@@ -402,6 +395,7 @@ func _on_text_changed():
                 3: _ss(0.05, 6)
 
     if cur_caret_line != last_caret_newline:
+        var combo_count = _get_combo_count()
         if effects.newline:
             var thing = Newline.instantiate()
             thing.position = pos 
@@ -416,7 +410,6 @@ func _on_text_changed():
 
         last_line = get_line(last_caret_line)
         Editor.creative_mode.update_combo(last_line)
-        print('last_line', last_line)
 
         pitch_increase = 0.0
         is_text_updated = true
@@ -426,9 +419,7 @@ func _on_text_changed():
     if is_text_updated: last_text = text
     caret_line = cur_caret_line
     caret_column = cur_caret_col
-    prints('TEXT CHANGED updated', is_text_updated, last_unicode, len_d)
-    update_gutter()
-
+    prints(Util.f_msec(), 'TEXT CHANGED UPDATED', is_text_updated, last_unicode, len_d, last_key_name)
 
 func _on_caret_changed():
     last_caret_line = caret_line
@@ -438,6 +429,7 @@ func _on_caret_changed():
     caret_pos = _gfcp()
     prints(Util.f_msec(), 'caret_changed', caret_line, caret_column, caret_pos)
     ime_state.first_input = ""
+    update_gutter()
 
 func _gfcp():
     var cp = get_caret_draw_pos()
@@ -457,7 +449,6 @@ func _ccnin():
         if _is_combo_rating_shown: 
             combo_node.modulate.a = 0.0
 
-
 func _ic(n=1, delay=0):
     if delay: await get_tree().create_timer(delay).timeout
     if effects.combo:
@@ -474,10 +465,10 @@ func _dc(n=1):
 func _fc(pos):
     if effects.combo:
         if combo_node:
+            pitch_increase = 0
             var count = combo_node.combo_count
-            prints('finish combo', count, effects.combo_shot, EffectLaser.can_finish_combo(count), last_key_name=='Enter', last_unicode, last_key_name)
+            prints(Util.f_msec(), 'finish combo', count, effects.combo_shot, EffectLaser.can_finish_combo(count), last_key_name=='Enter', last_unicode, last_key_name)
             if effects.combo_shot and EffectLaser.can_finish_combo(count) and last_key_name == 'Enter':
-                print('create laser')
                 var thing = Laser.instantiate()
                 thing.count = count
                 thing.audio = effects.audio
@@ -489,6 +480,12 @@ func _fc(pos):
             TwnLite.at(combo_node).tween({prop='modulate:a', to=0.0, dur=0.3}).callee(combo_node.queue_free)
             combo_node = null
 
+func _get_combo_count():
+    var count = 0
+    if effects.combo:
+        if combo_node:
+            count = combo_node.combo_count
+    return count
 func _rc():
     pitch_increase = 0
     if effects.combo:
@@ -810,7 +807,7 @@ func _otc():
     if skip_effect:return
     var o=caret_line
     var p=caret_column
-    print(Util.f_msec(), 'OTC char', last_key_name)
+    # NOTE: here the caret_line is before caret_change
     caret_line=get_caret_line()
     caret_column=get_caret_column()
     last_line=get_line(caret_line)
@@ -820,7 +817,7 @@ func _otc():
             var _last = last_line.substr(p,caret_column-p)
             # _show_multi_char(_last)
             # _incr_multi_combo(_last)
-            print('OTC captured, not print now', _last)
+            print(Util.f_msec(), 'OTC captured, not print now', _last)
             # emit_signal('typing')
             # update_editor_stats()
             last_unicode=''
@@ -853,6 +850,8 @@ func _incr_multi_combo(s, mul=3):
         _ic(1 if _is_ascii(k) else mul, t * i / n)
         i += 1
 
+func show_multi_char(s):
+    _show_multi_char(s)
 func _show_multi_char(s: String, f: bool = false, params = {}) -> void:
     var l = s.length()
     var t = 0.22 + (0.28 if l > 7 else l * 0.04)
@@ -864,10 +863,27 @@ func _show_multi_char(s: String, f: bool = false, params = {}) -> void:
     var p = _gfcp() + Vector2(x, 0) if f else Vector2.ZERO
     for i in l: _show_char_force(s[i], t * i / l, -x + o[i], p, params)
 
+func show_char(t, d=0.0):
+    await get_tree().process_frame
+    if d: await get_tree().create_timer(d).timeout
+    var p = _gfcp()
+    
+    if effects.chars: 
+        var thing = Blip.instantiate()
+        thing.pitch_increase = pitch_increase
+        pitch_increase += 1.0
+        pitch_increase = min(pitch_increase, 999)
+        thing.position = p
+        thing.destroy = true
+        thing.audio = effects.audio
+        thing.blips = effects.particles
+        thing.last_key = t
+        add_child(thing)
+
 func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
     await get_tree().process_frame
     if p == Vector2.ZERO:
-        var line_height = get_line_height()
+        # var line_height = get_line_height()
         # p = get_caret_draw_pos() + Vector2(0,-line_height/2.0)
         p = _gfcp()
     if params.has('position'): p = params.position
@@ -1099,3 +1115,66 @@ func update_gutter():
             _line_number_setted = 0
 
 # ---------------------
+func update_editor_stats():
+    update_gutter()
+func reset_editor_stats():
+    # await get_tree().process_frame
+    clear_undo_history()
+    set_caret_line(0)
+    set_caret_column(0)
+    last_text = text
+    last_line = ''
+    last_unicode = ''
+    last_key_name = ''
+    caret_line = get_caret_line()
+    caret_column = get_caret_column()
+    caret_pos = Vector2.ZERO
+    last_caret_line = caret_line
+    last_caret_newline = caret_line
+    last_caret_pos = Vector2.ZERO
+    is_dirty = false
+    _rc()
+    update_gutter()
+
+func move_caret_to_file_start():
+    set_caret_line(0)
+    set_caret_column(0)
+    caret_line = 0
+    caret_column = 0
+    last_caret_line = 0
+    last_caret_newline = 0
+    _rc()
+func move_caret_to_file_end():
+    var line = get_line_count() - 1
+    var line_str = get_line(line)
+    var col = line_str.length()
+    set_caret_line(line)
+    set_caret_column(col)
+    caret_line = line
+    caret_column = col
+    last_caret_line = line
+    last_caret_newline = line
+    _rc()
+
+func move_caret_to_line_start():
+    set_caret_column(0)
+    caret_column = 0
+func move_caret_to_line_end():
+    var line = get_caret_line()
+    var line_str = get_line(line)
+    var col = line_str.length()
+    set_caret_column(col)
+    caret_column = col
+
+func move_caret_line(count):
+    var n = caret_line+count
+    set_caret_line(n)
+    caret_line = get_caret_line()
+    last_caret_line = caret_line
+    last_caret_newline = caret_line
+    _rc()
+
+func move_caret_column(count):
+    var n = caret_column+count
+    set_caret_column(n)
+    caret_column = get_caret_column()

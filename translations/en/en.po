@@ -1,0 +1,67 @@
+# Don't remove the two lines below, they're required for gettext to work correctly.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Example of a regular string.
+msgid "TAB_BASIC"
+msgstr "Basic"
+
+msgid "TAB_INTERFACE"
+msgstr "Interface"
+
+msgid "TAB_EFFECT"
+msgstr "Effects"
+
+msgid "TAB_SHORTCUT"
+msgstr "Key Mapping"
+
+msgid "TAB_IME"
+msgstr "Input Method"
+
+msgid "TAB_ABOUT"
+msgstr "About"
+
+# --------
+
+msgid "LANGUAGE"
+msgstr "Language"
+
+msgid "AUTO_OPEN_RECENT"
+msgstr "Auto open recent file"
+
+msgid "AUTO_OPEN_RECENT_DESC"
+msgstr "auto open recent edit file after initalized"
+
+msgid "AUTO_SAVE"
+msgstr "Auto save"
+
+msgid "AUTO_SAVE_DESC"
+msgstr "auto save in every 60s"
+
+msgid "SHOW_CHAR_COUNT"
+msgstr "Show word count"
+
+msgid "LINE_WRAP"
+msgstr "Line auto wrap"
+
+msgid "LINE_WRAP_DESC"
+msgstr "auto wrap if one line is too long"
+
+msgid "LINE_NUMBER"
+msgstr "Line number"
+
+msgid "HIGHLIGHT_LINE"
+msgstr "Highlight current line"
+
+# --------
+# --------
+msgid "FILE_OPENED"
+msgstr "file opened"

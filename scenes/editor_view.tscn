@@ -51,7 +51,6 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
 drag_and_drop_selection_enabled = false
-wrap_mode = 1
 autowrap_mode = 1
 caret_blink = true
 caret_move_on_right_click = false

@@ -422,7 +422,6 @@ func feed_ime_input(key):
     update_editor_stats()
 
 func update_editor_stats():
-    # update editor
     editors[editor]["text"] = editor.text
     editors[editor]["line"] = editor.get_caret_line()
     update_gutter()

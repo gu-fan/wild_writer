@@ -24,6 +24,8 @@ func load_dictionary(path: String) -> void:
     if not file:
         print("Failed to load pinyin dictionary: ", path)
         return
+
+    var start_time = Time.get_ticks_msec()
     
     var count = 0
     while !file.eof_reached():
@@ -58,7 +60,7 @@ func load_dictionary(path: String) -> void:
         trie.insert(pinyin, char, freq)
         count += 1
     
-    print("Loaded %d entries from dictionary" % count)
+    print("%s PINYIN DICT: Loaded %d entries in %d ms" % [Util.f_msec(), count, (Time.get_ticks_msec() - start_time)])
 
 # 更新候选词列表
 func update_candidates(context: CompositionContext) -> void:

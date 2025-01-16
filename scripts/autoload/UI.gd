@@ -219,7 +219,7 @@ func get_font_color(_nd:Node):
 func set_image(_nd:Node, img_data):
     UISetNode.set_image(_nd, img_data)
 # ------------------------------------
-func toggle_node_from_raw(raw, params={}, _internal_mode=0) -> void:
+func toggle_node_from_raw(raw, params={}, _internal_mode=0):
     var nd = get_node_or_null_from_raw(raw, params, _internal_mode)
     if nd:
         if nd.visible:
@@ -228,6 +228,8 @@ func toggle_node_from_raw(raw, params={}, _internal_mode=0) -> void:
             nd.show()
     else:
         nd = create_node_from_raw(raw, params, _internal_mode)
+    return nd
+# ------------------------------------
 # Create Node in UICreateNode
 func transition_node_from_raw(raw, params={}, _internal_mode=0) -> void:
     var nd = get_node_or_null_from_raw(raw, params, _internal_mode)
@@ -603,3 +605,24 @@ func _set_initial_state(node: Node) -> void:
         var prop = trans_in.get("prop", "modulate:a")
         var from = trans_in.get("from", 0.0)
         _set_property(node, prop, from)
+
+
+# ------------------
+func show_dialog(title, text, confirm_callback):
+    var dialog = ConfirmationDialog.new()
+    dialog.title = title
+    dialog.dialog_text = text
+    dialog.ok_button_text = "OK"
+    dialog.cancel_button_text = "CANCEL"
+    dialog.confirmed.connect(func():
+        confirm_callback.call()
+        dialog.queue_free()
+    )
+    
+    dialog.canceled.connect(func():
+        dialog.queue_free()
+    )
+    
+    get_tree().root.add_child(dialog)
+    dialog.popup_centered()
+

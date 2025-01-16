@@ -190,6 +190,8 @@ static func get_flat_style(params={}):
     var style = StyleBoxFlat.new()
     style.anti_aliasing = false
     style.bg_color = params.get('bg_color', G.COLOR_UI_BG)
+    if params.get('background_color'): style.bg_color = params.background_color
+    elif params.get('background'): style.bg_color = params.background
 
     var expand_margin = params.get('expand_margin')
     if expand_margin:

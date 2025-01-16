@@ -11,10 +11,10 @@ const _data = {
                 'type':'MarginContainer',
                 'preset':UI.PRESET_FULL_RECT,
                 'margin':{
-                    left=80,
-                    right=80,
-                    top=80,
-                    bottom=80,
+                    left=20,
+                    right=20,
+                    top=20,
+                    bottom=20,
                 },
                 'transition_in': {
                     'prop': 'scale:x',
@@ -30,38 +30,158 @@ const _data = {
                 },
                 'child':{
                     name='Background',
-                    type='ColorRect',
-                    color ='333399',
+                    type='Control',
+                    # color ='333399',
                     # custom_minimum_size = Vector2(80, 80),
                     child={
                         name='TabContainer',
                         type='TabContainer',
-                        custom_minimum_size=Vector2(700, 500),
+                        custom_minimum_size=Vector2(700, 600),
                         preset=UI.PRESET_CENTER,
                         children={
                             'TAB_BASIC':{
-                                type='ColorRect',
-                                color='993333',
+                                type = 'Control',
                                 child={
-                                    name='Margin',
-                                    type='MarginContainer',
+                                    name='Scroll',
+                                    type='ScrollContainer',
+                                    horizontal_scroll_mode = 0,
                                     preset=UI.PRESET_FULL_RECT,
-                                    margin={
-                                        left=20,
-                                        right=20,
-                                        top=20,
-                                        bottom=20,
-                                    },
                                     child={
-                                        name='VBox',
-                                        type='VBoxContainer',
-                                        preset=UI.PRESET_FULL_RECT,
+                                        name='Margin',
+                                        type='MarginContainer',
+                                        size_flags_vertical = Control.SIZE_EXPAND_FILL,
+                                        margin={
+                                            left=20,
+                                            right=20,
+                                            top=20,
+                                            bottom=5,
+                                        },
+                                        child={
+                                            name='VBox',
+                                            type='VBoxContainer',
+                                        },
                                     }
                                 },
                             },
-                            'TAB_KEY':{
-                                type='ColorRect',
-                                color='339933',
+                            'TAB_INTERFACE':{
+                                type = 'Control',
+                                child={
+                                    name='Scroll',
+                                    type='ScrollContainer',
+                                    horizontal_scroll_mode = 0,
+                                    preset=UI.PRESET_FULL_RECT,
+                                    child={
+                                        name='Margin',
+                                        type='MarginContainer',
+                                        size_flags_vertical = Control.SIZE_EXPAND_FILL,
+                                        margin={
+                                            left=20,
+                                            right=20,
+                                            top=20,
+                                            bottom=5,
+                                        },
+                                        child={
+                                            name='VBox',
+                                            type='VBoxContainer',
+                                        },
+                                    }
+                                },
+                            },
+                            'TAB_EFFECT':{
+                                type = 'Control',
+                                child={
+                                    name='Scroll',
+                                    type='ScrollContainer',
+                                    horizontal_scroll_mode = 0,
+                                    preset=UI.PRESET_FULL_RECT,
+                                    child={
+                                        name='Margin',
+                                        type='MarginContainer',
+                                        size_flags_vertical = Control.SIZE_EXPAND_FILL,
+                                        margin={
+                                            left=20,
+                                            right=20,
+                                            top=20,
+                                            bottom=5,
+                                        },
+                                        child={
+                                            name='VBox',
+                                            type='VBoxContainer',
+                                        },
+                                    }
+                                },
+                            },
+                            'TAB_SHORTCUT':{
+                                type = 'Control',
+                                child={
+                                    name='Scroll',
+                                    type='ScrollContainer',
+                                    horizontal_scroll_mode = 0,
+                                    preset=UI.PRESET_FULL_RECT,
+                                    child={
+                                        name='Margin',
+                                        type='MarginContainer',
+                                        size_flags_vertical = Control.SIZE_EXPAND_FILL,
+                                        margin={
+                                            left=20,
+                                            right=20,
+                                            top=20,
+                                            bottom=5,
+                                        },
+                                        child={
+                                            name='VBox',
+                                            type='VBoxContainer',
+                                        },
+                                    }
+                                },
+                            },
+                            'TAB_IME': {
+                                type = 'Control',
+                                child={
+                                    name='Scroll',
+                                    type='ScrollContainer',
+                                    horizontal_scroll_mode = 0,
+                                    preset=UI.PRESET_FULL_RECT,
+                                    child={
+                                        name='Margin',
+                                        type='MarginContainer',
+                                        size_flags_vertical = Control.SIZE_EXPAND_FILL,
+                                        margin={
+                                            left=20,
+                                            right=20,
+                                            top=20,
+                                            bottom=5,
+                                        },
+                                        child={
+                                            name='VBox',
+                                            type='VBoxContainer',
+                                        },
+                                    }
+                                },
+                            },
+                            'TAB_ABOUT': {
+                                type = 'Control',
+                                child={
+                                    name='Scroll',
+                                    type='ScrollContainer',
+                                    horizontal_scroll_mode = 0,
+                                    preset=UI.PRESET_FULL_RECT,
+                                    child={
+                                        name='Margin',
+                                        type='MarginContainer',
+                                        size_flags_vertical = Control.SIZE_EXPAND_FILL,
+                                        margin={
+                                            left=20,
+                                            right=20,
+                                            top=20,
+                                            bottom=5,
+                                        },
+                                        child={
+                                            name='VBox',
+                                            type='VBoxContainer',
+                                        },
+                                    }
+                                },
                             },
                         },
                     },

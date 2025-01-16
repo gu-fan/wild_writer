@@ -6,6 +6,8 @@ var core: EditorCore
 var motions: EditorMotions
 var executions: EditorExecutions
 
+const Toast: PackedScene   = preload("res://scenes/toast.tscn")
+
 @onready var split_container: HSplitContainer = $VBoxContainer/MarginContainer/SplitContainer
 @onready var primary_container: VBoxContainer = $VBoxContainer/MarginContainer/SplitContainer/PrimaryContainer
 @onready var secondary_container: VBoxContainer = $VBoxContainer/MarginContainer/SplitContainer/SecondaryContainer
@@ -17,7 +19,7 @@ var executions: EditorExecutions
 @onready var status: Label = $VBoxContainer/Panel/HBoxContainer/Status
 @onready var debug: Button = $VBoxContainer/Panel/HBoxContainer/Debug
 @onready var locale: Button = $VBoxContainer/Panel/HBoxContainer/Locale
-@onready var count: Label = $VBoxContainer/Panel/HBoxContainer/Count
+@onready var lb_count: Label = $VBoxContainer/Panel/HBoxContainer/Count
 @onready var lb_ime: Button = $VBoxContainer/Panel/HBoxContainer/IME
 @onready var file: Button = $VBoxContainer/Panel/HBoxContainer/File
 @onready var setting: Button = $VBoxContainer/Panel/HBoxContainer/Setting
@@ -35,10 +37,12 @@ var last_focused_editor: TextEdit = null :
             last_focused_editor = te
             if last_focused_editor: last_focused_editor.is_active = true
         
-var current_file_path: String = ""
-var current_command_window: CommandWindow = null
+var current_motion_window: MotionWindow = null
 var current_execution_window: ExecutionWindow = null
 var current_file_dialog: FileDialog = null
+
+const AUTOSAVE_INTERVAL = 60.0  # 自动保存间隔（秒）
+var autosave_timer: Timer
 
 func init():
     
@@ -48,6 +52,9 @@ func init():
     # 初始化命令系统
     motions = EditorMotions.new(self)
     executions =  EditorExecutions.new(self)
+
+    autosave_timer = Timer.new()
+    add_child(autosave_timer)
     
     # 初始化视图
     setup_view()
@@ -62,27 +69,32 @@ func init():
     core.config_manager.load_config()
     core.config_manager.build_ui()
 
-    subscribe_configs()
     
     last_focused_editor = text_edit
-    
-    # 检查是否需要自动打开最近的文件
-    if core.config_manager.get_basic_setting("auto_open_recent"):
-        var recent_file = core.config_manager.get_basic_setting("recent_file")
-        if recent_file and FileAccess.file_exists(recent_file):
-            open_document_from_path(recent_file)
-            
-            # 恢复光标位置
-            var caret_line = core.config_manager.get_basic_setting("backup_caret_line")
-            var caret_col = core.config_manager.get_basic_setting("backup_caret_col")
-            if last_focused_editor:
-                last_focused_editor.set_caret_line(caret_line)
-                last_focused_editor.set_caret_column(caret_col)
-                last_focused_editor.center_viewport_to_caret()
+    last_focused_editor.document = core.document_manager.new_document()
 
+    
+    # # 检查是否需要自动打开最近的文件
+    # if core.config_manager.get_basic_setting("auto_open_recent"):
+    #     var recent_file = core.config_manager.get_basic_setting("recent_file")
+    #     if recent_file and FileAccess.file_exists(recent_file):
+    #         open_document_from_path(recent_file)
+            
+    #         # 恢复光标位置
+    #         var caret_line = core.config_manager.get_basic_setting("backup_caret_line")
+    #         var caret_col = core.config_manager.get_basic_setting("backup_caret_col")
+    #         if last_focused_editor:
+    #             last_focused_editor.set_caret_line(caret_line)
+    #             last_focused_editor.set_caret_column(caret_col)
+    #             last_focused_editor.center_viewport_to_caret()
+
+
+    subscribe_configs()
 
     await get_tree().create_timer(0.1).timeout
     last_focused_editor.call_deferred('grab_focus')
+
+    autosave_timer.timeout.connect(_on_autosave_timeout)
     
 func setup_view() -> void:
     # 设置编辑器基本属性
@@ -93,6 +105,8 @@ func setup_view() -> void:
     text_edit_secondary.wrap_mode = text_edit.wrap_mode
     text_edit_secondary.gutters_draw_line_numbers = text_edit.gutters_draw_line_numbers
     text_edit_secondary.highlight_current_line = text_edit.highlight_current_line
+    text_edit.changed.connect(update_status_bar.bind(text_edit))
+    text_edit_secondary.changed.connect(update_status_bar.bind(text_edit_secondary))
 
     
     # 初始隐藏第二编辑器
@@ -108,22 +122,16 @@ func setup_view() -> void:
     timer_fps.timeout.connect(_on_timer_fps_timeout)
     add_child(timer_fps)
 
-    var count = text_edit.get_gutter_count()
-    for i in count:
-        var gut_name = text_edit.get_gutter_name(i)
-        print(text_edit.get_gutter_name(i))
-        print(text_edit.get_gutter_type(i))
-        print(text_edit.get_gutter_width(i))
-        if gut_name == 'line_numbers':
-            var gutter_size = 20
-            var gutter_size_fin = max(4*gutter_size, (3+1)*gutter_size)
-            text_edit.set_gutter_width(i, gutter_size_fin)
-            print(text_edit.get_gutter_width(i))
+    # var count = text_edit.get_gutter_count()
+    # for i in count:
+    #     var gut_name = text_edit.get_gutter_name(i)
+    #     if gut_name == 'line_numbers':
+    #         var gutter_size = 20
+    #         var gutter_size_fin = max(4*gutter_size, (3+1)*gutter_size)
+    #         text_edit.set_gutter_width(i, gutter_size_fin)
 
     Editor.main.creative_mode_view.combo_rating_changed.connect(text_edit._on_combo_rating_vis_changed)
     Editor.main.creative_mode_view.combo_rating_changed.connect(text_edit_secondary._on_combo_rating_vis_changed)
-
-
 
 func connect_signals() -> void:
     text_edit.focus_entered.connect(_on_editor_focus_entered.bind(text_edit))
@@ -137,6 +145,7 @@ func setup_key_bindings() -> void:
         "show_command",
         "editorFocus"
     )
+
     
     # 添加执行窗口快捷键
     core.key_system.add_binding(
@@ -146,18 +155,62 @@ func setup_key_bindings() -> void:
     )
 
     core.key_system.add_binding(
+        ["Ctrl+1"],
+        "toggle_locale",
+        "editorFocus"
+    )
+
+    core.key_system.add_binding(
+        ["Ctrl+Apostrophe"],
+        "toggle_setting",
+        "editorFocus"
+    )
+
+    # NOTE: if is macos, use Option, else use Alt
+    core.key_system.add_binding(
         ["Option+Escape"],
         "toggle_ime",
         "editorFocus"
     )
+
+    var key_save = ''
+    # NOTE: if is macos, use Command, else use Ctrl
+    if Editor.is_macos:
+        key_save = "Command+O"
+    else:
+        key_save = "Ctrl+O"
+    core.key_system.add_binding(
+        # [key_save],
+        ["Ctrl+O"],
+        "open_document",
+        "editorFocus"
+    )
+
+    core.key_system.add_binding(
+        ["Ctrl+S"],
+        "save_document",
+        "editorFocus"
+    )
+
+    core.key_system.add_binding(
+        ["Ctrl+N"],
+        "new_document",
+        "editorFocus"
+    )
+
     core.key_system.sequence_matched.connect(_on_key_sequence_matched)
 
 func _on_key_sequence_matched(binding: KeySystem.KeyBinding) -> void:
     print("Debug - Key sequence matched:", binding.command)
     match binding.command:
-        "show_command": show_command_window()
+        "show_command":   show_command_window()
         "show_execution": show_execution_window()
-        "toggle_ime": TinyIME.toggle()
+        "toggle_ime":     TinyIME.toggle()
+        "toggle_setting": toggle_setting()
+        "toggle_locale":  toggle_locale()
+        "open_document":  open_document()
+        "save_document":  save_document()
+        "new_document":   new_document()
 
 func _on_editor_focus_entered(editor: TextEdit) -> void:
     last_focused_editor = editor
@@ -168,23 +221,23 @@ func _on_ime_state_changed(v):
         lb_ime.text  = 'EN'
 
 func show_command_window() -> void:
-    if current_command_window != null and is_instance_valid(current_command_window):
+    if current_motion_window != null and is_instance_valid(current_motion_window):
         return
     
     # last_focused_editor = text_edit if text_edit.has_focus() else text_edit_secondary if text_edit_secondary.has_focus() else null
     
-    current_command_window = preload("res://scenes/command_window.tscn").instantiate()
-    current_command_window.set_available_commands(motions.available_commands)
-    main.add_child(current_command_window)
+    current_motion_window = preload("res://scenes/motion_window.tscn").instantiate()
+    current_motion_window.set_available_commands(motions.available_commands)
+    main.add_child(current_motion_window)
     
     await get_tree().process_frame
     
     var window_size = Vector2(400, 200)
     var viewport_size = get_viewport_rect().size
-    current_command_window.position = Vector2i((viewport_size - window_size) / 2)
+    current_motion_window.position = Vector2i((viewport_size - window_size) / 2)
     
-    current_command_window.command_executed.connect(_on_command_executed)
-    current_command_window.command_canceled.connect(_on_command_canceled)
+    current_motion_window.command_executed.connect(_on_command_executed)
+    current_motion_window.command_canceled.connect(_on_command_canceled)
     
     pre_sub_window_show()
 
@@ -193,12 +246,12 @@ func _on_command_executed(command: String) -> void:
     motions.execute_command(command)
     logging('mot: %s' % [command])
     
-    current_command_window = null
+    current_motion_window = null
 
     post_sub_window_hide()
 
 func _on_command_canceled():
-    current_command_window = null
+    current_motion_window = null
     post_sub_window_hide()
 
 # 执行窗口相关函数
@@ -243,6 +296,7 @@ func pre_sub_window_show():
     text_edit.is_active = false
     text_edit_secondary.editable = false
     text_edit_secondary.is_active = false
+
 func post_sub_window_hide():
     main.mask.hide()
     text_edit.editable = true
@@ -254,8 +308,152 @@ func post_sub_window_hide():
         last_focused_editor.is_active = true
 
 # ---------------------------
+# CHECKLIST - documents
+# new
+# open
+# save
+# open_recent
+# auto_save
+# document_dir
+func open_document():
+    core.document_manager.show_file_dialog()
+    var file_path = await core.document_manager.file_selected
+    if file_path:
+        open_document_from_path(file_path)
+
+func save_document():
+    var file_path = ''
+    if get_current_file_path() == '':
+        core.document_manager.show_save_dialog()
+        file_path = await core.document_manager.file_selected
+        if file_path:
+            core.config_manager.set_basic_setting("recent_file", file_path)
+        else:
+            return
+    var document = get_current_document()
+    var content = last_focused_editor.text
+    if core.document_manager.save_document(document, content, file_path):
+        set_document_saved()
+        toast('%s\n%s' % [tr('FILE_SAVED'), DocumentManager.get_home_folded(document.file_path)])
+        show_hint('%s:%s' % [tr('FILE_SAVED') , DocumentManager.get_home_folded(document.file_path)])
+        _update_title()
+        _update_count()
+    else:
+        toast('%s\n%s' % [tr('FILE_SAVE_ERROR'), DocumentManager.get_home_folded(document.file_path)])
+
+func new_document():
+    if is_document_dirty():
+        UI.show_dialog('NOT_SAVED', 'CONTINUE_CREATE_NEW_FILE', _new_document)
+    else:
+        _new_document()
+func _new_document():
+    var doc = core.document_manager.new_document()
+    last_focused_editor.document = doc
+    _update_title()
+    _update_count()
+    toast('%s' % [tr('FILE_NEW')])
+    show_hint('%s' % [tr('FILE_NEW')])
+    core.config_manager.set_basic_setting("recent_file", '')
+
+func open_document_from_path(file_path: String) -> void:
+    var doc = core.document_manager.open_document(file_path)
+    if doc:
+        last_focused_editor.document = doc
+        last_focused_editor.move_caret_to_file_end()
+        core.config_manager.set_basic_setting("recent_file", file_path)
+        toast('%s\n%s' % [tr('FILE_OPENED'), DocumentManager.get_home_folded(file_path)])
+        show_hint('%s:%s' % [tr('FILE_OPENED') , DocumentManager.get_home_folded(file_path)])
+        _update_title()
+        _update_count()
+    else:
+        toast('%s\n%s' % [tr('FILE_OPEN_ERROR'), DocumentManager.get_home_folded(file_path)])
+
+func _update_title():
+    var d = '* ' if is_document_dirty() else ''
+    var f_p = get_current_file_path()
+    var f = f_p.get_file() if f_p else 'Untitled'
+    set_title(d+f)
+
+func _update_count():
+    lb_count.text = '%dC' % last_focused_editor.text.length() 
+
+func get_current_base_dir():
+    return last_focused_editor.document.file_path.get_base_dir()
+func get_current_file_name():
+    return last_focused_editor.document.file_path.get_file()
+func get_current_file_path():
+    return last_focused_editor.document.file_path
+func is_document_dirty():
+    return last_focused_editor.is_dirty
+func is_document_empty():
+    return last_focused_editor.text.is_empty() 
+func set_document_saved():
+    last_focused_editor.is_dirty = false
+func get_current_document():
+    return last_focused_editor.document
+
+func update_status_bar(edit):
+    if last_focused_editor == edit:
+        _update_count()
+        _update_title()
+        show_hint('')
+
+# ---------------------------
+func toast(txt):
+    var ts = Toast.instantiate()
+    add_child(ts)
+    ts.text = txt
+    UI.set_layout(ts, UI.PRESET_CENTER_TOP, Vector2(0, 60))
+    ts.pivot_offset = ts.size / 2.0
+    ts.modulate.a = 0.0
+    ts.scale = Vector2(3, 3)
+    TwnLite.at(ts).tween({
+        prop='modulate:a',
+        from=0.0,
+        to=1.0,
+        dur=0.3,
+    }).tween({
+        prop='scale',
+        from=Vector2(4, 4),
+        to=Vector2(1, 1),
+        dur=0.3,
+        parallel=true,
+        ease=Tween.EASE_OUT,
+        trans=Tween.TRANS_EXPO,
+    }).delay(3.0).tween({
+        prop='position:y',
+        from=60,
+        to=30,
+        dur=0.3,
+    }).tween({
+        prop='modulate:a',
+        from=1.0,
+        to=0.0,
+        dur=0.3,
+        parallel=true,
+    }).delay(0.3).callee(ts.queue_free)
+
+func show_hint(txt):
+    status.text = txt
+    # await get_tree().create_timer(4.0).timeout
+    # status.text = ''
+
+func set_title(file_path):
+    DisplayServer.window_set_title(file_path)
+
+func _on_autosave_timeout():
+    if get_current_file_path() != '' and is_document_dirty():
+        var document = get_current_document()
+        var content = last_focused_editor.text
+        if core.document_manager.save_document(document, content):
+            set_document_saved()
+            show_hint('%s:%s' % [tr('FILE_AUTO_SAVED') , DocumentManager.get_home_folded(document.file_path)])
+            _update_title()
+# ---------------------------
+var current_file_path: String = ""
+
 # 文件操作相关函数
-func open_document_from_path(path: String) -> void:
+func open_document_from_path2(path: String) -> void:
     if not FileAccess.file_exists(path):
         push_warning("File not found: %s" % path)
         return
@@ -279,7 +477,7 @@ func open_document_from_path(path: String) -> void:
         # 更新状态栏
         status.text = "Opened: " + path
 
-func save_document() -> void:
+func save_document2() -> void:
     if not last_focused_editor:
         return
         
@@ -338,7 +536,12 @@ func toggle_locale():
 
 func toggle_setting():
     # UI.toggle_node_from_raw('ui/settings:Settings', {parent=Editor.main.canvas})
-    UI.transition_node_from_raw('ui/settings:Settings', {parent=Editor.main.canvas})
+    var nd = UI.toggle_node_from_raw('ui/settings:Settings', {parent=Editor.main.canvas})
+    Editor.main.mask.visible = nd.visible
+    if nd.visible:
+        pre_sub_window_show()
+    else:
+        post_sub_window_hide()
 
 func toggle_debug():
     if stat_box.visible:
@@ -384,10 +587,15 @@ func logging(txt: String) -> void:
     for c in will_remove:
         log_box.remove_child(c)
         c.queue_free()
-# ----------
+# =========================================
 func subscribe_configs():
-    Editor.config.init_config('basic', 'font_size', self, _update_font_size)
-    Editor.config.subscribe('basic', 'font_size', self, _update_font_size)
+    Editor.config.subscribe('basic', 'font_size', self, _update_font_size, true)
+    Editor.config.subscribe('basic', 'auto_save', self, _set_auto_save, true)
+    Editor.config.init_only('basic', 'auto_open_recent', self, _set_auto_open_recent)
+    Editor.config.subscribe('basic', 'show_char_count', self, _set_char_count, true)
+    Editor.config.subscribe('basic', 'line_wrap', self, _set_line_wrap, true)
+    Editor.config.subscribe('basic', 'line_number', self, _set_line_number, true)
+    Editor.config.subscribe('basic', 'highlight_line', self, _set_highlight_line, true)
 
 func _update_font_size(f):
     for te in [text_edit, text_edit_secondary]:
@@ -397,4 +605,24 @@ func _update_font_size(f):
             2: te.set("theme_override_font_sizes/font_size", 48)
             3: te.set("theme_override_font_sizes/font_size", 96)
 
-
+func _set_auto_save(v):
+    if v and autosave_timer.is_stopped():
+        autosave_timer.start(AUTOSAVE_INTERVAL)
+    elif not v:
+        autosave_timer.stop()
+func _set_auto_open_recent(v):
+    if v:
+        var recent_file = core.config_manager.get_basic_setting("recent_file")
+        open_document_from_path(recent_file)
+func _set_char_count(v: bool):
+    lb_count.visible = v
+func _set_line_wrap(v):
+    if v:
+        last_focused_editor.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+    else:
+        last_focused_editor.autowrap_mode = TextServer.AUTOWRAP_OFF
+func _set_line_number(v):
+    last_focused_editor.update_gutter()
+func _set_highlight_line(v):
+    last_focused_editor.highlight_current_line = v
+# =========================================

@@ -152,8 +152,8 @@ func _on_goal_started():
 
     creative_mode.start_goal()
     goal_window.hide()
-    progress_bar.show()
-    progress_bar.modulate.a = 0.7
+    # progress_bar.show()
+    # progress_bar.modulate.a = 0.7
     stats_panel.show()
     stats_detail_panel.show()
     combo_panel.show()
@@ -230,7 +230,7 @@ func _on_combo_updated():
 
 func _on_goal_reached() -> void:
     print('goal reached')
-    progress_bar.modulate.a = 1.0
+    # progress_bar.modulate.a = 1.0
 
 func _on_goal_finished() -> void:
     progress_bar.hide()
@@ -239,7 +239,6 @@ func _on_goal_finished() -> void:
     combo_panel.hide()
     combo_detail_panel.hide()
     progress_label.text = ''
-
     
     # 显示最终评分面板
     var window_size = Vector2(700, 650)

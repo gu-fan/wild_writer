@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://batritis7nsh"]
 
-[ext_resource type="Script" path="res://scripts/editor/CommandWindow.gd" id="1_command"]
+[ext_resource type="Script" path="res://scripts/editor/MotionWindow.gd" id="1_mvkxu"]
 
-[node name="CommandWindow" type="Window"]
+[node name="MotionWindow" type="Window"]
 transparent_bg = true
 title = "Command"
 initial_position = 2
@@ -10,7 +10,7 @@ size = Vector2i(400, 200)
 unresizable = true
 always_on_top = true
 transparent = true
-script = ExtResource("1_command")
+script = ExtResource("1_mvkxu")
 
 [node name="Label" type="Label" parent="."]
 custom_minimum_size = Vector2(0, 40)
@@ -24,4 +24,3 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-auto_height = true

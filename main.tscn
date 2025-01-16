@@ -64,7 +64,6 @@ placeholder_text = "
 
 							你可以直接开始打字了
 "
-wrap_mode = 1
 minimap_draw = true
 minimap_width = 40
 caret_blink = true

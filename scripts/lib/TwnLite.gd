@@ -42,8 +42,8 @@ func tween(params: Dictionary = {}) -> TwnLite:
     
     var dur = params.get('dur', DEFAULT_DURATION)
     
-    if params.get('parallel', false):
-        set_parallel(true)
+    if params.has('parallel'):
+        set_parallel(params.parallel)
 
     var t := tween_property(target, prop, to, dur)
 
@@ -69,8 +69,8 @@ func callee(params = {}) -> TwnLite:
     var args: Array = params.get('args', [])
     var target: Node = params.get('target', _bind_node)
 
-    if params.get('parallel', false):
-        set_parallel(true)
+    if params.has('parallel'):
+        set_parallel(params.parallel)
 
     var t: CallbackTweener
     if method.is_valid():
@@ -98,8 +98,8 @@ func follow(params: Dictionary = {}) -> TwnLite:
     var to = params.get('to', 1.0)
     var dur = params.get('dur', DEFAULT_DURATION)
 
-    if params.get('parallel', false):
-        set_parallel(true)
+    if params.has('parallel'):
+        set_parallel(params.parallel)
 
     var t: MethodTweener
     if method is Callable:
@@ -132,8 +132,8 @@ func shade(params: Dictionary = {}) -> TwnLite:
     if from is String and prop in ['modulate', 'color']: 
         from = Color(from)
     
-    if params.get('parallel', false):
-        set_parallel(true)
+    if params.has('parallel'):
+        set_parallel(params.parallel)
         
     var t := tween_method(_shade_params.bind(target, prop), from, to, dur)
     
@@ -159,12 +159,19 @@ func loop(i: int) -> TwnLite:
 
 ## 添加延迟
 func delay(t: float) -> TwnLite:
+    # chain()
+    set_parallel(false)
     tween_interval(t)
     return self
 
-## 添加延迟（别名）
 func wait(t: float) -> TwnLite:
+    # chain()
+    set_parallel(false)
     tween_interval(t)
+    return self
+func off_parallel():
+    chain()
+    set_parallel(false)
     return self
 
 ## 使用曲线进行插值

@@ -203,7 +203,6 @@ func _update_about_and_logs():
     settings.logs.text = "".join(G.WRITER_LOGS)
 
 # --------------------------
-
 func _unhandled_input(event):
     if event.is_action_pressed("ui_cancel"):
         if settings.visible: _toggle_setting()
@@ -232,7 +231,7 @@ func _input(event: InputEvent) -> void:
             var file_path = await file_manager.file_selected
             if file_path:
                 file_manager.open_file(editor, file_path)
-                file_manager.open_file(editor_man.editor_secondary, file_path)
+                # file_manager.open_file(editor_man.editor_secondary, file_path)
                 current_file_path = file_path
                 show_hint(':opened %s' % current_file_path)
                 SettingManager.set_recent(current_file_path)

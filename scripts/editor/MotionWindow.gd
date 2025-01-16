@@ -1,4 +1,4 @@
-class_name CommandWindow
+class_name MotionWindow
 extends Window
 
 signal command_executed(command: String)
@@ -125,6 +125,7 @@ func _input(event: InputEvent) -> void:
                 command_list.ensure_current_is_visible()
             get_viewport().set_input_as_handled()
         else:
+            print('got key', event.unicode)
             # 处理普通字符输入
             var char_str = char(event.unicode)
             if event.unicode != 0 and char_str.strip_edges() != "":
@@ -160,7 +161,7 @@ func update_command_list(new_text: String) -> void:
     
     # Check for number prefix commands (e.g., "3j", "s3k")
     var regex = RegEx.new()
-    regex.compile("^s?(\\d+)?([wbjk])$")
+    regex.compile("^s?(\\d+)?([wbjkhl])$")
     var result = regex.search(new_text)
     if result:
         command_executed.emit(new_text)
@@ -178,10 +179,11 @@ func update_command_list(new_text: String) -> void:
         command_list.ensure_current_is_visible()
 
 func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: int) -> void:
-    var item_text = command_list.get_item_text(index)
-    var command = item_text.split(":")[0].strip_edges()
-    command_executed.emit(command)
-    hide()
+    if _mouse_button_index == 1:
+        var item_text = command_list.get_item_text(index)
+        var command = item_text.split(":")[0].strip_edges()
+        command_executed.emit(command)
+        hide()
 
 func _on_close_requested() -> void:
     emit_signal("command_canceled")

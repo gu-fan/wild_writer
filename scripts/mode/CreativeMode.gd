@@ -24,6 +24,7 @@ var total_chars: int = 0
 var correct_chars: int = 0
 var wrong_chars: int = 0
 var accuracy: float = 100.0
+var max_combo : int = 0
 
 # 评分系统
 var speed_rating: String = "NA"
@@ -175,6 +176,17 @@ func _reset_stats() -> void:
     correct_chars = 0
     wrong_chars = 0
     accuracy = 100.0
+    max_combo = 0
+    speed_rating = "NA"
+    style_rating = "NA"
+    accuracy_rating = "NA"
+    final_rating = "NA"
+    final_style_scores = {
+        "natural": 0.0,
+        "repeat": 0.0,
+        "punc": 0.0,
+        "rhythm": 0.0
+    }
 
 
 func _reset_paragraph_stats():
@@ -292,7 +304,7 @@ func _calculate_final_rating() -> void:
     
     # 准确度评分
     accuracy_rating = match_rating(accuracy, ACCURACY_SCORE_S)
-    var accuracy_score = _calculate_lerped_score(wpm, SPEED_SCORE)
+    var accuracy_score = _calculate_lerped_score(accuracy, ACCURACY_SCORE)
 
     
     # 风格评分 (基于组合和特效使用)
@@ -339,7 +351,7 @@ func _calculate_lerped_score(value: float, thresholds: Dictionary) -> float:
     
     # 如果低于最低阈值
     if prev_threshold == null:
-        return 60.0
+        return 40.0
     
     # 如果高于最高阈值
     if next_threshold == null:
@@ -348,11 +360,11 @@ func _calculate_lerped_score(value: float, thresholds: Dictionary) -> float:
     # 使用实际的评分区间
     var base_score = {
         "SS": 100.0,
-        "S": 90.0,
-        "A": 80.0,
-        "B": 70.0,
-        "C": 60.0,
-        "D": 30.0
+        "S": 95.0,
+        "A": 90.0,
+        "B": 80.0,
+        "C": 70.0,
+        "D": 40.0
     }
     
     var prev_score = base_score[prev_threshold.rating]
@@ -435,6 +447,8 @@ func get_stats() -> Dictionary:
         "key": total_keys,
         "delete": wrong_chars,
         "word": total_words,
+        "combo": max_combo,
+        "goal": typing_goal,
         "style_scores": final_style_scores,
     }
 
@@ -487,7 +501,7 @@ const cn_next_match_word = {
 # const cn_full = ['应对', '应该', '享有', '给予', '视为','及其','因为', '对于', '由于', '关于','可能','因此', '如果', '因果','看见','可以','看到','听说','听见','听到','就是','也在','一些','一定', '其中','自己']
 
 # 更新风格统计
-func update_combo(paragraph: String) -> void:
+func update_combo(paragraph: String, count = 0) -> void:
     if !is_active: return
     if paragraph.length() <= 10: 
         _reset_paragraph_stats()
@@ -523,10 +537,14 @@ func update_combo(paragraph: String) -> void:
         score_punc = paragraph_stats.score_punc,
         score_rhythm = paragraph_stats.score_rhythm,
     })
+    check_max_combo(count)
     print('get paragraph stats', paragraph_stats, paragraph_scores)
 
     await get_tree().process_frame
     _reset_paragraph_stats()
+
+func check_max_combo(count):
+    if max_combo < count: max_combo = count
 
 # --------------
 

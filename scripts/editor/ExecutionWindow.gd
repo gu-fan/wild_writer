@@ -162,10 +162,11 @@ func execute_command() -> void:
     queue_free()
 
 func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: int) -> void:
-    var item_text = command_list.get_item_text(index)
-    var command = item_text.split(" - ")[0]
-    emit_signal("execution_requested", command, {})
-    queue_free() 
+    if _mouse_button_index == 1:
+        var item_text = command_list.get_item_text(index)
+        var command = item_text.split(" - ")[0]
+        emit_signal("execution_requested", command, {})
+        queue_free() 
 
 func _on_viewport_resized():
     var window_size = Vector2(size)

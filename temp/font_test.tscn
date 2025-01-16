@@ -10,3 +10,24 @@ offset_bottom = 23.3333
 theme_override_fonts/font = ExtResource("1_qxh1m")
 theme_override_font_sizes/font_size = 96
 text = "多少钱，费用？い風のビ testy (Aa_03783)"
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ColorRect" type="ColorRect" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LineEdit" type="LineEdit" parent="."]
+offset_right = 59.9583
+offset_bottom = 31.3333
+drag_and_drop_selection_enabled = false
+
+[node name="TextEdit" type="TextEdit" parent="."]
+offset_right = 8.0
+offset_bottom = 8.0

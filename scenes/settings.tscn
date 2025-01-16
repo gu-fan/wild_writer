@@ -180,8 +180,10 @@ text = "[color=888888]小提示：
 连续打字不要超过一个小时，
 如果感到头晕目眩或不适，可以停下来休息一下[/color]
 "
+scroll_active = false
 context_menu_enabled = true
 selection_enabled = true
+drag_and_drop_selection_enabled = false
 
 [node name="Sep" type="ColorRect" parent="TabBar/BASIC/Margin/VBox"]
 custom_minimum_size = Vector2(1, 1)
@@ -193,7 +195,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="Button" type="Button" parent="TabBar/BASIC/Margin/VBox/Reset"]
-custom_minimum_size = Vector2(100, 20)
+custom_minimum_size = Vector2(100, 30)
 layout_mode = 2
 focus_mode = 0
 text = "重置所有选项"

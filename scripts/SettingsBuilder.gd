@@ -8,7 +8,6 @@ static func build_settings(container: Control, config: Dictionary, section: Stri
         var setting = config[section][key]  # setting是一个字典，包含type、default等属性
         var item = _create_setting_item(section, key, setting)
         container.add_child(item)
-        print('add child', item, item.is_inside_tree(),item.size, item.visible)
 
 static func _create_section(name: String) -> Control:
     var section = VBoxContainer.new()
@@ -26,6 +25,16 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
     
     # 设置标签
     item.get_node("Label").text = config.get("label", key)
+
+    var lb_desc = RichTextLabel.new()
+    lb_desc.custom_minimum_size = Vector2(300, 20)
+    lb_desc.fit_content = true
+    lb_desc.scroll_active = false
+    lb_desc.text = config.get("desc", '')
+    lb_desc.bbcode_enabled = true
+    lb_desc.size_flags_vertical = 0
+    lb_desc.name = 'RichText'
+    item.add_child(lb_desc)
     
     # 获取当前值
     var current_value = Editor.config.get_setting(section, key)
@@ -36,45 +45,97 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
         "bool":
             var checkbox = CheckButton.new()
             checkbox.button_pressed = current_value
-            # UI -> Config
             checkbox.toggled.connect(
                 func(pressed): Editor.config.set_setting(section, key, pressed)
             )
-            # Config -> UI
             control = checkbox
-            Editor.config.subscribe(section, key, control, func(value): checkbox.set_pressed_no_signal(value))
+            Editor.config.subscribe(section, key, control, 
+                func(value): control.set_pressed_no_signal(value)
+            )
             
         "int":
-            var spinbox = SpinBox.new()
-            spinbox.min_value = config.get("min", 0)
-            spinbox.max_value = config.get("max", 100)
-            spinbox.value = current_value
-            # UI -> Config
-            spinbox.value_changed.connect(
+            var slider = HSlider.new()
+
+            slider.min_value = config.get("min", 0)
+            slider.max_value = config.get("max", 3)
+            slider.value = current_value
+            slider.tick_count = slider.max_value + 1
+            slider.ticks_on_borders = true
+            slider.custom_minimum_size = Vector2(130, 20)
+
+            slider.value_changed.connect(
                 func(value): Editor.config.set_setting(section, key, value)
             )
-            # Config -> UI
-            control = spinbox
-            Editor.config.subscribe(section, key, control, func(value): spinbox.set_value_no_signal(value))
+            control = slider
+            Editor.config.subscribe(section, key, control, 
+                func(value): control.set_value_no_signal(value)
+            )
             
         "shortcut":
             var button = Button.new()
             button.text = Editor.config.get_key_shown(current_value)
             button.custom_minimum_size.x = 100
-            # UI -> Config
             button.pressed.connect(
                 func(): _setup_shortcut(button, section, key)
             )
-            # Config -> UI
             control = button
-            Editor.config.subscribe(section, key, control, func(value): button.text = Editor.config.get_key_shown(value))
+            Editor.config.subscribe(section, key, control, 
+                func(value): control.text = Editor.config.get_key_shown(value)
+            )
+        "option":
+            var opts = config.get('options', [])
+            var button = create_option(opts, 
+                    func(v): Editor.config.set_setting(section, key, v)
+                ,current_value)
+            button.custom_minimum_size.x = 100
+            button.focus_mode = 0
+            control = button
+            Editor.config.subscribe(section, key, control, 
+                func(value): control.select(value)
+            )
+        "directory":
+            var button = Button.new()
+            button.text = current_value
+            button.custom_minimum_size.x = 100
+            button.pressed.connect(
+                func(): _setup_directory(button, section, key) 
+            )
+            control = button
+            Editor.config.subscribe(section, key, control, 
+                func(value): control.text = value
+            )
+        "string":
+            var input = LineEdit.new()
+            input.text = current_value
+            if config.has('placeholder'):
+                input.placeholder_text = config.placeholder
+            input.custom_minimum_size.x = 180
+            input.drag_and_drop_selection_enabled = false
+            item.get_node('Control').custom_minimum_size.x = 190
+            item.get_node('RichText').custom_minimum_size.x = 300 - 40
+            input.text_changed.connect(
+                func(v): Editor.config.set_setting(section, key, v)
+            )
+            control = input
+            Editor.config.subscribe(section, key, control, 
+                func(value): 
+                    var tmp_caret = control.caret_column
+                    control.text = value
+                    control.caret_column = tmp_caret
+            )
     
     # 在控件被移除时取消订阅
-    item.tree_exiting.connect(
-        func(): Editor.config.unsubscribe(section, key, control)
-    )
-    
-    item.add_child(control)
+    if control: 
+        control.size_flags_vertical = 0
+        control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+        item.get_node('Control').add_child(control)
+        item.tree_exiting.connect(
+            func(): Editor.config.unsubscribe(section, key, control)
+        )
+    else:
+        push_error('invalid control', section, key, current_value)
+
+
     return item
 
 static func _setup_shortcut(button: Button, section: String, key: String) -> void:
@@ -90,3 +151,79 @@ static func _setup_shortcut(button: Button, section: String, key: String) -> voi
         Editor.config.set_setting(section, key, captured_key)
     
     key_capture.queue_free()
+
+static func _setup_directory(button: Button, section: String, key: String):
+    pass
+    # editor_main.file_manager.show_directory_dialog()
+    # var file_path = await editor_main.file_manager.file_selected
+    # if file_path:
+    #     file_path = file_path.replace(OS.get_environment("HOME"), "~")
+    #     SettingManager.set_basic_setting("document_dir", file_path)
+    #     document_dir.text =  file_path
+    #     document_dir.tooltip_text = document_dir.text
+
+# ------------------------
+static func build_sep(container: Control, pre_padding=0, post_padding=0):
+    var rect = ColorRect.new()
+    rect.name = 'Sep'
+    rect.custom_minimum_size = Vector2(10,1)
+    rect.color = '2a2a2a'
+    if pre_padding or post_padding:
+        var con = VBoxContainer.new()
+        UI.set_separation(con, 0)
+        if pre_padding:
+            var pre_con = Control.new()
+            pre_con.custom_minimum_size = Vector2(10, pre_padding)
+            con.add_child(pre_con)
+        con.add_child(rect)
+        if post_padding:
+            var post_con = Control.new()
+            post_con.custom_minimum_size = Vector2(10, post_padding)
+            con.add_child(post_con)
+        container.add_child(con)
+    else:
+        container.add_child(rect)
+
+static func build_rich(container: Control, content: String):
+    var rich = RichTextLabel.new()
+    rich.scroll_active = false
+    rich.bbcode_enabled = true
+    rich.context_menu_enabled = true
+    rich.selection_enabled = true
+    rich.drag_and_drop_selection_enabled = false
+    rich.text = content
+    rich.fit_content = true
+    rich.custom_minimum_size = Vector2(100, 30)
+    container.add_child(rich)
+    return rich
+
+static func build_btn(container: Control, text: String, callback=null):
+    var box = HBoxContainer.new()
+    box.alignment = 1
+    var btn = Button.new()
+    btn.text = text
+    btn.custom_minimum_size = Vector2(100,30)
+    btn.focus_mode = 0
+    box.add_child(btn)
+    container.add_child(box)
+    if callback: btn.pressed.connect(callback)
+    return btn
+
+static func build_control(container):
+    var con = Control.new()
+    con.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    con.custom_minimum_size = Vector2(100,10)
+    container.add_child(con)
+    return con
+
+static func create_option(items=[], callback=null, default=0):
+    var opt = OptionButton.new()
+    for item in items:
+        opt.add_item(str(item))
+    if default >= 0 and default < items.size():
+        opt.select(default)
+    if callback: 
+        opt.item_selected.connect(func(idx): 
+            callback.call(idx)
+        )
+    return opt

@@ -24,8 +24,6 @@ func _init(editor_view: Node) -> void:
     text_edit = editor.text_edit
     text_edit_secondary = editor.text_edit_secondary
 
-
-
 var available_commands = {
     "j": {
         "description": "Move down",
@@ -35,6 +33,14 @@ var available_commands = {
         "description": "Move up",
         "action": "move_up"
     },
+    "h": {
+        "description": "Move left",
+        "action": "move_left"
+    },
+    "l": {
+        "description": "Move right",
+        "action": "move_right"
+    },
     "w": {
         "description": "Move to next word",
         "action": "move_word_forward"
@@ -43,49 +49,65 @@ var available_commands = {
         "description": "Move to previous word",
         "action": "move_word_backward"
     },
-    "s": {
-        "description": "Start selection mode",
-        "action": "select"
+    "0": {
+        "description": "move to line start",
+        "action": "move_line_start"
     },
-    "sj": {
-        "description": "Select lines down",
-        "action": "select_down"
+    "$": {
+        "description": "move to line end",
+        "action": "move_line_end"
     },
-    "sk": {
-        "description": "Select lines up",
-        "action": "select_up"
+    # "s": {
+    #     "description": "Start selection mode",
+    #     "action": "select"
+    # },
+    # "sj": {
+    #     "description": "Select lines down",
+    #     "action": "select_down"
+    # },
+    # "sk": {
+    #     "description": "Select lines up",
+    #     "action": "select_up"
+    # },
+    # "sw": {
+    #     "description": "Select words forward",
+    #     "action": "select_word_forward"
+    # },
+    # "sb": {
+    #     "description": "Select words backward",
+    #     "action": "select_word_backward"
+    # },
+    # "vv": {
+    #     "description": "Toggle split view",
+    #     "action": "toggle_split"
+    # },
+    # "vn": {
+    #     "description": "Go to next view",
+    #     "action": "next_view"
+    # },
+    # "vc": {
+    #     "description": "close view",
+    #     "action": "close_view"
+    # },
+    # "vs": {
+    #     "description": "swap view",
+    #     "action": "swap_view"
+    # },
+    # "v1": {
+    #     "description": "goto view 1",
+    #     "action": "goto_view_1"
+    # },
+    # "v2": {
+    #     "description": "goto view 2",
+    #     "action": "goto_view_2"
+    # },
+    "gg": {
+        "description": "move to file start",
+        "action": "move_file_start"
     },
-    "sw": {
-        "description": "Select words forward",
-        "action": "select_word_forward"
-    },
-    "sb": {
-        "description": "Select words backward",
-        "action": "select_word_backward"
-    },
-    "vv": {
-        "description": "Toggle split view",
-        "action": "toggle_split"
-    },
-    "vn": {
-        "description": "Go to next view",
-        "action": "next_view"
-    },
-    "vc": {
-        "description": "close view",
-        "action": "close_view"
-    },
-    "vs": {
-        "description": "swap view",
-        "action": "swap_view"
-    },
-    "v1": {
-        "description": "goto view 1",
-        "action": "goto_view_1"
-    },
-    "v2": {
-        "description": "goto view 2",
-        "action": "goto_view_2"
+    "G": {
+        "description": "move to file end",
+        "action": "move_file_end"
     },
     "ms": {
         "description": "mode speed",
@@ -94,6 +116,10 @@ var available_commands = {
     "mf": {
         "description": "mode finish",
         "action": "mode_finish"
+    },
+    "uf": {
+        "description": "toggle fullscreen",
+        "action": "toggle_fullscreen"
     },
 }
 
@@ -121,27 +147,24 @@ func execute_command(command: String) -> void:
     var count = 1
     var action_command = command
     
-    # 使用正则表达式��配命令格式
     var regex = RegEx.new()
-    regex.compile("^s?(\\d+)?([wbjk])$")  # 添加b到命令匹配
+    regex.compile("^s?(\\d+)?([wbjkhl])$")
     var result = regex.search(command)
     
-    print("Debug - Regex match result:", result)
     
     if result:
         # 获取数字前缀（如果存在）
         var number = result.get_string(1)
-        print("Debug - Number prefix:", number)
         if number:
             count = number.to_int()
-        
+
         # 获取实际命令（j、k、w或b）
         var cmd = result.get_string(2)
-        print("Debug - Command part:", cmd)
 
         if cmd in available_commands:
             var action = available_commands[cmd]["action"]
             call_action(action, count)
+            show_cmd(command)
         
         # # 判断是否是选择模式（以s开头）
         # if command.begins_with("s"):
@@ -165,9 +188,11 @@ func execute_command(command: String) -> void:
         #         "b":
         #             move_word_backward(count)
     else:
-        if command in available_commands:
-            var action = available_commands[command]["action"]
+        var cmd = command
+        if cmd in available_commands:
+            var action = available_commands[cmd]["action"]
             call_action(action)
+            show_cmd(cmd)
         # print('command', command)
         # if command in available_commands:
         #     match available_commands[command].action:
@@ -181,62 +206,66 @@ func execute_command(command: String) -> void:
 func call_action(action: String, count: int = 1) -> void:
     prints('Debug Call action', action ,count)
     match action:
-        "move_down":
-            move_down(count)
-        "move_up":
-            move_up(count)
+        "move_down": move_down(count)
+        "move_up": move_up(count)
+        "move_right": move_right(count)
+        "move_left": move_left(count)
         "move_word_forward":
             move_word_forward(count)
         "move_word_backward":
             move_word_backward(count)
-        "select_down":
-            select_down(count)
-        "select_up":
-            select_up(count)
-        "select_word_forward":
-            select_word_forward(count)
-        "select_word_backward":
-            select_word_backward(count)
-        'toggle_split': toggle_split_view()
-        'next_view': next_view()
-        'close_view': close_view()
-        'swap_view': swap_view()
-        'goto_view_1': goto_view(1)
-        'goto_view_2': goto_view(2)
+        # "select_down":
+        #     select_down(count)
+        # "select_up":
+        #     select_up(count)
+        # "select_word_forward":
+        #     select_word_forward(count)
+        # "select_word_backward":
+        #     select_word_backward(count)
+        # 'toggle_split': toggle_split_view()
+        # 'next_view': next_view()
+        # 'close_view': close_view()
+        # 'swap_view': swap_view()
+        # 'goto_view_1': goto_view(1)
+        # 'goto_view_2': goto_view(2)
         'mode_speed': mode_speed()
         'mode_finish': mode_finish()
+        'move_file_start': move_file_start()
+        'move_file_end': move_file_end()
+        'move_line_start': move_line_start()
+        'move_line_end': move_line_end()
+        'toggle_fullscreen': Editor.toggle_fullscreen()
 
-# 具体的命令实现
+func move_file_start():
+    if last_focused_editor:
+        last_focused_editor.move_caret_to_file_start()
+func move_file_end():
+    if last_focused_editor:
+        last_focused_editor.move_caret_to_file_end()
+
+func move_line_start():
+    if last_focused_editor:
+        last_focused_editor.move_caret_to_line_start()
+func move_line_end():
+    if last_focused_editor:
+        last_focused_editor.move_caret_to_line_end()
+
+
 func move_down(count: int = 1) -> void:
     if last_focused_editor:
-        var current_line = last_focused_editor.get_caret_line()
-        var current_column = last_focused_editor.get_caret_column()
-        var line_count = last_focused_editor.get_line_count()
-        
-        # 计算目标行，确保不超出文件范围
-        var target_line = mini(current_line + count, line_count - 1)
-        
-        # 移动光标
-        last_focused_editor.set_caret_line(target_line)
-        last_focused_editor.set_caret_column(current_column)
-        
-        # 确保光标可见
-        last_focused_editor.center_viewport_to_caret()
+        last_focused_editor.move_caret_line(count)
 
 func move_up(count: int = 1) -> void:
     if last_focused_editor:
-        var current_line = last_focused_editor.get_caret_line()
-        var current_column = last_focused_editor.get_caret_column()
-        
-        # 计算目标行，确保不小于0
-        var target_line = maxi(current_line - count, 0)
-        
-        # 移动光标
-        last_focused_editor.set_caret_line(target_line)
-        last_focused_editor.set_caret_column(current_column)
-        
-        # 确保光标可见
-        last_focused_editor.center_viewport_to_caret()
+        last_focused_editor.move_caret_line(-count)
+
+func move_right(count: int = 1) -> void:
+    if last_focused_editor:
+        last_focused_editor.move_caret_column(count)
+
+func move_left(count: int = 1) -> void:
+    if last_focused_editor:
+        last_focused_editor.move_caret_column(-count)
 
 func move_word_forward(count: int = 1) -> void:
     if last_focused_editor:
@@ -470,7 +499,6 @@ func is_word_separator(c: String) -> bool:
     return c.strip_edges().is_empty() or c in ASCII_SEPARATORS or c in CJK_SEPARATORS
 
 # ---------------------------------------
-
 # 切换分屏
 func toggle_split_view() -> void:
     is_split_view = !is_split_view
@@ -487,7 +515,6 @@ func toggle_split_view() -> void:
             secondary_container.hide()
         else:
             primary_container.hide()
-    
 
 func next_view() -> void:
     if is_split_view:
@@ -526,8 +553,10 @@ func goto_view(n=1) -> void:
             else:
                 last_focused_editor = text_edit_secondary
 
-
 func mode_speed():
     Editor.creative_mode.new_goal()
 func mode_finish():
     Editor.creative_mode.finish_goal()
+func show_cmd(cmd):
+    if last_focused_editor:
+        last_focused_editor.show_char('Ctrl+E '+cmd, 0.01)

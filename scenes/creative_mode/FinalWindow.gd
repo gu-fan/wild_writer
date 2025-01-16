@@ -60,18 +60,19 @@ func start_loading_stats(stats={}):
     var t = 0.3
     t = _trans_in_node_left($BarTop, t)
     t = _trans_in_node_left($Title, t)
-    t = _trans_in_node_time($TotalTime, t, 'Total Time: %s', 0, stats.time, 0.6)
-    t = _trans_in_node_left($TotalWord, t, 'Total Word: %d', 0, stats.word,0.6)
-    t = _trans_in_node_left($MaxCombo, t, 'Max Combo: %d', 0, 199, 0.6) +0.3
+    t = _trans_in_node_time($TotalTime, t, 'Total Time: %s', 0, stats.time, 0.6) - 0.3
+    var goal_count = '/%d' % stats.goal
+    t = _trans_in_node_left($TotalWord, t, 'Total Word: %d' + goal_count , 0, stats.word,0.6) - 0.3
+    t = _trans_in_node_left($MaxCombo, t, 'Max Combo: %d', 0, stats.combo, 0.6) + 0.3
 
-    t = _trans_in_node_right($KPM, t, 'KPM: %d', 0, stats.kpm, 0.6)
+    t = _trans_in_node_right($KPM, t, 'KPM: %d', 0, stats.kpm, 0.6) - 0.3
     t = _trans_in_node_right($WPM, t, 'WPM: %d', 0, stats.wpm, 0.6) + 0.3
     $SpeedRating.text = 'Speed: %s' % stats.rating_speed
     t = _trans_in_rating($SpeedRating, t) + 0.4
 
-    t = _trans_in_node_right($Natural, t, 'Natural: %d', 0, stats.style_scores.natural, 0.6)
-    t = _trans_in_node_right($Repeat, t, 'Repeat: %d', 0, stats.style_scores.repeat, 0.6)
-    t = _trans_in_node_right($Punctuation, t, 'Punctuation: %d', 0, stats.style_scores.punc, 0.6)
+    t = _trans_in_node_right($Natural, t, 'Natural: %d', 0, stats.style_scores.natural, 0.6) - 0.3
+    t = _trans_in_node_right($Repeat, t, 'Repeat: %d', 0, stats.style_scores.repeat, 0.6) - 0.3
+    t = _trans_in_node_right($Punctuation, t, 'Punctuation: %d', 0, stats.style_scores.punc, 0.6) - 0.3
     t = _trans_in_node_right($Rhythm, t, 'Rhythm: %d', 0, stats.style_scores.rhythm, 0.6) + 0.3
     $StyleRating.text = 'Style: %s' % stats.rating_style
     t = _trans_in_rating($StyleRating, t) + 0.4
@@ -152,7 +153,7 @@ func _trans_in_rating(nd, delay=0.0, rating='A'):
         parallel = true,
         delay=delay+0.05,
     })
-    Util.wait(delay+0.1, __play_audio2)
+    Util.wait(delay+0.1, __play_audio2.bind(rating))
     return 0.1 + delay
 
 func _trans_in_final(nd, delay=0.0, rating='A'):
@@ -230,8 +231,14 @@ func _on_viewport_resized():
 
 func __play_audio():
     if visible: audio_stream_player.play()
-func __play_audio2():
-    if visible: audio_stream_player2.play()
+func __play_audio2(rating='A'):
+    if visible: 
+        match rating:
+            'S': audio_stream_player2.pitch_scale = 1.3
+            'A': audio_stream_player2.pitch_scale = 1.2
+            'B': audio_stream_player2.pitch_scale = 1.1
+            'C': audio_stream_player2.pitch_scale = 1.0
+        audio_stream_player2.play()
 func __play_audio3(rating='A'):
     if visible:
         match rating:

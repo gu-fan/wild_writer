@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://effects/firework_projectile.gd" id="1_ocnia"]
 [ext_resource type="Texture2D" uid="uid://cj7mdg54nevgo" path="res://effects/firework/d8.png" id="2_45i84"]
-[ext_resource type="AudioStream" uid="uid://cpke6xwxygp3" path="res://temp/sfx/firework_proj.ogg" id="3_addku"]
-[ext_resource type="AudioStream" uid="uid://bd7kh7psw00eo" path="res://temp/sfx/firework_expl.ogg" id="4_u4hgs"]
+[ext_resource type="AudioStream" uid="uid://cpke6xwxygp3" path="res://effects/firework/firework_proj.ogg" id="3_addku"]
+[ext_resource type="AudioStream" uid="uid://bd7kh7psw00eo" path="res://effects/firework/firework_expl.ogg" id="4_u4hgs"]
 
 [sub_resource type="Curve2D" id="Curve2D_i6yau"]
 _data = {

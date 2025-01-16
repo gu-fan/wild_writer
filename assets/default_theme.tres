@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=19 format=3 uid="uid://07kcvj2gqhbo"]
+[gd_resource type="Theme" load_steps=22 format=3 uid="uid://07kcvj2gqhbo"]
 
 [ext_resource type="FontVariation" uid="uid://r045b8gwnt3k" path="res://assets/fonts/agave_fixed.tres" id="1_26vv4"]
 [ext_resource type="Texture2D" uid="uid://bpwhum17yikfj" path="res://assets/themes/checkbutton_unchecked.png" id="2_7i37d"]
@@ -13,6 +13,12 @@ bg_color = Color(0.4, 0.4, 0.4, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bdfsb"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4oti3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rcy3v"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o0b35"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v0nj1"]
 bg_color = Color(0.266667, 0.266667, 0.266667, 1)
 
@@ -23,7 +29,7 @@ content_margin_left = 0.0
 content_margin_top = 0.0
 content_margin_right = 0.0
 content_margin_bottom = 0.0
-bg_color = Color(0.101961, 0.101961, 0.101961, 0.831373)
+bg_color = Color(0.0196078, 0.0196078, 0.0196078, 0.807843)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
@@ -42,7 +48,7 @@ border_color = Color(0.12549, 0.12549, 0.12549, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4wf8y"]
 content_margin_left = 10.0
 content_margin_right = 10.0
-bg_color = Color(0.12549, 0.12549, 0.12549, 1)
+bg_color = Color(0.0196078, 0.0196078, 0.0196078, 0.807843)
 border_width_top = 2
 border_color = Color(0.6, 0.6, 0.6, 1)
 
@@ -61,6 +67,7 @@ base_font = ExtResource("6_ao213")
 
 [resource]
 default_font = SubResource("FontVariation_tw53u")
+default_font_size = 16
 Button/colors/font_color = Color(0.6, 0.6, 0.6, 1)
 Button/fonts/font = ExtResource("1_26vv4")
 Button/styles/focus = SubResource("StyleBoxFlat_td3mu")
@@ -69,10 +76,14 @@ CheckButton/icons/checked_disabled = ExtResource("3_2yeyj")
 CheckButton/icons/unchecked = ExtResource("2_7i37d")
 CheckButton/icons/unchecked_disabled = ExtResource("3_2yeyj")
 CheckButton/styles/focus = SubResource("StyleBoxEmpty_bdfsb")
+CodeEdit/constants/caret_width = 3
+CodeEdit/styles/focus = SubResource("StyleBoxEmpty_4oti3")
+CodeEdit/styles/normal = SubResource("StyleBoxEmpty_rcy3v")
+CodeEdit/styles/read_only = SubResource("StyleBoxEmpty_o0b35")
 HSlider/icons/tick = ExtResource("2_ya87t")
 LineEdit/constants/caret_width = 4
 LineEdit/styles/focus = SubResource("StyleBoxFlat_v0nj1")
-RichTextLabel/colors/default_color = Color(0.8, 0.8, 0.8, 1)
+RichTextLabel/colors/default_color = Color(0.466667, 0.466667, 0.466667, 1)
 RichTextLabel/styles/focus = SubResource("StyleBoxEmpty_6y1dq")
 TabContainer/styles/panel = SubResource("StyleBoxFlat_l5aqf")
 TabContainer/styles/tab_focus = SubResource("StyleBoxEmpty_08bv7")

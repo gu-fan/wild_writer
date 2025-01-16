@@ -1,0 +1,8 @@
+# Don't remove the two lines below, they're required for gettext to work correctly.
+msgid ""
+msgstr ""
+
+# Example of a regular string.
+msgid "TAB_BASIC"
+msgstr "Basic"
+

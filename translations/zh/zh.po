@@ -1,0 +1,65 @@
+# Don't remove the two lines below, they're required for gettext to work correctly.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Example of a regular string.
+msgid "TAB_BASIC"
+msgstr "基础设置"
+
+msgid "TAB_INTERFACE"
+msgstr "界面"
+
+msgid "TAB_EFFECT"
+msgstr "特效"
+
+msgid "TAB_SHORTCUT"
+msgstr "快捷键"
+
+msgid "TAB_IME"
+msgstr "输入法"
+
+msgid "TAB_ABOUT"
+msgstr "关于"
+
+# --------
+
+msgid "LANGUAGE"
+msgstr "语言"
+
+msgid "AUTO_OPEN_RECENT"
+msgstr "自动打开最近文件"
+
+msgid "AUTO_OPEN_RECENT_DESC"
+msgstr "启动后自动打开最近编辑的文件"
+
+msgid "AUTO_SAVE"
+msgstr "自动保存"
+
+msgid "AUTO_SAVE_DESC"
+msgstr "每60秒进行一次自动保存"
+
+msgid "SHOW_CHAR_COUNT"
+msgstr "显示字数"
+
+msgid "LINE_WRAP"
+msgstr "自动换行"
+
+msgid "LINE_WRAP_DESC"
+msgstr "如果一行太长，就自动换行"
+
+msgid "LINE_NUMBER"
+msgstr "显示行号"
+
+msgid "HIGHLIGHT_LINE"
+msgstr "高亮当前行"
+
+# --------
+msgid "FILE_OPENED"
+msgstr "已打开文件"

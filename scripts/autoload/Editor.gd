@@ -13,33 +13,60 @@ var is_windows = false
 var is_web = false
 var is_android = false
 var is_ios = false
+var PLATFORM = ''
+var HOME_DIR = ''
 
 func init_node(raw):
     return UI.init_node_hidden_from_raw(raw, {parent=main.canvas})
 
+# *$HOME-windows*
+# On MS-Windows, if $HOME is not defined as an environment variable, then
+# at runtime Vim will set it to the expansion of $HOMEDRIVE$HOMEPATH.
+# If $HOMEDRIVE is not set then $USERPROFILE is used.
 func _init():
     match OS.get_name():
         "Windows":
             is_windows = true
+            if OS.get_environment('HOME'):
+                HOME_DIR = OS.get_environment("HOME")
+            elif OS.has_environment('HOMEDRIVE'):
+                HOME_DIR = OS.get_environment("HOMEDRIVE") + OS.get_environment('HOMEPATH')
+            else:
+                HOME_DIR = OS.get_environment("USERPROFILE")
+            PLATFORM = 'windows'
         "macOS":
             is_macos = true
+            HOME_DIR = OS.get_environment("HOME")
+            PLATFORM = 'macos'
         "Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD":
             is_linux = true
+            HOME_DIR = OS.get_environment("HOME")
+            PLATFORM = 'linux'
         "Android":
             is_android = true
+            HOME_DIR = OS.get_environment("HOME")
+            PLATFORM = 'android'
         "iOS":
             is_ios = true
+            HOME_DIR = OS.get_environment("HOME")
+            PLATFORM = 'ios'
         "Web":
             is_web = true
+            HOME_DIR = '/home/web_user'
+            PLATFORM = 'web'
+    print('%s OS:%s HOME:%s' % [Util.f_msec(), PLATFORM, HOME_DIR])
 func _ready():
     root = get_tree().root
     # await get_tree().process_frame
     # Editor.goto('test_style')
 
+func toast(txt):
+    view.toast(txt)
 # ----------------------------------------
 func _get_scn_path(scn):
     # return 'res://test/' + scn + '.gd'
     return scn
+
 
 func goto(scn, with_loading=false):
     var s = get_tree().current_scene
@@ -66,3 +93,10 @@ func load_scene(_scn, _scrpt):
         _is_transition_scene = false
     , CONNECT_ONE_SHOT)
     get_tree().change_scene_to_packed(_scn)
+
+func toggle_fullscreen():
+    var mode = DisplayServer.window_get_mode()
+    if mode == DisplayServer.WINDOW_MODE_FULLSCREEN:
+        DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+    else:
+        DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
