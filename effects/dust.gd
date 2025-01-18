@@ -10,13 +10,12 @@ var blips: bool = true
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var gpu_particle_2d: GPUParticles2D = $GPUParticles2D
 @onready var timer: Timer = $Timer
-@onready var label: Label = $Label
 
 var char_offset: Vector2 = Vector2.ZERO
+var font_size = 1
 
 func _ready():
 
-    var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     if font_size == 2: 
         extra_scale = 1.5
@@ -46,60 +45,19 @@ func _ready():
             delay=0.2,
             ease=Tween.EASE_OUT,
             trans=Tween.TRANS_QUAD,
+        }).tween({
+            target=animated_sprite_2d,
+            prop='scale',
+            from=Vector2(2, 2)*extra_scale,
+            to=Vector2(4, 4)*extra_scale,
+            dur=0.6,
+            parallel=true,
         })
     else:
         animated_sprite_2d.hide()
     
     timer.start()
 
-    var move_right = false
-    if last_key == 'Enter': 
-        move_right = true
-    if last_key == 'Space':
-        label.text = '_'
-    elif last_key == 'Enter':
-        label.text = 'Enter'
-    else:
-        label.text = SettingManager.get_key_shown_shift(last_key)
-
-    label.set("theme_override_font_sizes/font_size", 96)
-
-    var clr_to =Color.from_hsv(0.4 + Rnd.rangef(0.2), 0.8, 1.0)
-    TwnLite.at(label).tween({
-        prop='modulate',
-        from=clr_to,
-        to=Color('FFFFFF'),
-        dur=0.4,
-        parallel=true,
-    }).tween({
-        prop='scale',
-        from=Vector2(.3, .3)*extra_scale,
-        to=Vector2(1, 1)*extra_scale,
-        dur=0.3,
-        parallel=true,
-    }).tween({
-        prop='position',
-        from=Vector2(-35+20, -60) + char_offset,
-        to=Vector2(-35-150, -110)*extra_scale + char_offset if !move_right else Vector2(-35+200, -110)*extra_scale + char_offset,
-        dur=0.9,
-        parallel=true,
-        ease=Tween.EASE_OUT,
-        trans=Tween.TRANS_SINE,
-    }).tween({
-        target=animated_sprite_2d,
-        prop='scale',
-        from=Vector2(2, 2)*extra_scale,
-        to=Vector2(4, 4)*extra_scale,
-        dur=0.6,
-        parallel=true,
-    }).tween({
-        prop='modulate',
-        from=Color.WHITE,
-        to=Color('FFFFFF00'),
-        dur=0.5,
-        parallel=true,
-        delay=0.45,
-    })
 
 
 func _on_Timer_timeout():

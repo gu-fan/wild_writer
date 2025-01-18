@@ -164,7 +164,7 @@ var is_active = false
 
 func _ready() -> void:
     start_time = Time.get_unix_time_from_system()
-    _gen_cn_maps()
+    # _gen_cn_maps()
 
 
 func _reset_stats() -> void:

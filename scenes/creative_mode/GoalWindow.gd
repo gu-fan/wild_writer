@@ -8,6 +8,15 @@ signal window_canceled
 @onready var g_ok: Button = $OK
 
 var viewport
+var font_res = '' : 
+    set(v):
+        for lb in [g_1, g_1, g_1, g_ok, $Title, $GoalLabel]:
+            if v:
+                lb.add_theme_font_override('font', v)
+            else:
+                lb.remove_theme_font_override('font')
+        $Label.font_res = v
+
 func _ready():
     viewport = get_tree().current_scene.get_viewport()
     viewport.size_changed.connect(_on_viewport_resized)

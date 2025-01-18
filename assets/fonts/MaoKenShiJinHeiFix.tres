@@ -1,0 +1,7 @@
+[gd_resource type="FontVariation" load_steps=2 format=3 uid="uid://ballr6mm37wsi"]
+
+[ext_resource type="FontFile" uid="uid://bgu83y38lo07k" path="res://assets/fonts/MaoKenShiJinHei.ttf" id="1_2x4wa"]
+
+[resource]
+base_font = ExtResource("1_2x4wa")
+spacing_top = 5

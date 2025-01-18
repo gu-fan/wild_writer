@@ -97,8 +97,8 @@ func setup_command_list() -> void:
 #         command_list.ensure_current_is_visible()
 
 func _input(event: InputEvent) -> void:
-    if not label.has_focus():
-        return
+    # if not label.has_focus():
+    #     return
         
     if event is InputEventKey and event.pressed:
         if event.keycode == KEY_ESCAPE:

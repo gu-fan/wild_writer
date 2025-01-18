@@ -13,10 +13,13 @@ var blips: bool = true
 @onready var label: Label = $Label
 
 var char_offset: Vector2 = Vector2.ZERO
+var font_size = 1
+var font_res = ''
+var sound = ''
+var sound_increase = 1
 
 func _ready():
 
-    var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     if font_size == 2: 
         extra_scale = 1.5
@@ -24,10 +27,15 @@ func _ready():
         extra_scale = 2
 
     if audio:
-        # audio_stream_player.stream = load(Rnd.pick(['res://temp/sfx/punch1.ogg', 'res://temp/sfx/punch2.ogg','res://temp/sfx/punch3.ogg']))
-        audio_stream_player.pitch_scale = 1.0 + pitch_increase * 0.01
-        audio_stream_player.pitch_scale += Rnd.rangef(-0.02, 0.02)
-        # audio_stream_player.pitch_scale = 1.0 + Rnd.rangef(-0.02, 0.02)
+        if sound:
+            audio_stream_player.stream = load('res://effects/blip/' + sound)
+
+        if sound_increase:
+            audio_stream_player.pitch_scale = 1.0 + pitch_increase * 0.01
+            audio_stream_player.pitch_scale += Rnd.rangef(-0.02, 0.02)
+        else:
+            audio_stream_player.pitch_scale = 1.0 + Rnd.rangef(-0.02, 0.02)
+
         audio_stream_player.play()
     
     if blips:
@@ -64,7 +72,9 @@ func _ready():
     else:
         label.text = SettingManager.get_key_shown_shift(last_key)
 
-    label.set("theme_override_font_sizes/font_size", 96)
+    # label.set("theme_override_font_sizes/font_size", 96)
+    if font_res:
+        label.set("theme_override_fonts/font", font_res)
 
     var clr_to =Color.from_hsv(0.4 + Rnd.rangef(0.2), 0.8, 1.0)
     TwnLite.at(label).tween({

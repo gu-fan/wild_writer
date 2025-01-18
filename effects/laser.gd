@@ -43,7 +43,6 @@ const SIZE_MIN = {
 static func can_finish_combo(n: int):
     return n > BASE_COUNT
 
-
 static func get_main_duration(count):
     var size = get_count_size(count)
     return SIZE_DURATION[size] + 0.4
@@ -54,8 +53,10 @@ static func get_count_size(count):
             target_size = COUNT_SIZE[threshold]
     return target_size
 
+var font_size = 1
+var font_res = ''
+
 func _ready():
-    var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     if font_size == 2: 
         extra_scale = 1.5

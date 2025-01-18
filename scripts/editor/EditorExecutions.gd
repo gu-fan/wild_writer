@@ -8,42 +8,14 @@ var available_executors = {
         "description": "Toggle settings",
         "executor": "setting",
         "sub_commands": {
-            "auto_save": "Toggle auto save",
-            "auto_open_recent": "Toggle auto open recent",
+            # "auto_save": "Toggle auto save",
+            # "auto_open_recent": "Toggle auto open recent",
             "show_char_count": "Toggle character count",
             "line_wrap": "Toggle line wrap",
             "line_number": "Toggle line numbers",
             "highlight_line": "Toggle line highlight",
             "font_size": "Set font size(0-3)",
         }
-    },
-    "ime": {
-        "description": "Toggle Ime",
-        "executor": "ime"
-    },
-    "python": {
-        "description": "Run Python script",
-        "executor": "python"
-    },
-    "node": {
-        "description": "Run JavaScript with Node.js",
-        "executor": "node"
-    },
-    "shell": {
-        "description": "Execute shell command",
-        "executor": "shell"
-    },
-    "host": {
-        "description": "Host a game server",
-        "executor": "host"
-    },
-    "join": {
-        "description": "Join a game server",
-        "executor": "join"
-    },
-    "duel": {
-        "description": "Request a typing duel",
-        "executor": "duel"
     },
     "mode": {
         "description": "Request a typing duel",
@@ -53,6 +25,42 @@ var available_executors = {
             "finish": "Toggle auto open recent",
         }
     },
+    "fullscreen": {
+        "description": "Toggle fullscreen",
+        "executor": "toggle_fullscreen"
+    },
+    "ime": {
+        "description": "Toggle Ime",
+        "executor": "ime"
+    },
+    "debug": {
+        "description": "Toggle debug",
+        "executor": "debug"
+    },
+    # "python": {
+    #     "description": "Run Python script",
+    #     "executor": "python"
+    # },
+    # "node": {
+    #     "description": "Run JavaScript with Node.js",
+    #     "executor": "node"
+    # },
+    # "shell": {
+    #     "description": "Execute shell command",
+    #     "executor": "shell"
+    # },
+    # "host": {
+    #     "description": "Host a game server",
+    #     "executor": "host"
+    # },
+    # "join": {
+    #     "description": "Join a game server",
+    #     "executor": "join"
+    # },
+    # "duel": {
+    #     "description": "Request a typing duel",
+    #     "executor": "duel"
+    # },
 }
 
 var split_container: HSplitContainer
@@ -80,6 +88,8 @@ func execute_command(command: String, args: Dictionary) -> void:
     prints("Executing command:", command, "with args:", args)
     
     match command:
+        "debug":
+            Editor.toggle_debug()
         "python":
             execute_python(args)
         "node":
@@ -98,6 +108,8 @@ func execute_command(command: String, args: Dictionary) -> void:
             toggle_setting(args)
         "mode":
             execute_mode(args)
+        "fullscreen":
+            Editor.toggle_fullscreen()
     
 # 执行器实现
 func execute_python(args: Dictionary) -> void:
@@ -170,9 +182,9 @@ func request_duel(args: Dictionary) -> void:
 
 func toggle_setting(args: Dictionary) -> void:
     var setting_name = args.get("args", "").strip_edges()
-    if setting_name.is_empty():
-        editor_view.toggle_setting()  # 打开设置面板
-        return
+    # if setting_name.is_empty():
+    #     editor_view.toggle_setting()  # 打开设置面板
+    #     return
         
     # 获取设置值（如果提供）
     var setting_value = args.get("value")
@@ -186,7 +198,7 @@ func toggle_setting(args: Dictionary) -> void:
             # 对于数字类型的设置，转换为数字
             if setting_name == "font_size":
                 value = int(setting_value)
-            Editor.config.set_basic_setting(setting_name, value)
+            Editor.config.set_setting('interface', setting_name, value)
         else:
             # 如果没有提供值，则切换布尔值
             var current_value = Editor.config.get_basic_setting(setting_name)

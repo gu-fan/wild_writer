@@ -104,7 +104,7 @@ func show_file_dialog(file_path='') -> void:
     if file_path:
         dir = file_path.get_base_dir()
     else:
-        dir = SettingManager.get_basic_setting("document_dir")
+        dir = Editor.config.get_basic_setting("document_dir")
         dir = get_home_expanded(dir)
     
     file_dialog.access = FileDialog.ACCESS_FILESYSTEM
@@ -132,8 +132,8 @@ func show_directory_dialog() -> void:
     var file_dialog = FileDialog.new()
     get_tree().root.add_child(file_dialog)
 
-    var dir = SettingManager.get_basic_setting("document_dir")
-    dir = dir.replace("~", OS.get_environment("HOME"))  # 展开 ~ 到用户目录
+    var dir = Editor.config.get_basic_setting("document_dir")
+    dir = get_home_expanded(dir)
     
     file_dialog.access = FileDialog.ACCESS_FILESYSTEM
     file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_DIR
@@ -170,8 +170,8 @@ func show_save_dialog() -> void:
     get_tree().root.add_child(file_dialog)
     
     # 使用设置中的文档目录
-    var dir = SettingManager.get_basic_setting("document_dir")
-    dir = dir.replace("~", OS.get_environment("HOME"))  # 展开 ~ 到用户目录
+    var dir = Editor.config.get_basic_setting("document_dir")
+    dir = get_home_expanded(dir)
 
     file_dialog.access = FileDialog.ACCESS_FILESYSTEM
     file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
@@ -207,8 +207,8 @@ func show_open_dialog(file_path='') -> void:
         dir = file_path.get_base_dir()
     else:
         # 使用设置中的文档目录
-        dir = SettingManager.get_basic_setting("document_dir")
-        dir = dir.replace("~", OS.get_environment("HOME"))  # 展开 ~ 到用户目录
+        dir = Editor.config.get_basic_setting("document_dir")
+        dir = get_home_expanded(dir)
     
     file_dialog.access = FileDialog.ACCESS_FILESYSTEM
     file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE

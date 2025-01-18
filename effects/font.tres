@@ -2,7 +2,7 @@
 
 [ext_resource type="FontFile" uid="uid://bgu83y38lo07k" path="res://assets/fonts/MaoKenShiJinHei.ttf" id="1_vco6d"]
 [ext_resource type="FontFile" uid="uid://b5n65c1fx4c2t" path="res://assets/fonts/Agave/AgaveNerdFontMono-Regular.ttf" id="2_7r7ip"]
-[ext_resource type="FontFile" uid="uid://b7ot58evs2iel" path="res://assets/fonts/NotoSans/NotoSansSC-Bold.ttf" id="2_trgab"]
+[ext_resource type="FontFile" uid="uid://b7ot58evs2iel" path="res://assets/fonts/NotoSansSC-Bold.ttf" id="3_u7brq"]
 
 [sub_resource type="FontVariation" id="FontVariation_d0a3k"]
 base_font = ExtResource("1_vco6d")
@@ -18,7 +18,7 @@ variation_embolden = 0.5
 variation_transform = Transform2D(1, 0.1, 0, 1, 0, 0)
 
 [sub_resource type="FontVariation" id="FontVariation_k0ce4"]
-base_font = ExtResource("2_trgab")
+base_font = ExtResource("3_u7brq")
 variation_transform = Transform2D(1, 0.2, 0, 1, 0, 0)
 
 [resource]

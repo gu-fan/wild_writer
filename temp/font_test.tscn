@@ -1,13 +1,13 @@
 [gd_scene load_steps=2 format=3 uid="uid://jghgjhk7kyme"]
 
-[ext_resource type="FontFile" uid="uid://bgu83y38lo07k" path="res://assets/fonts/MaoKenShiJinHei.ttf" id="1_qxh1m"]
+[ext_resource type="FontVariation" uid="uid://ballr6mm37wsi" path="res://assets/fonts/MaoKenShiJinHeiFix.tres" id="1_yfc6a"]
 
 [node name="Node2D" type="Node2D"]
 
 [node name="Label" type="Label" parent="."]
 offset_right = 40.0
 offset_bottom = 23.3333
-theme_override_fonts/font = ExtResource("1_qxh1m")
+theme_override_fonts/font = ExtResource("1_yfc6a")
 theme_override_font_sizes/font_size = 96
 text = "多少钱，费用？い風のビ testy (Aa_03783)"
 
@@ -31,3 +31,11 @@ drag_and_drop_selection_enabled = false
 [node name="TextEdit" type="TextEdit" parent="."]
 offset_right = 8.0
 offset_bottom = 8.0
+
+[node name="Button" type="Button" parent="."]
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0

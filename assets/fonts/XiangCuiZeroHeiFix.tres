@@ -1,0 +1,7 @@
+[gd_resource type="FontVariation" load_steps=2 format=3 uid="uid://dvxg5f750441l"]
+
+[ext_resource type="FontFile" uid="uid://vedgwis58rr2" path="res://assets/fonts/XiangCuiZeroHei.ttf" id="1_m0x68"]
+
+[resource]
+base_font = ExtResource("1_m0x68")
+spacing_top = 5

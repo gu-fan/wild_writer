@@ -8,6 +8,17 @@ signal window_canceled
 @onready var audio_stream_player3: AudioStreamPlayer = $AudioStreamPlayer3
 
 var viewport
+
+var font_res = '' : 
+    set(v):
+        for lb in [$Title, $TotalTime, $TotalWord, $MaxCombo, $KPM, $WPM, $Natural, $Repeat, $Punctuation, $Rhythm, $Accuracy, $FinalLabel]:
+            if v:
+                lb.add_theme_font_override('font', v)
+            else:
+                lb.remove_theme_font_override('font')
+        for lb in [$SpeedRating, $StyleRating, $AccuracyRating, $FinalRating]:
+            lb.font_res = v
+
 func _ready():
     viewport = get_tree().current_scene.get_viewport()
     viewport.size_changed.connect(_on_viewport_resized)
@@ -65,19 +76,19 @@ func start_loading_stats(stats={}):
     t = _trans_in_node_left($TotalWord, t, 'Total Word: %d' + goal_count , 0, stats.word,0.6) - 0.3
     t = _trans_in_node_left($MaxCombo, t, 'Max Combo: %d', 0, stats.combo, 0.6) + 0.3
 
-    t = _trans_in_node_right($KPM, t, 'KPM: %d', 0, stats.kpm, 0.6) - 0.3
-    t = _trans_in_node_right($WPM, t, 'WPM: %d', 0, stats.wpm, 0.6) + 0.3
+    t = _trans_in_node_left($KPM, t, 'KPM: %d', 0, stats.kpm, 0.6) - 0.3
+    t = _trans_in_node_left($WPM, t, 'WPM: %d', 0, stats.wpm, 0.6) + 0.3
     $SpeedRating.text = 'Speed: %s' % stats.rating_speed
     t = _trans_in_rating($SpeedRating, t) + 0.4
 
-    t = _trans_in_node_right($Natural, t, 'Natural: %d', 0, stats.style_scores.natural, 0.6) - 0.3
-    t = _trans_in_node_right($Repeat, t, 'Repeat: %d', 0, stats.style_scores.repeat, 0.6) - 0.3
-    t = _trans_in_node_right($Punctuation, t, 'Punctuation: %d', 0, stats.style_scores.punc, 0.6) - 0.3
-    t = _trans_in_node_right($Rhythm, t, 'Rhythm: %d', 0, stats.style_scores.rhythm, 0.6) + 0.3
+    t = _trans_in_node_left($Natural, t, 'Natural: %d', 0, stats.style_scores.natural, 0.6) - 0.3
+    t = _trans_in_node_left($Repeat, t, 'Repeat: %d', 0, stats.style_scores.repeat, 0.6) - 0.3
+    t = _trans_in_node_left($Punctuation, t, 'Punctuation: %d', 0, stats.style_scores.punc, 0.6) - 0.3
+    t = _trans_in_node_left($Rhythm, t, 'Rhythm: %d', 0, stats.style_scores.rhythm, 0.6) + 0.3
     $StyleRating.text = 'Style: %s' % stats.rating_style
     t = _trans_in_rating($StyleRating, t) + 0.4
 
-    t = _trans_in_node_right($Accuracy, t, 'Accuracy: %.1f%%', 0.0, stats.accuracy, 0.6) + 0.3
+    t = _trans_in_node_left($Accuracy, t, 'Accuracy: %.1f%%', 0.0, stats.accuracy, 0.6) + 0.3
     $AccuracyRating.text = 'Accuracy: %s' % stats.rating_accuracy
     t = _trans_in_rating($AccuracyRating, t) + 0.4
 
@@ -125,7 +136,7 @@ func _trans_in_rating(nd, delay=0.0, rating='A'):
     nd.show()
     nd.modulate.a = 0.0
     var pos_x = Util._get_orig(nd, 'position:x')
-    var from_pos_x = pos_x + 50 * -1
+    var from_pos_x = pos_x + 50 * 1
     var twn = TwnLite.at(nd)
     twn.tween({
         prop = 'modulate:a',

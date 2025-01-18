@@ -14,7 +14,6 @@ var char = ''
 var speed := 900.0
 var is_exploded := false
 
-var firework_expl = load('res://temp/sfx/firework_expl.ogg')
 
 # 颜色属性
 var color: Color = Color.WHITE : set = set_color
@@ -116,7 +115,7 @@ func explode():
         var lb = Label.new()
         lb.text = char
         add_child(lb)
-        UI.set_font(lb, 'res://effects/font.tres')
+        lb.set("theme_override_fonts/font", Editor.view.get_font_fx())
         UI.set_font_size(lb, 256)
         lb.position = sprite_2d.global_position + Vector2(-128, -128)
         var orig_pos = lb.position

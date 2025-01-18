@@ -272,7 +272,8 @@ var text := '' :
 func _ready() -> void:
     # text_server = TextServerManager.get_primary_interface()
     # font = load("res://assets/fonts/NotoSans/NotoSansSC-Regular.ttf")
-    font = load("res://effects/font.tres")
+    # font = load("res://effects/font.tres")
+    font = Editor.view.get_font_fx()
     fonts = font.get_rids()
 
 func set_text(new_text: String) -> void:

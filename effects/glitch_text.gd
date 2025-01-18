@@ -9,6 +9,14 @@ class_name GlitchText
 @onready var label3: Label = $Bot/Label
 @onready var timer: Timer = $Timer
 
+var font_res = '' : 
+    set(v):
+        for lb in [label, label2, label3]:
+            if v:
+                lb.add_theme_font_override('font', v)
+            else:
+                lb.remove_theme_font_override('font')
+
 var text := ''  :
     set(v):
         label.text = v
@@ -54,7 +62,6 @@ var _current_color: Color = Color.WHITE
 #         update_label()
 
 func update_label():
-    # var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     # if font_size == 2: 
     #     extra_scale = 1.5

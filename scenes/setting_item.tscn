@@ -6,14 +6,15 @@ offset_right = 608.0
 offset_bottom = 30.0
 
 [node name="Label" type="Label" parent="."]
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(200, 28)
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 text = "aaaa"
 vertical_alignment = 1
 
-[node name="Control" type="Control" parent="."]
+[node name="Control" type="HBoxContainer" parent="."]
 custom_minimum_size = Vector2(150, 20)
 layout_mode = 2
 size_flags_vertical = 0
+theme_override_constants/separation = 0

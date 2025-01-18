@@ -21,7 +21,7 @@ clip_contents = true
 custom_minimum_size = Vector2(400, 0)
 anchors_preset = 0
 offset_right = 900.0
-offset_bottom = 135.0
+offset_bottom = 115.0
 
 [node name="Label" type="Label" parent="Top"]
 material = SubResource("CanvasItemMaterial_qrqqr")
@@ -37,16 +37,16 @@ text = "A"
 clip_contents = true
 custom_minimum_size = Vector2(400, 0)
 anchors_preset = 0
-offset_top = 135.0
+offset_top = 115.0
 offset_right = 900.0
-offset_bottom = 270.0
+offset_bottom = 267.0
 
 [node name="Label" type="Label" parent="Bot"]
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 0
-offset_top = -135.0
+offset_top = -115.0
 offset_right = 863.0
-offset_bottom = 150.833
+offset_bottom = 170.833
 theme_override_fonts/font = ExtResource("2_leegv")
 theme_override_font_sizes/font_size = 196
 text = "A"

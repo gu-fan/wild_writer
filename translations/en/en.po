@@ -61,7 +61,214 @@ msgstr "Line number"
 msgid "HIGHLIGHT_LINE"
 msgstr "Highlight current line"
 
+msgid "DOCUMENT_DIR"
+msgstr "Document directory"
+
+msgid "DOCUMENT_DIR_DESC"
+msgstr "the default directory for opening files"
+
+msgid "FONT_SIZE"
+msgstr "Font size"
+
+
+msgid "NONE"
+msgstr "NA"
+
+msgid "SMALL"
+msgstr "S"
+
+msgid "MIDDLE"
+msgstr "M"
+
+msgid "LARGE"
+msgstr "L"
+
+msgid "EXTRA_LARGE"
+msgstr "XL"
+
+
 # --------
+msgid "RICH_TIPS_0"
+msgstr "Tips: \n Do not type continuously for more than an hour. \n If you feel dizzy or uncomfortable, you can stop and take a break."
+
+msgid "RICH_TIPS_1"
+msgstr "Tips:"
+
+msgid "RICH_TIPS_2"
+msgstr "Tips:\nCtrl+A select all, Ctrl+C copy, Ctrl+V paste\nCtrl+Z undo, Ctrl+Y redo\n(Cmd under mac)"
+
+msgid "RICH_TIPS_3"
+msgstr "Tips: \nYou can drag and drop text files into the window to open them"
+
+msgid "RESET_ALL"
+msgstr "Reset all options"
+
+msgid "RESET_SHORTCUT"
+msgstr "Reset all shortcut"
+
 # --------
+
 msgid "FILE_OPENED"
 msgstr "file opened"
+
+msgid "FILE_SAVED"
+msgstr "file saved"
+
+msgid "FILE_NEW"
+msgstr "new document started"
+
+msgid "NOT_SAVED"
+msgstr "Not Saved"
+
+msgid "CONTINUE_CREATE_NEW_FILE"
+msgstr "continue to create new File?"
+
+msgid "CANCEL"
+msgstr "Cancel"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+# --------
+
+msgid "SERIF"
+msgstr "Serif"
+
+msgid "SANS_SERIF"
+msgstr "Sans Serif"
+
+msgid "EDITOR_FONT"
+msgstr "Editor font"
+
+msgid "EDITOR_FONT_DESC"
+msgstr "Noto Serif / Sans-Serif"
+
+msgid "EFFECT_FONT"
+msgstr "Effect font"
+
+msgid "EFFECT_FONT_DESC"
+msgstr "font of char effects"
+
+msgid "YouSheBiaoTiHei"
+msgstr "YouSheBiaoTiHei"
+
+msgid "MaoKenShiJinHei"
+msgstr "MaoKenShiJinHei"
+
+msgid "XiangCuiZeroHei"
+msgstr "XiangCuiZeroHei"
+
+msgid "INTERFACE_FONT"
+msgstr "Interface font"
+
+msgid "INTERFACE_FONT_DESC"
+msgstr "font of some interface, like rating UI"
+
+# --------
+
+msgid "FX_SWITCH"
+msgstr "Switch all effects"
+
+msgid "AUDIO"
+msgstr "Audio"
+
+msgid "COMBO"
+msgstr "Combo"
+
+msgid "COMBO_DESC"
+msgstr "show combo when typing in line"
+
+msgid "COMBO_SHOT"
+msgstr "Combo Finish"
+
+msgid "COMBO_SHOT_DESC"
+msgstr "show effect when finish a combo line"
+
+msgid "SCREEN_SHAKE_LEVEL"
+msgstr "Screen shake level"
+
+msgid "SCREEN_SHAKE_LEVEL_DESC"
+msgstr "[color=FF3333]Caution:[/color] turn it off if feel dizzy while typing"
+
+msgid "CHAR_EFFECT"
+msgstr "Char effect"
+
+msgid "CHAR_PARTICLE"
+msgstr "Char particle effect"
+
+msgid "CHAR_SOUND"
+msgstr "Char sound effect"
+
+msgid "TYPING"
+msgstr "Typing"
+
+msgid "CLICK"
+msgstr "Click"
+
+msgid "WOOD"
+msgstr "Wood"
+
+msgid "GLASS"
+msgstr "Glass"
+
+msgid "CHAR_SOUND_INCREASE"
+msgstr "Char increase pitch"
+
+msgid "CHAR_SOUND_INCREASE_DESC"
+msgstr "increase pitch when typing chars continuously"
+
+msgid "ENTER_EFFECT"
+msgstr "New line effect"
+
+msgid "DELETE_EFFECT"
+msgstr "Delete effect"
+
+msgid "MATCH_EFFECT"
+msgstr "Match effect"
+
+msgid "MATCH_EFFECT_DESC"
+msgstr "show effects after matching words when typing with input method"
+
+msgid "MATCH_WORDS"
+msgstr "Match words"
+
+# --------
+
+msgid "NEW_FILE"
+msgstr "New File"
+
+msgid "OPEN_FILE"
+msgstr "Open File"
+
+msgid "SAVE_FILE"
+msgstr "Save File"
+
+msgid "TOGGLE_SETTING"
+msgstr "Toggle Setting"
+
+msgid "TOGGLE_SETTING_DESC"
+msgstr "toggle setting panel. Esc can hide setting panel"
+
+msgid "TOGGLE_EFFECT"
+msgstr "Toggle Effect"
+
+msgid "TOGGLE_IME"
+msgstr "Toggle internal IME"
+
+msgid "TOGGLE_IME_DESC"
+msgstr "toggle internal input method"
+
+msgid "START_MOTION"
+msgstr "Start motion"
+
+msgid "START_MOTION_DESC"
+msgstr "show motion panel, to start motion like Vim"
+
+msgid "START_COMMAND"
+msgstr "Start command"
+
+msgid "START_COMMAND_DESC"
+msgstr "show command panel to execute some command"
+
+msgid "SHORCUT_TIP"
+msgstr "Movements:\nCtrl+H/J/K/L\t\tmove direction left/down/up/right\nCtrl+U/D        \t\tmove multi lines up/down\n\nMotions:\nh/j/k/l \t\tmove direction(can prefix with numbers)\nw/b     \t\tmove word end/back word\n0/$      \t\tmove to line start/end\ngg/G    \t\tmove to file start/end\nms/mf  \t\tstart/finish speed mode\nuf        \t\ttoggle fulle screen\nur        \t\tredraw\nus        \t\ttoggle setting panel\n\nCommands:\nsetting\t\tset some editor settings\nmode   \t\tstart/finish mode(current only speed mode)\ndebug  \t\ttoggle debug"

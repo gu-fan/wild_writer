@@ -6,10 +6,11 @@ const INITIALS = {
     "b": "b",
     "c": "c",
     "d": "d",
+    "e": "",
     "f": "f",
     "g": "g",
     "h": "h",
-    "i": "",    # 零声母
+    "i": "ch",    # 零声母
     "j": "j",
     "k": "k",
     "l": "l",
@@ -21,7 +22,7 @@ const INITIALS = {
     "r": "r",
     "s": "s",
     "t": "t",
-    "u": "",    # 零声母
+    "u": "sh",    # 零声母
     "v": "zh",  # 特殊声母
     "w": "w",
     "x": "x",
@@ -31,40 +32,39 @@ const INITIALS = {
 
 # 韵母映射
 const FINALS = {
-    "a": "a",
-    "ai": "l",
-    "an": "j",
-    "ang": "h",
-    "ao": "k",
+    "iu": "q",
+    "ei": "w",
     "e": "e",
-    "ei": "z",
+    "uan": "r",
+    "ue": "t",
+    "ve": "t",
+    "un": "y",
+    "u": "u",
+    "i": "i",
+    "o": "o",
+    "uo": "o",
+    "ie": "p",
+    "a": "a",
+    "iong": "s",
+    "ong": "s",
+    "ai": "d",
     "en": "f",
     "eng": "g",
-    "er": "r",
-    "i": "i",
-    "ia": "w",
-    "ian": "m",
-    "iang": "d",
-    "iao": "c",
-    "ie": "x",
-    "in": "n",
-    "ing": ";",
-    "iong": "s",
-    "iu": "q",
-    "o": "o",
-    "ong": "s",
-    "ou": "b",
-    "u": "u",
-    "ua": "w",
-    "uai": "y",
-    "uan": "r",
-    "uang": "d",
-    "ue": "t",
+    "ang": "h",
+    "an": "j",
+    "ing": "k",
+    "uai": "k",
+    "uang": "l",
+    "iang": "l",
+    "ou": "z",
+    "ia": "x",
+    "ua": "x",
+    "ao": "c",
     "ui": "v",
-    "un": "p",
-    "uo": "o",
     "v": "v",
-    "ve": "t"
+    "in": "b",
+    "iao": "n",
+    "ian": "m",
 }
 
 # 零声母韵母映射
@@ -103,17 +103,18 @@ static func convert_to_pinyin(shuangpin: String) -> Array[String]:
             
         # 2. 分别获取声母和韵母
         var initial = INITIALS.get(first, "")
-        var final = ""
+        var finals = []
         
         # 查找对应的韵母
         for f in FINALS:
             if FINALS[f] == second:
-                final = f
-                break
+                finals.append(f)
         
-        if initial != "" and final != "":
-            results.append(initial + final)
-        elif final != "":
-            results.append(final)
+        for final in finals:
+            if initial != "" and final != "":
+                results.append(initial + final)
+            elif final != "":
+                results.append(final)
     
+    prints('got shuangpin', shuangpin, results)
     return results 

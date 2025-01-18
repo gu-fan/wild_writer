@@ -27,7 +27,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
     item.get_node("Label").text = config.get("label", key)
 
     var lb_desc = RichTextLabel.new()
-    lb_desc.custom_minimum_size = Vector2(300, 20)
+    lb_desc.custom_minimum_size = Vector2(300, 28)
     lb_desc.fit_content = true
     lb_desc.scroll_active = false
     lb_desc.text = config.get("desc", '')
@@ -52,6 +52,8 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             Editor.config.subscribe(section, key, control, 
                 func(value): control.set_pressed_no_signal(value)
             )
+
+            item.get_node('Control').add_child(control)
             
         "int":
             var slider = HSlider.new()
@@ -61,16 +63,37 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             slider.value = current_value
             slider.tick_count = slider.max_value + 1
             slider.ticks_on_borders = true
-            slider.custom_minimum_size = Vector2(130, 20)
+            slider.custom_minimum_size = Vector2(135, 20)
 
             slider.value_changed.connect(
                 func(value): Editor.config.set_setting(section, key, value)
             )
+
             control = slider
-            Editor.config.subscribe(section, key, control, 
-                func(value): control.set_value_no_signal(value)
-            )
-            
+
+            item.get_node('Control').add_child(control)
+
+            if config.has('keys'):
+                var lb_key = Label.new()
+                lb_key.text = config.keys[current_value]
+                lb_key.custom_minimum_size = Vector2(35, 28)
+                lb_key.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+                lb_key.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+                UI.set_font_color(lb_key, '888888')
+                item.get_node('Control').add_child(lb_key)
+                item.get_node('Control').custom_minimum_size.x = 170
+                item.get_node('RichText').custom_minimum_size.x = 300 - 20
+                Editor.config.subscribe(section, key, control, 
+                    func(value): 
+                        control.set_value_no_signal(value)
+                        lb_key.text = config.keys[value]
+                )
+            else:
+                Editor.config.subscribe(section, key, control, 
+                    func(value): control.set_value_no_signal(value)
+                )
+
+                
         "shortcut":
             var button = Button.new()
             button.text = Editor.config.get_key_shown(current_value)
@@ -82,6 +105,8 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             Editor.config.subscribe(section, key, control, 
                 func(value): control.text = Editor.config.get_key_shown(value)
             )
+            item.get_node('Control').add_child(control)
+
         "option":
             var opts = config.get('options', [])
             var button = create_option(opts, 
@@ -93,10 +118,14 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             Editor.config.subscribe(section, key, control, 
                 func(value): control.select(value)
             )
+            item.get_node('Control').add_child(control)
         "directory":
             var button = Button.new()
             button.text = current_value
-            button.custom_minimum_size.x = 100
+            button.custom_minimum_size.x = 180
+            button.clip_text = true
+            item.get_node('Control').custom_minimum_size.x = 190
+            item.get_node('RichText').custom_minimum_size.x = 300 - 40
             button.pressed.connect(
                 func(): _setup_directory(button, section, key) 
             )
@@ -104,6 +133,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             Editor.config.subscribe(section, key, control, 
                 func(value): control.text = value
             )
+            item.get_node('Control').add_child(control)
         "string":
             var input = LineEdit.new()
             input.text = current_value
@@ -123,18 +153,17 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
                     control.text = value
                     control.caret_column = tmp_caret
             )
+            item.get_node('Control').add_child(control)
     
     # 在控件被移除时取消订阅
     if control: 
         control.size_flags_vertical = 0
         control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-        item.get_node('Control').add_child(control)
         item.tree_exiting.connect(
             func(): Editor.config.unsubscribe(section, key, control)
         )
     else:
         push_error('invalid control', section, key, current_value)
-
 
     return item
 
@@ -149,18 +178,20 @@ static func _setup_shortcut(button: Button, section: String, key: String) -> voi
     if captured_key:
         button.text = Editor.config.get_key_shown(captured_key)
         Editor.config.set_setting(section, key, captured_key)
-    
+
+    button.release_focus()
     key_capture.queue_free()
 
 static func _setup_directory(button: Button, section: String, key: String):
-    pass
-    # editor_main.file_manager.show_directory_dialog()
-    # var file_path = await editor_main.file_manager.file_selected
-    # if file_path:
-    #     file_path = file_path.replace(OS.get_environment("HOME"), "~")
-    #     SettingManager.set_basic_setting("document_dir", file_path)
-    #     document_dir.text =  file_path
-    #     document_dir.tooltip_text = document_dir.text
+    var doc_man = Editor.view.core.document_manager
+    doc_man.show_directory_dialog()
+    var file_path = await doc_man.file_selected
+    if file_path:
+        file_path = doc_man.get_home_folded(file_path)
+        Editor.config.set_setting(section, key, file_path)
+        button.text = file_path
+        button.tooltip_text = file_path
+    button.release_focus()
 
 # ------------------------
 static func build_sep(container: Control, pre_padding=0, post_padding=0):

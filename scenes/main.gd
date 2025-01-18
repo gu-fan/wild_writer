@@ -18,11 +18,9 @@ func _ready():
     Editor.view = editor_view
     Editor.view.main = self
 
-    creative_mode_view = $CanvasLayer/CreativeMode
+    creative_mode_view = $CanvasLayer/SpeedMode
     creative_mode = creative_mode_view.creative_mode
     Editor.creative_mode = creative_mode
-
-    # 设置初始状态
 
     editor_view.init()
 

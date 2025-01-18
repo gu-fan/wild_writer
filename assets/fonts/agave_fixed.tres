@@ -1,7 +1,7 @@
 [gd_resource type="FontVariation" load_steps=3 format=3 uid="uid://r045b8gwnt3k"]
 
 [ext_resource type="FontFile" uid="uid://b5n65c1fx4c2t" path="res://assets/fonts/Agave/AgaveNerdFontMono-Regular.ttf" id="1_2g8un"]
-[ext_resource type="FontFile" uid="uid://dcjd24t3fpryt" path="res://assets/fonts/NotoSans/NotoSansSC-Regular.ttf" id="2_nnqd0"]
+[ext_resource type="FontFile" uid="uid://dcjd24t3fpryt" path="res://assets/fonts/NotoSansSC-Regular.ttf" id="2_nnqd0"]
 
 [resource]
 fallbacks = Array[Font]([ExtResource("2_nnqd0")])

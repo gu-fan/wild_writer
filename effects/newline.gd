@@ -8,9 +8,9 @@ var blips = true
 
 var last_key = ''
 var caret_col = 0
+var font_size = 1
 
 func _ready():
-    var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     if font_size == 2: 
         extra_scale = 1.5

@@ -103,7 +103,6 @@ static func set_opacity(_nd:Node, val:float):
         _nd.modulate.a = val
 static func set_margin(_nd:Node, dic:Dictionary):
     if _nd is MarginContainer:
-        print('set margins', dic)
         if dic.has('left'):   _nd.set('theme_override_constants/margin_left', dic.left)
         if dic.has('right'):  _nd.set('theme_override_constants/margin_right', dic.right)
         if dic.has('top'):    _nd.set('theme_override_constants/margin_top', dic.top)

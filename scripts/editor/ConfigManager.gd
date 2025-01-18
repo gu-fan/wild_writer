@@ -8,7 +8,6 @@ var config = ConfigFile.new()
 var _has_valid_config = false
 
 
-
 # 默认设置
 var _default_settings = {
     "basic": {
@@ -22,7 +21,6 @@ var _default_settings = {
         "document_dir": "~/Documents",
         "recent_file": "",
         "backup_file": "",
-        "font_size": 1,
         "backup_caret_line": 0,
         "backup_caret_col": 0,
     },
@@ -30,32 +28,35 @@ var _default_settings = {
         "editor_font": 0,
         "effect_font": 1,
         "interface_font": 1,
-        "fullscreen": 0,
+        "font_size": 1,
+        # "fullscreen": 0,
     },
     "effect": {
-        "level": 1,
+        "fx_switch": 1,
         "combo": 1,
         "combo_shot": 1,
         "audio": 1,
-        "screen_shake": 1,
+        # "screen_shake": 1,
         "screen_shake_level": 1,
         "char_effect": 1,
         "char_particle": 1,
+        "char_sound": 0,
+        "char_sound_increase": 1,
         "enter_effect": 1,
         "delete_effect":1 ,
-        "bonus_effect":1 ,
-        "bonus_words":"新年快乐,万事如意",
+        "match_effect":1 ,
+        "match_words":"非常不错,我很开心,新年快乐,万事如意",
     },
     "shortcut": {
         "new_file": "Ctrl+N",
         "open_file": "Ctrl+O",
         "save_file": "Ctrl+S",
-        "open_setting": "Ctrl+Apostrophe",
+        "toggle_setting": "Ctrl+Apostrophe",
         "toggle_effect": "Ctrl+Slash",
-        "split_view": "Ctrl+B",
-        "start_motion": "Ctrl+S",
-        "start_command": "Ctrl+S",
-        "toggle_ime": "Ctrl+S",
+        "toggle_ime": "Option+Escape",
+        # "split_view": "Ctrl+B",
+        "start_motion": "Ctrl+E",
+        "start_command": "Ctrl+R",
     },
     "ime": {
         "pinyin_icon": 1,
@@ -102,12 +103,6 @@ const SETTINGS_CONFIG = {
             "label": "SHOW_CHAR_COUNT",
             "desc": ""
         },
-        "line_wrap": {
-            "type": "bool",
-            "default": true,
-            "label": "LINE_WRAP",
-            "desc": "LINE_WRAP_DESC"
-        },
         "line_number": {
             "type": "bool",
             "default": true,
@@ -120,19 +115,17 @@ const SETTINGS_CONFIG = {
             "label": "HIGHLIGHT_LINE",
             "desc": ""
         },
+        "line_wrap": {
+            "type": "bool",
+            "default": true,
+            "label": "LINE_WRAP",
+            "desc": "LINE_WRAP_DESC"
+        },
         "document_dir": {
             "type": "directory",
             "default": '~/Documents',
             "label": "DOCUMENT_DIR",
             "desc": "DOCUMENT_DIR_DESC"
-        },
-        "font_size": {
-            "type": "int",
-            "default": 1,
-            "min": 0,
-            "max": 3,
-            "label": "FONT_SIZE",
-            "desc": "FONT_SIZE_DESC"
         },
     },
     "shortcut": {
@@ -140,43 +133,31 @@ const SETTINGS_CONFIG = {
             "type": "shortcut",
             "default": "",
             "label": "NEW_FILE",
-            "desc": "NEW_FILE_DESC"
+            "desc": ""
         },
         "open_file": {
             "type": "shortcut",
             "default": "",
             "label": "OPEN_FILE",
-            "desc": "OPEN_FILE_DESC"
+            "desc": ""
         },
         "save_file": {
             "type": "shortcut",
             "default": "",
             "label": "SAVE_FILE",
-            "desc": "SAVE_FILE_DESC"
+            "desc": ""
         },
-        "open_setting": {
+        "toggle_setting": {
             "type": "shortcut",
             "default": "",
-            "label": "OPEN_SETTING",
-            "desc": "OPEN_SETTING_DESC"
+            "label": "TOGGLE_SETTING",
+            "desc": "TOGGLE_SETTING_DESC"
         },
         "toggle_effect": {
             "type": "shortcut",
             "default": "",
             "label": "TOGGLE_EFFECT",
-            "desc": "TOGGLE_EFFECT_DESC"
-        },
-        "start_motion": {
-            "type": "shortcut",
-            "default": "",
-            "label": "START_MOTION",
-            "desc": "NEW_FILE_DESC"
-        },
-        "start_command": {
-            "type": "shortcut",
-            "default": "",
-            "label": "START_COMMAND",
-            "desc": "START_COMMAND_DESC"
+            "desc": ""
         },
         "toggle_ime": {
             "type": "shortcut",
@@ -184,13 +165,73 @@ const SETTINGS_CONFIG = {
             "label": "TOGGLE_IME",
             "desc": "TOGGLE_IME_DESC"
         },
+        "start_motion": {
+            "type": "shortcut",
+            "default": "",
+            "label": "START_MOTION",
+            "desc": "START_MOTION_DESC"
+        },
+        "start_command": {
+            "type": "shortcut",
+            "default": "",
+            "label": "START_COMMAND",
+            "desc": "START_COMMAND_DESC"
+        },
     },
-    "effect": {
-        "level": {
+    "interface": {
+        "editor_font": {
+            "type": "option",
+            "options": ["SANS_SERIF", "SERIF"],
+            "values": ["NotoSansSC-Regular.ttf", "NotoSerifSC-SemiBold.ttf"],
+            "default": 0,
+            "label": "EDITOR_FONT",
+            "desc": "EDITOR_FONT_DESC"
+        },
+        "font_size": {
             "type": "int",
             "default": 1,
-            "label": "LEVEL",
-            "desc": "LEVEL_DESC",
+            "min": 0,
+            "max": 3,
+            "label": "FONT_SIZE",
+            "desc": "",
+            "keys" : ["SMALL", "MIDDLE", "LARGE", "EXTRA_LARGE"],
+            "values" : [16, 32, 48, 96],
+        },
+        "effect_font": {
+            "type": "option",
+            "options": ["YouSheBiaoTiHei", "MaoKenShiJinHei", "XiangCuiZeroHei"],
+            "values": ["YouSheBiaoTiHei.ttf", "MaoKenShiJinHeiFix.tres", "XiangCuiZeroHeiFix.tres"],
+            "default": 0,
+            "label": "EFFECT_FONT",
+            "desc": "EFFECT_FONT_DESC"
+        },
+        "interface_font": {
+            "type": "option",
+            "options": ["YouSheBiaoTiHei", "MaoKenShiJinHei", "XiangCuiZeroHei"],
+            "values": ["YouSheBiaoTiHei.ttf", "MaoKenShiJinHeiFix.tres", "XiangCuiZeroHeiFix.tres"],
+            "default": 0,
+            "label": "INTERFACE_FONT",
+            "desc": "INTERFACE_FONT_DESC"
+        },
+        # "fullscreen": {
+        #     "type": "bool",
+        #     "default": false,
+        #     "label": "FULLSCREEN",
+        #     "desc": "FULLSCREEN_DESC"
+        # },
+    },
+    "effect": {
+        "fx_switch": {
+            "type": "bool",
+            "default": true,
+            "label": "FX_SWITCH",
+            "desc": "",
+        },
+        "audio": {
+            "type": "bool",
+            "default": false,
+            "label": "AUDIO",
+            "desc": ""
         },
         "combo": {
             "type": "bool",
@@ -201,94 +242,80 @@ const SETTINGS_CONFIG = {
         "combo_shot": {
             "type": "bool",
             "default": false,
-            "label": "COMBO",
-            "desc": "COMBO_DESC"
+            "label": "COMBO_SHOT",
+            "desc": "COMBO_SHOT_DESC"
         },
-        "audio": {
-            "type": "bool",
-            "default": false,
-            "label": "AUDIO",
-            "desc": "AUDIO_DESC"
-        },
-        "screen_shake": {
-            "type": "bool",
-            "default": false,
-            "label": "SCREEN_SHAKE",
-            "desc": "SCREEN_SHAKE_DESC"
-        },
+        # "blip_fx_dir": {
+        #     "type": "option",
+        #     "default": false,
+        #     "label": "AUDIO",
+        #     "desc": "AUDIO_DESC"
+        # },
+        # "screen_shake": {
+        #     "type": "bool",
+        #     "default": false,
+        #     "label": "SCREEN_SHAKE",
+        #     "desc": "SCREEN_SHAKE_DESC"
+        # },
         "screen_shake_level": {
             "type": "int",
             "default": 1,
             "min": 0,
             "max": 2,
             "label": "SCREEN_SHAKE_LEVEL",
-            "desc": "SCREEN_SHAKE_LEVEL_DESC"
+            "desc": "SCREEN_SHAKE_LEVEL_DESC",
+            "keys" : ["NONE", "SMALL", "LARGE"],
         },
         "char_effect": {
             "type": "bool",
             "default": false,
             "label": "CHAR_EFFECT",
-            "desc": "CHAR_EFFECT_DESC"
+            "desc": ""
         },
         "char_particle": {
             "type": "bool",
             "default": false,
             "label": "CHAR_PARTICLE",
-            "desc": "CHAR_PARTICLE_DESC"
+            "desc": ""
+        },
+        "char_sound": {
+            "type": "option",
+            "options": ["CLICK", "TYPING", "WOOD", "GLASS"],
+            "values": ["blip.wav", "click1.ogg", "drop_003.ogg", "glass_005.ogg"],
+            "default": 0,
+            "label": "CHAR_SOUND",
+            "desc": ""
+        },
+        "char_sound_increase": {
+            "type": "bool",
+            "default": true,
+            "label": "CHAR_SOUND_INCREASE",
+            "desc": "CHAR_SOUND_INCREASE_DESC"
         },
         "enter_effect": {
             "type": "bool",
             "default": false,
             "label": "ENTER_EFFECT",
-            "desc": "ENTER_EFFECT_DESC"
+            "desc": ""
         },
         "delete_effect": {
             "type": "bool",
             "default": false,
             "label": "DELETE_EFFECT",
-            "desc": "DELETE_EFFECT_DESC"
+            "desc": ""
         },
-        "bonus_effect": {
+        "match_effect": {
             "type": "bool",
             "default": false,
-            "label": "BONUS_EFFECT",
-            "desc": "BONUS_EFFECT_DESC"
+            "label": "MATCH_EFFECT",
+            "desc": "MATCH_EFFECT_DESC"
         },
-        "bonus_words": {
+        "match_words": {
             "type": "string",
             "default": "",
-            "placeholder": "BONUS_PLACEHOLDER",
-            "label": "BONUS_WORDS",
-            "desc": "BONUS_WORDS_DESC"
-        },
-    },
-    "interface": {
-        "editor_font": {
-            "type": "option",
-            "options": ["hhhh", "ddddd"],
-            "default": 0,
-            "label": "EDITOR_FONT",
-            "desc": "EDITOR_FONT_DESC"
-        },
-        "effect_font": {
-            "type": "option",
-            "options": ["hhhh", "ddddd"],
-            "default": 0,
-            "label": "EFFECT_FONT",
-            "desc": "EFFECT_FONT_DESC"
-        },
-        "interface_font": {
-            "type": "option",
-            "options": ["hhhh", "ddddd"],
-            "default": 0,
-            "label": "INTERFACE_FONT",
-            "desc": "INTERFACE_FONT_DESC"
-        },
-        "fullscreen": {
-            "type": "bool",
-            "default": false,
-            "label": "FULLSCREEN",
-            "desc": "FULLSCREEN_DESC"
+            "placeholder": "match_PLACEHOLDER",
+            "label": "MATCH_WORDS",
+            "desc": ""
         },
     },
     "ime": {
@@ -372,6 +399,13 @@ const KEY_DISPLAY_MAP = {
     "shift+quoteleft": "~",
 }
 
+const RICH_TIPS = [
+        'RICH_TIPS_0',
+        'RICH_TIPS_1',
+        'RICH_TIPS_2',
+        'RICH_TIPS_3',
+    ]
+
 # ----------------
 static func get_key_shown(key_string: String) -> String:
     if key_string.is_empty():
@@ -416,7 +450,7 @@ static func get_key_shown_shift(key_string: String) -> String:
                 result.append("Ctrl")
             "shift":
                 has_shift = true
-            "alt":
+            "alt", "option":
                 result.append("Alt")
             "meta", "cmd", "command", "super":
                 result.append("Cmd")
@@ -433,6 +467,9 @@ static func get_key_shown_shift(key_string: String) -> String:
                         result.append(p_l)
     
     return "+".join(result)
+
+func get_keys(section):
+    return _default_settings[section].keys()
 # ----------------
 
 var _subscriptions = {}  # 添加到类的成员变量
@@ -552,32 +589,38 @@ func get_basic_setting(key: String):
 func set_basic_setting(key: String, value) -> void:
     set_setting("basic", key, value)
 
-# Network settings convenience methods
-func get_network_setting(key: String):
-    return get_setting("network", key)
+func get_effect_setting(key: String):
+    return get_setting("effect", key)
 
-func set_network_setting(key: String, value) -> void:
-    set_setting("network", key, value)
 
+func set_effect_setting(key: String, value) -> void:
+    set_setting("effect", key, value)
+
+
+func toggle_setting(section, key):
+    var val = get_setting(section, key)
+    set_setting(section, key, !val)
 # --------------------------------
 # build ui               # config -> ui
 # ui binding to config   # ui change -> config change -> save
 # update ui by config     # config -> ui
 # update editor by config # config -> editor
 
+var lb_rich_tips
 func build_ui():
     var settings = Editor.init_node('ui/settings:Settings')
+    settings.script = EditorConfigUI
     # 获取设置界面的容器节点
     var basic_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Scroll/Margin/VBox")
     
     if basic_container:
         SettingsBuilder.build_settings(basic_container, SETTINGS_CONFIG, "basic")
+        SettingsBuilder.build_sep(basic_container, 0, 10)
+        var tip = Rnd.pick(RICH_TIPS)
+        lb_rich_tips = SettingsBuilder.build_rich(basic_container, tip)
+        lb_rich_tips.size_flags_vertical =  Control.SIZE_EXPAND_FILL
         SettingsBuilder.build_sep(basic_container)
-        var rich = SettingsBuilder.build_rich(basic_container, 'RICH_TIPS_0')
-        rich.size_flags_vertical =  Control.SIZE_EXPAND_FILL
-        SettingsBuilder.build_sep(basic_container)
-        var callback = func(): print('reset all')
-        SettingsBuilder.build_btn(basic_container, 'RESET_ALL', callback)
+        SettingsBuilder.build_btn(basic_container, 'RESET_ALL', reset_to_default)
 
     var interface_container = settings.get_node("Margin/Background/TabContainer/TAB_INTERFACE/Scroll/Margin/VBox")
     if interface_container:
@@ -590,16 +633,15 @@ func build_ui():
         SettingsBuilder.build_settings(effect_container, SETTINGS_CONFIG, "effect")
         SettingsBuilder.build_sep(effect_container)
         SettingsBuilder.build_control(effect_container)
-        SettingsBuilder.build_settings(effect_container, SETTINGS_CONFIG, "effect")
 
     var shortcut_container = settings.get_node("Margin/Background/TabContainer/TAB_SHORTCUT/Scroll/Margin/VBox")
     if shortcut_container:
         SettingsBuilder.build_settings(shortcut_container, SETTINGS_CONFIG, "shortcut")
+        SettingsBuilder.build_sep(shortcut_container, 5, 5)
+        var lb_rich_shortcut = SettingsBuilder.build_rich(shortcut_container, 'SHORCUT_TIP')
+        lb_rich_shortcut.size_flags_vertical =  Control.SIZE_EXPAND_FILL
         SettingsBuilder.build_sep(shortcut_container)
-        SettingsBuilder.build_control(shortcut_container)
-        SettingsBuilder.build_sep(shortcut_container)
-        var callback = func(): print('reset short')
-        SettingsBuilder.build_btn(shortcut_container, 'RESET_SHORTCUT', callback)
+        SettingsBuilder.build_btn(shortcut_container, 'RESET_SHORTCUT', reset_key_to_default)
 
     var ime_container = settings.get_node("Margin/Background/TabContainer/TAB_IME/Scroll/Margin/VBox")
     if ime_container:
@@ -618,4 +660,18 @@ func build_ui():
         rich = SettingsBuilder.build_rich(about_container, 'RICH_ABOUT_1')
         rich.size_flags_vertical =  Control.SIZE_EXPAND_FILL
 
+    settings.init()
+
+# ----------------
+func reset_to_default():
+    for section in _default_settings:
+        if section == 'shortcut': continue
+        for key in _default_settings[section]:
+            set_setting(section, key, _default_settings[section][key])
+    save_config()
+
+func reset_key_to_default():
+    for key in _default_settings['shortcut']:
+        set_setting('shortcut', key, _default_settings['shortcut'][key])
+    save_config()
 # ----------------

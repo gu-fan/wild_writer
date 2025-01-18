@@ -5,6 +5,15 @@ class_name SpeedText
 @onready var label2: Label = $Label2
 @onready var label3: Label = $Label/Label3
 
+
+var font_res = '' : 
+    set(v):
+        for lb in [label, label2, label3]:
+            if v:
+                lb.add_theme_font_override('font', v)
+            else:
+                lb.remove_theme_font_override('font')
+
 var text := ''  :
     set(v):
         label.text = v
@@ -56,7 +65,6 @@ var _current_color: Color = Color.WHITE
 #         update_label()
 
 func update_label():
-    # var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     # if font_size == 2: 
     #     extra_scale = 1.5
@@ -157,7 +165,6 @@ func update_color_by_rating(rating:String):
         'S': score = 100
     count = score
     update_color()
-    
 
 # ----------
 func set_font_size(v: int):

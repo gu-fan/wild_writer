@@ -15,12 +15,13 @@ var chars: bool = true
 var animation = '1'
 var particle_scale = 1.0
 var sprite_scale = 1.0
+var font_size = 1
+var font_res = ''
 
 func _ready():
 
     timer.start()
 
-    var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     if font_size == 2: 
         extra_scale = 1.5
@@ -46,7 +47,8 @@ func _ready():
         animated_sprite_2d.scale = Vector2(3, 3) * extra_scale * sprite_scale
 
     if chars:
-        label.set("theme_override_font_sizes/font_size", 96)
+        if font_res:
+            label.set("theme_override_fonts/font", font_res)
         label.text = last_key
         if last_key == 'Backspace': 
             label.text='←'

@@ -304,7 +304,7 @@ static func get_key_shown(key_string: String) -> String:
                 result.append("Ctrl")
             "shift":
                 result.append("Shift")
-            "alt":
+            "alt", "option":
                 result.append("Alt")
             "meta", "cmd", "command", "super":
                 result.append("Cmd")
@@ -333,7 +333,7 @@ static func get_key_shown_shift(key_string: String) -> String:
                 result.append("Ctrl")
             "shift":
                 has_shift = true
-            "alt":
+            "alt", "option":
                 result.append("Alt")
             "meta", "cmd", "command", "super":
                 result.append("Cmd")

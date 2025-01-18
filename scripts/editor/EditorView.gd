@@ -1,6 +1,47 @@
 class_name EditorView
 extends Control
 
+# TODO:
+# subwindow when not focused, escape should also hide it
+#   this will contain file_dialog / settings / motion windows ...
+#   also when clicing mask, should hide it too
+# DONE fix the font settings
+# after reset, we'll met a file open error with empty file
+# DONE goal/final window in effect
+# goal start audio
+# blip audio / blip fx random direction
+# open file when dragging
+# toggle debug
+# key settings
+# mode start / finish logic
+
+# CHECKLIST - font of FX
+# BLIP
+# BOOM
+# BOOMBIG
+# Combo
+# FireworkProjectile
+# AnimatedText
+# DUST NO
+# LASER NO
+# NEWLINE NO
+
+# CHECKLIST - documents
+# new
+# open
+# save
+# open_recent
+# auto_save
+# document_dir
+
+# CHECKLIST - Windows and popups
+# File / Directory
+# motion
+# command
+# goal / final
+# settings
+# KeyCapture
+
 var main
 var core: EditorCore
 var motions: EditorMotions
@@ -61,7 +102,6 @@ func init():
     # 连接信号
     connect_signals()
     # 设置快捷键
-    setup_key_bindings()
 
     Editor.config = core.config_manager
 
@@ -69,42 +109,20 @@ func init():
     core.config_manager.load_config()
     core.config_manager.build_ui()
 
-    
     last_focused_editor = text_edit
     last_focused_editor.document = core.document_manager.new_document()
-
     
-    # # 检查是否需要自动打开最近的文件
-    # if core.config_manager.get_basic_setting("auto_open_recent"):
-    #     var recent_file = core.config_manager.get_basic_setting("recent_file")
-    #     if recent_file and FileAccess.file_exists(recent_file):
-    #         open_document_from_path(recent_file)
-            
-    #         # 恢复光标位置
-    #         var caret_line = core.config_manager.get_basic_setting("backup_caret_line")
-    #         var caret_col = core.config_manager.get_basic_setting("backup_caret_col")
-    #         if last_focused_editor:
-    #             last_focused_editor.set_caret_line(caret_line)
-    #             last_focused_editor.set_caret_column(caret_col)
-    #             last_focused_editor.center_viewport_to_caret()
-
-
     subscribe_configs()
 
     await get_tree().create_timer(0.1).timeout
+
+    redraw()
+
     last_focused_editor.call_deferred('grab_focus')
 
     autosave_timer.timeout.connect(_on_autosave_timeout)
     
 func setup_view() -> void:
-    # 设置编辑器基本属性
-    text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY if core.config_manager.get_basic_setting("line_wrap") else TextEdit.LINE_WRAPPING_NONE
-    # text_edit.gutters_draw_line_numbers = core.config_manager.get_basic_setting("line_number")
-    text_edit.highlight_current_line = core.config_manager.get_basic_setting("highlight_line")
-    
-    text_edit_secondary.wrap_mode = text_edit.wrap_mode
-    text_edit_secondary.gutters_draw_line_numbers = text_edit.gutters_draw_line_numbers
-    text_edit_secondary.highlight_current_line = text_edit.highlight_current_line
     text_edit.changed.connect(update_status_bar.bind(text_edit))
     text_edit_secondary.changed.connect(update_status_bar.bind(text_edit_secondary))
 
@@ -115,6 +133,7 @@ func setup_view() -> void:
     locale.pressed.connect(toggle_locale)
     setting.pressed.connect(toggle_setting)
     debug.pressed.connect(toggle_debug)
+
     timer_fps = Timer.new()
     timer_fps.wait_time = 0.5
     timer_fps.one_shot = false
@@ -122,95 +141,29 @@ func setup_view() -> void:
     timer_fps.timeout.connect(_on_timer_fps_timeout)
     add_child(timer_fps)
 
-    # var count = text_edit.get_gutter_count()
-    # for i in count:
-    #     var gut_name = text_edit.get_gutter_name(i)
-    #     if gut_name == 'line_numbers':
-    #         var gutter_size = 20
-    #         var gutter_size_fin = max(4*gutter_size, (3+1)*gutter_size)
-    #         text_edit.set_gutter_width(i, gutter_size_fin)
-
     Editor.main.creative_mode_view.combo_rating_changed.connect(text_edit._on_combo_rating_vis_changed)
     Editor.main.creative_mode_view.combo_rating_changed.connect(text_edit_secondary._on_combo_rating_vis_changed)
+
 
 func connect_signals() -> void:
     text_edit.focus_entered.connect(_on_editor_focus_entered.bind(text_edit))
     text_edit_secondary.focus_entered.connect(_on_editor_focus_entered.bind(text_edit_secondary))
     TinyIME.ime_state_changed.connect(_on_ime_state_changed)
 
-func setup_key_bindings() -> void:
-    # 添加命令窗口快捷键
-    core.key_system.add_binding(
-        ["Ctrl+E"],
-        "show_command",
-        "editorFocus"
-    )
-
-    
-    # 添加执行窗口快捷键
-    core.key_system.add_binding(
-        ["Ctrl+R"],
-        "show_execution",
-        "editorFocus"
-    )
-
-    core.key_system.add_binding(
-        ["Ctrl+1"],
-        "toggle_locale",
-        "editorFocus"
-    )
-
-    core.key_system.add_binding(
-        ["Ctrl+Apostrophe"],
-        "toggle_setting",
-        "editorFocus"
-    )
-
-    # NOTE: if is macos, use Option, else use Alt
-    core.key_system.add_binding(
-        ["Option+Escape"],
-        "toggle_ime",
-        "editorFocus"
-    )
-
-    var key_save = ''
-    # NOTE: if is macos, use Command, else use Ctrl
-    if Editor.is_macos:
-        key_save = "Command+O"
-    else:
-        key_save = "Ctrl+O"
-    core.key_system.add_binding(
-        # [key_save],
-        ["Ctrl+O"],
-        "open_document",
-        "editorFocus"
-    )
-
-    core.key_system.add_binding(
-        ["Ctrl+S"],
-        "save_document",
-        "editorFocus"
-    )
-
-    core.key_system.add_binding(
-        ["Ctrl+N"],
-        "new_document",
-        "editorFocus"
-    )
-
-    core.key_system.sequence_matched.connect(_on_key_sequence_matched)
 
 func _on_key_sequence_matched(binding: KeySystem.KeyBinding) -> void:
-    print("Debug - Key sequence matched:", binding.command)
+    print("Debug - Key matched:", binding.sequence[0], binding.command)
+    last_focused_editor.show_char(binding.sequence[0])
     match binding.command:
-        "show_command":   show_command_window()
-        "show_execution": show_execution_window()
-        "toggle_ime":     TinyIME.toggle()
+        "new_file":   new_document()
+        "open_file":  open_document()
+        "save_file":  save_document()
         "toggle_setting": toggle_setting()
+        "toggle_effect":  toggle_effect()
+        "toggle_ime":     TinyIME.toggle()
         "toggle_locale":  toggle_locale()
-        "open_document":  open_document()
-        "save_document":  save_document()
-        "new_document":   new_document()
+        "start_motion":   show_command_window()
+        "start_command": show_execution_window()
 
 func _on_editor_focus_entered(editor: TextEdit) -> void:
     last_focused_editor = editor
@@ -221,6 +174,7 @@ func _on_ime_state_changed(v):
         lb_ime.text  = 'EN'
 
 func show_command_window() -> void:
+    if Editor.main.mask.visible: return
     if current_motion_window != null and is_instance_valid(current_motion_window):
         return
     
@@ -256,6 +210,7 @@ func _on_command_canceled():
 
 # 执行窗口相关函数
 func show_execution_window() -> void:
+    if Editor.main.mask.visible: return
     if current_execution_window != null and is_instance_valid(current_execution_window):
         return
     
@@ -308,13 +263,6 @@ func post_sub_window_hide():
         last_focused_editor.is_active = true
 
 # ---------------------------
-# CHECKLIST - documents
-# new
-# open
-# save
-# open_recent
-# auto_save
-# document_dir
 func open_document():
     core.document_manager.show_file_dialog()
     var file_path = await core.document_manager.file_selected
@@ -401,6 +349,7 @@ func update_status_bar(edit):
 # ---------------------------
 func toast(txt):
     var ts = Toast.instantiate()
+    ts.font_res = _font_res_fx
     add_child(ts)
     ts.text = txt
     UI.set_layout(ts, UI.PRESET_CENTER_TOP, Vector2(0, 60))
@@ -450,83 +399,6 @@ func _on_autosave_timeout():
             show_hint('%s:%s' % [tr('FILE_AUTO_SAVED') , DocumentManager.get_home_folded(document.file_path)])
             _update_title()
 # ---------------------------
-var current_file_path: String = ""
-
-# 文件操作相关函数
-func open_document_from_path2(path: String) -> void:
-    if not FileAccess.file_exists(path):
-        push_warning("File not found: %s" % path)
-        return
-    
-    var file = FileAccess.open(path, FileAccess.READ)
-    if file:
-        var content = file.get_as_text()
-        file.close()
-        
-        # 更新编辑器内容
-        if last_focused_editor:
-            last_focused_editor.text = content
-            last_focused_editor.clear_undo_history()
-        
-        # 更新当前文件路径
-        current_file_path = path
-        
-        # 更新最近文件记录
-        core.config_manager.set_basic_setting("recent_file", path)
-        
-        # 更新状态栏
-        status.text = "Opened: " + path
-
-func save_document2() -> void:
-    if not last_focused_editor:
-        return
-        
-    if current_file_path.is_empty():
-        save_document_as()
-        return
-    
-    # 保存文件
-    var content = last_focused_editor.text
-    var file = FileAccess.open(current_file_path, FileAccess.WRITE)
-    if file:
-        file.store_string(content)
-        file.close()
-        
-        # 更新最近文件记录和光标位置
-        core.config_manager.set_basic_setting("recent_file", current_file_path)
-        core.config_manager.set_basic_setting("backup_caret_line", last_focused_editor.get_caret_line())
-        core.config_manager.set_basic_setting("backup_caret_col", last_focused_editor.get_caret_column())
-        
-        # 更新状态栏
-        status.text = "Saved: " + current_file_path
-
-func save_document_as() -> void:
-    # 如果已有对话框打开，就返回
-    if current_file_dialog != null and is_instance_valid(current_file_dialog):
-        return
-        
-    current_file_dialog = FileDialog.new()
-    current_file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
-    current_file_dialog.add_filter("*.txt;*.md;*.json", "Text files")
-    current_file_dialog.add_filter("*", "All files")
-    
-    # 设置对话框大小和标题
-    current_file_dialog.title = "Save File As"
-    current_file_dialog.size = Vector2(800, 600)
-    
-    add_child(current_file_dialog)
-    current_file_dialog.popup_centered()
-    
-    # 等待文件选择
-    var file_path = await current_file_dialog.file_selected
-    current_file_dialog.queue_free()
-    current_file_dialog = null  # 清除引用
-    
-    if file_path:
-        current_file_path = file_path
-        save_document()
-
-# ---------------------------
 func toggle_locale():
     var locale = TranslationServer.get_locale()
     if locale != 'zh':
@@ -540,8 +412,15 @@ func toggle_setting():
     Editor.main.mask.visible = nd.visible
     if nd.visible:
         pre_sub_window_show()
+        var tip = Rnd.pick(Editor.config.RICH_TIPS)
+        Editor.config.lb_rich_tips.text = tip
     else:
         post_sub_window_hide()
+
+func toggle_effect():
+    var efx = Editor.config.get_setting('effect', 'fx_switch')
+    efx = 0 if efx else 1
+    Editor.config.set_setting('effect', 'fx_switch', efx)
 
 func toggle_debug():
     if stat_box.visible:
@@ -589,21 +468,38 @@ func logging(txt: String) -> void:
         c.queue_free()
 # =========================================
 func subscribe_configs():
-    Editor.config.subscribe('basic', 'font_size', self, _update_font_size, true)
+    Editor.config.subscribe('basic', 'language', self, _set_language, true)
     Editor.config.subscribe('basic', 'auto_save', self, _set_auto_save, true)
-    Editor.config.init_only('basic', 'auto_open_recent', self, _set_auto_open_recent)
     Editor.config.subscribe('basic', 'show_char_count', self, _set_char_count, true)
-    Editor.config.subscribe('basic', 'line_wrap', self, _set_line_wrap, true)
-    Editor.config.subscribe('basic', 'line_number', self, _set_line_number, true)
     Editor.config.subscribe('basic', 'highlight_line', self, _set_highlight_line, true)
 
-func _update_font_size(f):
-    for te in [text_edit, text_edit_secondary]:
-        match f:
-            0: te.set("theme_override_font_sizes/font_size", 16)
-            1: te.set("theme_override_font_sizes/font_size", 32)
-            2: te.set("theme_override_font_sizes/font_size", 48)
-            3: te.set("theme_override_font_sizes/font_size", 96)
+    Editor.config.subscribe('basic', 'line_number', self, _set_line_number, true)
+
+    Editor.config.subscribe('basic', 'line_wrap', self, _set_line_wrap, true)
+
+    Editor.config.subscribe('interface', 'font_size', self, _update_font_size, true)
+
+    Editor.config.subscribe('interface', 'editor_font', self, _set_font.bind('editor'), true)
+    Editor.config.subscribe('interface', 'effect_font', self, _set_font.bind('effect'), true)
+    Editor.config.subscribe('interface', 'interface_font', self, _set_font.bind('interface'), true)
+
+    Editor.config.init_only('basic', 'auto_open_recent', self, _set_auto_open_recent)
+
+    for key in Editor.config.get_keys('effect'):
+        Editor.config.subscribe('effect', key, self, _set_effect.bind(key), true)
+
+    setup_key_bindings()
+
+    for key in Editor.config.get_keys('shortcut'):
+        Editor.config.subscribe('shortcut', key, self, _set_binding.bind(key), true)
+        # setup_key_bindings(key)
+
+    Editor.config.subscribe('ime', 'pinyin_icon', self, _set_ime_icon, true)
+    Editor.config.subscribe('ime', 'shuangpin', self, TinyIME.set_shuangpin, true)
+
+func _set_language(lang_idx):
+    var lang = Editor.config.SETTINGS_CONFIG.basic.language.values[lang_idx]
+    TranslationServer.set_locale(lang)
 
 func _set_auto_save(v):
     if v and autosave_timer.is_stopped():
@@ -613,16 +509,200 @@ func _set_auto_save(v):
 func _set_auto_open_recent(v):
     if v:
         var recent_file = core.config_manager.get_basic_setting("recent_file")
-        open_document_from_path(recent_file)
+        if recent_file: open_document_from_path(recent_file)
 func _set_char_count(v: bool):
     lb_count.visible = v
 func _set_line_wrap(v):
-    if v:
-        last_focused_editor.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-    else:
-        last_focused_editor.autowrap_mode = TextServer.AUTOWRAP_OFF
+    for te in [text_edit, text_edit_secondary]:
+        if v:
+            te.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+            te.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+        else:
+            te.wrap_mode = TextEdit.LINE_WRAPPING_NONE
+            te.autowrap_mode = TextServer.AUTOWRAP_OFF
+
 func _set_line_number(v):
-    last_focused_editor.update_gutter()
+    for te in [text_edit, text_edit_secondary]:
+        te.update_gutter()
 func _set_highlight_line(v):
-    last_focused_editor.highlight_current_line = v
-# =========================================
+    for te in [text_edit, text_edit_secondary]:
+        te.highlight_current_line = v
+
+var _font_size
+var _font_size_real
+func _update_font_size(f):
+    var v = Editor.config.SETTINGS_CONFIG.interface.font_size.values[f]
+    _font_size = f
+    _font_size_real = v
+    for te in [text_edit, text_edit_secondary]:
+        te.set("theme_override_font_sizes/font_size", v)
+        te.font_size = f
+        te.update_gutter()
+    redraw()
+
+var _font_res_ui
+var _font_res_fx
+var _font_res = preload('res://effects/font.tres')
+func _set_font(idx, type):
+    if type == 'editor':
+        var font = Editor.config.SETTINGS_CONFIG.interface.editor_font.values[idx]
+        for te in [text_edit, text_edit_secondary]:
+            te.set("theme_override_fonts/font", load("res://assets/fonts/" + font))
+    elif type == 'effect':
+        var is_init = false
+        if _font_res_fx == null:
+            _font_res_fx = _font_res.duplicate(true)
+            is_init = true
+        var font = Editor.config.SETTINGS_CONFIG.interface.effect_font.values[idx]
+        _font_res_fx.base_font = load('res://assets/fonts/' + font)
+        for te in [text_edit, text_edit_secondary]:
+            te.font_res_fx = _font_res_fx
+        if is_init:
+            Editor.main.creative_mode_view.font_res_fx = _font_res_fx
+    elif type == 'interface':
+        var is_init = false
+        if _font_res_ui== null:
+            _font_res_ui = _font_res.duplicate(true)
+            is_init = true
+        var font = Editor.config.SETTINGS_CONFIG.interface.effect_font.values[idx]
+        _font_res_ui.base_font = load('res://assets/fonts/' + font)
+
+        if is_init:
+            Editor.main.creative_mode_view.font_res_ui = _font_res_ui
+
+func get_font_fx():
+    return _font_res_fx
+func get_font_ui():
+    return _font_res_ui
+func get_font_size():
+    return _font_size
+func get_font_size_real():
+    return _font_size_real
+# -----------------
+func _set_effect(v, type):
+    var fxs = {}
+    var fx_switch = Editor.config.get_effect_setting('fx_switch')
+    if type == 'fx_switch':
+        fxs = {
+            "audio":      0 if !fx_switch else Editor.config.get_effect_setting("audio"),
+            "combo":      0 if !fx_switch else Editor.config.get_effect_setting("combo"),
+            "combo_shot": 0 if !fx_switch else Editor.config.get_effect_setting("combo_shot"),
+            "shake":      0 if !fx_switch else Editor.config.get_effect_setting("screen_shake_level"),
+            "chars":      0 if !fx_switch else Editor.config.get_effect_setting("char_effect"),
+            "particles":  0 if !fx_switch else Editor.config.get_effect_setting("char_particle"),
+            "newline":    0 if !fx_switch else Editor.config.get_effect_setting("enter_effect"),
+            "delete":     0 if !fx_switch else Editor.config.get_effect_setting("delete_effect"),
+            "match_effect":      0 if !fx_switch else Editor.config.get_effect_setting("match_effect"),
+            "sound_increase":      0 if !fx_switch else Editor.config.get_effect_setting("char_sound_increase"),
+        }
+        for te in [text_edit, text_edit_secondary]:
+            for k in fxs:
+                te.effects[k] = fxs[k]
+    else:
+        var fx_key = type
+        match type:
+            'screen_shake_level': fx_key = 'shake'
+            'char_effect':        fx_key = 'chars'
+            'char_particle':      fx_key = 'particles'
+            'enter_effect':       fx_key = 'newline'
+            'delete_effect':      fx_key = 'delete'
+            'char_sound_increase': fx_key = 'sound_increase'
+        for te in [text_edit, text_edit_secondary]:
+            if type == 'match_words':
+                te.effects[fx_key] = Array(v.replace('，',',').split(','))
+            elif type == 'char_sound':
+                te.effects['sound'] = Editor.config.SETTINGS_CONFIG.effect.char_sound.values[v]
+            else:
+                te.effects[fx_key] = 0 if !fx_switch else v
+# -----------------
+func _set_ime_icon(v):
+    lb_ime.visible = v
+
+# -----------------
+func redraw():
+    var orig_set = Editor.config.get_setting('basic', 'line_wrap')
+    var wrap_from
+    var wrap_to
+    if orig_set:
+        wrap_from = TextServer.AUTOWRAP_OFF
+        wrap_to = TextServer.AUTOWRAP_ARBITRARY
+    else:
+        wrap_from = TextServer.AUTOWRAP_ARBITRARY
+        wrap_to = TextServer.AUTOWRAP_OFF
+
+    for edit in [text_edit, text_edit_secondary]:
+        edit.autowrap_mode = wrap_from
+    await get_tree().process_frame
+    for edit in [text_edit, text_edit_secondary]:
+        edit.autowrap_mode = wrap_to
+    await get_tree().process_frame
+    for edit in [text_edit, text_edit_secondary]:
+        edit.center_viewport_to_caret()
+# ---------------
+func _set_binding(val, key):
+    prints('got k', val, key)
+    core.key_system.set_binding(
+        [val],
+        key,
+        "editorFocus"
+    )
+
+func setup_key_bindings() -> void:
+
+    # if Engine.is_editor_hint():
+    if OS.has_feature("editor"):
+        core.key_system.set_binding(
+            ["Ctrl+1"],
+            "toggle_locale",
+            "editorFocus"
+        )
+        print('set locale')
+
+    core.key_system.sequence_matched.connect(_on_key_sequence_matched)
+
+    # 添加命令窗口快捷键
+    
+    # # 添加执行窗口快捷键
+    # core.key_system.set_binding(
+    #     ["Ctrl+R"],
+    #     "show_execution",
+    #     "editorFocus"
+    # )
+
+    # core.key_system.set_binding(
+    #     ["Ctrl+Apostrophe"],
+    #     "toggle_setting",
+    #     "editorFocus"
+    # )
+
+    # # NOTE: if is macos, use Option, else use Alt
+    # core.key_system.set_binding(
+    #     ["Option+Escape"],
+    #     "toggle_ime",
+    #     "editorFocus"
+    # )
+
+    # var key_save = ''
+    # # NOTE: if is macos, use Command, else use Ctrl
+    # if Editor.is_macos:
+    #     key_save = "Command+O"
+    # else:
+    #     key_save = "Ctrl+O"
+    # core.key_system.set_binding(
+    #     # [key_save],
+    #     ["Ctrl+O"],
+    #     "open_document",
+    #     "editorFocus"
+    # )
+
+    # core.key_system.set_binding(
+    #     ["Ctrl+S"],
+    #     "save_document",
+    #     "editorFocus"
+    # )
+
+    # core.key_system.set_binding(
+    #     ["Ctrl+N"],
+    #     "new_document",
+    #     "editorFocus"
+    # )

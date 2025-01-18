@@ -77,7 +77,7 @@ func update_candidates(context: CompositionContext) -> void:
     var search_text = context.buffer
     if shuangpin_enabled:
         var pinyin_array = ShuangpinScheme.convert_to_pinyin(context.buffer)
-        search_text = "".join(pinyin_array)
+        # search_text = "".join(pinyin_array)
     
     # 1. 如果是单个字母，使用first_letter_cache并只匹配单字
     if search_text.length() == 1:

@@ -19,11 +19,11 @@ signal combo_rating_changed
 @onready var stats_label: Label = $StatsPanel/Label
 @onready var s_wpm: Control = $StatsPanel/WPM
 @onready var s_kpm: Control = $StatsPanel/KPM
-@onready var stats_detail_panel: Panel = $StatsDetail
+@onready var stats_detail_panel: Control = $StatsDetail
 @onready var stats_detail_label: Label = $StatsDetail/Label
 @onready var combo_panel: Control = $ComboPanel
 @onready var combo_label: Label = $ComboPanel/Label
-@onready var combo_detail_panel: Panel = $ComboDetail
+@onready var combo_detail_panel: Control = $ComboDetail
 @onready var combo_detail_label: Label = $ComboDetail/Label
 
 @onready var c_speed: Control = $ComboPanel/Speed
@@ -32,6 +32,16 @@ signal combo_rating_changed
 
 @onready var final_window: FinalWindow = $FinalPanel
 @onready var final_close: Button = $FinalPanel/OK
+
+var font_res_ui = '' :
+    set(v):
+        for lb in [goal_window, final_window]:
+            lb.font_res = v
+
+var font_res_fx = '' :
+    set(v):
+        for lb in [s_wpm, s_kpm, c_speed, c_style, c_accuracy, progress_label]:
+            lb.font_res = v
 
 func _ready() -> void:
     
@@ -127,7 +137,9 @@ func show_goal_window():
     var win_pos = Vector2((viewport_size - window_size) / 2) + Vector2(0, -50)
     var win_rect = Rect2(window_size, win_pos)
     goal_window.popup()
-    goal_window.position = win_pos
+    goal_window.position = win_pos + Vector2(0, -40)
+    TwnLite.at(goal_window).tween({prop='position', from=Vector2i(win_pos + Vector2(0, -40)), to = Vector2i(win_pos)})
+    # TwnLite.at(goal_window).tween({prop='size', from=Vector2i(window_size*2), to = Vector2i(window_size)})
     await get_tree().process_frame
     Editor.view.pre_sub_window_show()
     g_label.grab_focus()
@@ -246,7 +258,8 @@ func _on_goal_finished() -> void:
     # var win_pos = Vector2((viewport_size - window_size) / 2) + Vector2(0, -50)
     var win_pos = Vector2((viewport_size - window_size) / 2)
     final_window.show()
-    final_window.position = win_pos
+    final_window.position = win_pos + Vector2(0, -40)
+    TwnLite.at(final_window).tween({prop='position', from=Vector2i(win_pos + Vector2(0, -40)), to = Vector2i(win_pos)})
     final_window.reset_stats()
 
     # final_window.get_node("SpeedRating").text = "Speed: %s" % stats.speed_rating

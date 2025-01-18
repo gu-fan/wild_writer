@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://effects/blip.gd" id="1_tp8nq"]
 [ext_resource type="Texture2D" uid="uid://d1tio2ceqgm7m" path="res://effects/blip.png" id="2_kj7um"]
-[ext_resource type="AudioStream" uid="uid://cdhoopgao0sf3" path="res://effects/blip/drop_003.ogg" id="3_bxuus"]
+[ext_resource type="AudioStream" uid="uid://b2ood3lkcgpqb" path="res://effects/blip/blip.wav" id="3_p3dxb"]
 [ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="4_ullf3"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hp4ed"]
@@ -78,7 +78,7 @@ scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_g4ki7")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer2D" parent="."]
-stream = ExtResource("3_bxuus")
+stream = ExtResource("3_p3dxb")
 volume_db = 5.0
 max_distance = 20000.0
 attenuation = 0.12
@@ -96,7 +96,7 @@ offset_right = 55.0
 offset_bottom = -18.0
 pivot_offset = Vector2(35, 8)
 theme_override_fonts/font = ExtResource("4_ullf3")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 96
 horizontal_alignment = 1
 
 [connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_AnimatedSprite1_animation_finished"]

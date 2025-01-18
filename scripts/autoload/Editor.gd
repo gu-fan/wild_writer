@@ -94,6 +94,12 @@ func load_scene(_scn, _scrpt):
     , CONNECT_ONE_SHOT)
     get_tree().change_scene_to_packed(_scn)
 
+func toggle_debug():
+    view.toggle_debug()
+func toggle_ime():
+    TinyIME.toggle()
+func toggle_setting():
+    view.toggle_setting()
 func toggle_fullscreen():
     var mode = DisplayServer.window_get_mode()
     if mode == DisplayServer.WINDOW_MODE_FULLSCREEN:

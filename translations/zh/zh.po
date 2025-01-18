@@ -52,7 +52,7 @@ msgid "LINE_WRAP"
 msgstr "自动换行"
 
 msgid "LINE_WRAP_DESC"
-msgstr "如果一行太长，就自动换行"
+msgstr "如果一行太长，那就换一行继续显示"
 
 msgid "LINE_NUMBER"
 msgstr "显示行号"
@@ -60,6 +60,234 @@ msgstr "显示行号"
 msgid "HIGHLIGHT_LINE"
 msgstr "高亮当前行"
 
+msgid "DOCUMENT_DIR"
+msgstr "文档文件夹"
+
+msgid "DOCUMENT_DIR_DESC"
+msgstr "打开文件时的默认文件夹"
+
+msgid "FONT_SIZE"
+msgstr "字体大小"
+
+msgid "NONE"
+msgstr "无"
+
+msgid "SMALL"
+msgstr "小"
+
+msgid "MIDDLE"
+msgstr "中"
+
+msgid "LARGE"
+msgstr "大"
+
+msgid "EXTRA_LARGE"
+msgstr "超大"
+
 # --------
+msgid "RICH_TIPS_0"
+msgstr "小提示：\n连续打字不要超过一个小时，\n如果感到头晕目眩或不适，可以停下来休息一下"
+
+msgid "RICH_TIPS_1"
+msgstr "小提示："
+
+msgid "RICH_TIPS_2"
+msgstr "小提示：\nCtrl+A全选，Ctrl+C复制，Ctrl+V粘贴\nCtrl+Z撤销，Ctrl+Y重做\n(mac下为Cmd)"
+
+msgid "RICH_TIPS_3"
+msgstr "小提示：\n可以将文本文件拖拽到窗口里来打开"
+
+msgid "RESET_ALL"
+msgstr "重置全部选项"
+
+msgid "RESET_SHORTCUT"
+msgstr "重置全部快捷键"
+
+# --------
+
 msgid "FILE_OPENED"
 msgstr "已打开文件"
+
+msgid "FILE_SAVED"
+msgstr "已保存文件"
+
+msgid "FILE_NEW"
+msgstr "已开始新文档"
+
+msgid "NOT_SAVED"
+msgstr "尚未保存"
+
+msgid "CONTINUE_CREATE_NEW_FILE"
+msgstr "继续创建新文件?"
+
+
+msgid "CANCEL"
+msgstr "取消"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Save a File"
+msgstr "保存文件"
+
+msgid "Open a File"
+msgstr "打开文件"
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Open a Directory"
+msgstr "打开文件夹"
+
+msgid "Select Current Folder"
+msgstr "选择当前文件夹"
+
+msgid "Press Shortcut"
+msgstr "按下快捷键"
+
+msgid "Press Shortcut... (Esc to Cancel)"
+msgstr "按下快捷键 ... (Esc 取消)"
+
+# --------
+
+msgid "SERIF"
+msgstr "衬线"
+
+msgid "SANS_SERIF"
+msgstr "无衬线"
+
+msgid "EDITOR_FONT"
+msgstr "编辑器字体"
+
+msgid "EDITOR_FONT_DESC"
+msgstr "Noto Serif / Sans-Serif"
+
+msgid "EFFECT_FONT"
+msgstr "特效字体"
+
+msgid "EFFECT_FONT_DESC"
+msgstr "字符特效的字体"
+
+msgid "YouSheBiaoTiHei"
+msgstr "优设标题黑"
+
+msgid "MaoKenShiJinHei"
+msgstr "猫啃什锦黑"
+
+msgid "XiangCuiZeroHei"
+msgstr "香萃零度黑"
+
+msgid "INTERFACE_FONT"
+msgstr "界面字体"
+
+msgid "INTERFACE_FONT_DESC"
+msgstr "一些界面的字体，比如结算界面"
+
+# --------
+
+msgid "FX_SWITCH"
+msgstr "开关所有特效"
+
+msgid "AUDIO"
+msgstr "声音"
+
+msgid "COMBO"
+msgstr "连击"
+
+msgid "COMBO_DESC"
+msgstr "当连续打字的时候会显示连击"
+
+msgid "COMBO_SHOT"
+msgstr "连击终结"
+
+msgid "COMBO_SHOT_DESC"
+msgstr "当一行结束时显示连击终结效果"
+
+msgid "SCREEN_SHAKE_LEVEL"
+msgstr "屏幕震动"
+
+msgid "SCREEN_SHAKE_LEVEL_DESC"
+msgstr "[color=FF3333]注意：[/color]如果打字时感到眩晕请关闭震动"
+
+msgid "CHAR_EFFECT"
+msgstr "字符特效"
+
+msgid "CHAR_PARTICLE"
+msgstr "字符粒子效果"
+
+msgid "CHAR_SOUND"
+msgstr "字符音效"
+
+msgid "TYPING"
+msgstr "打字"
+
+msgid "CLICK"
+msgstr "点击"
+
+msgid "WOOD"
+msgstr "木头"
+
+msgid "GLASS"
+msgstr "玻璃"
+
+msgid "CHAR_SOUND_INCREASE"
+msgstr "字符提高音调"
+
+msgid "CHAR_SOUND_INCREASE_DESC"
+msgstr "当连续输入字符的时候提高音调"
+
+msgid "ENTER_EFFECT"
+msgstr "换行特效"
+
+msgid "DELETE_EFFECT"
+msgstr "删除特效"
+
+msgid "MATCH_EFFECT"
+msgstr "匹配特效"
+
+msgid "MATCH_EFFECT_DESC"
+msgstr "当使用输入法匹配词组后显示特效"
+
+msgid "MATCH_WORDS"
+msgstr "匹配词组"
+
+# --------
+
+msgid "NEW_FILE"
+msgstr "创建文件"
+
+msgid "OPEN_FILE"
+msgstr "打开文件"
+
+msgid "SAVE_FILE"
+msgstr "保存文件"
+
+msgid "TOGGLE_SETTING"
+msgstr "切换设置面板"
+
+msgid "TOGGLE_SETTING_DESC"
+msgstr "切换设置面板。 Esc可以隐藏设置面板"
+
+msgid "TOGGLE_EFFECT"
+msgstr "切换特效"
+
+msgid "TOGGLE_IME"
+msgstr "切换输入法"
+
+msgid "TOGGLE_IME_DESC"
+msgstr "内置输入法"
+
+msgid "START_MOTION"
+msgstr "开始动作(Motion)"
+
+msgid "START_MOTION_DESC"
+msgstr "显示动作面板，动作类似Vim的Motion"
+
+msgid "START_COMMAND"
+msgstr "开始命令(Command)"
+
+msgid "START_COMMAND_DESC"
+msgstr "显示命令面板，可以运行一些命令"
+
+msgid "SHORCUT_TIP"
+msgstr "移动(Movement):\nCtrl+H/J/K/L\t\t向左/下/上/右移动\nCtrl+U/D        \t\t向上/下移动多行\n\n动作(Motions):\nh/j/k/l \t\t移动方向(可以使用数字前缀)\nw/b     \t\t移动到词尾/向前一个词\n0/$      \t\t移动到行首/行尾\ngg/G    \t\t移动到文件头部/尾部\nms/mf  \t\t开始/结束速度模式\nuf        \t\t切换全屏\nur        \t\t重绘屏幕\nus        \t\t切换设置面板\n\n命令(Commands):\nsetting\t\t设置一些编辑器选项\nmode   \t\t开始/结束模式(当前只有速度模式)\ndebug  \t\t切换Debug"

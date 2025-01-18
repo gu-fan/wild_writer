@@ -1,0 +1,282 @@
+[gd_scene load_steps=9 format=3 uid="uid://j6bn6esedp5g"]
+
+[ext_resource type="Script" path="res://scenes/creative_mode/FinalWindow.gd" id="1_1y6yo"]
+[ext_resource type="FontVariation" uid="uid://nrx67heb2sgn" path="res://effects/font.tres" id="2_k4p25"]
+[ext_resource type="PackedScene" uid="uid://bdg1ilk3dcola" path="res://effects/rating_text.tscn" id="3_8ebfg"]
+[ext_resource type="PackedScene" uid="uid://bbhcs48nyd3q0" path="res://effects/glitch_text.tscn" id="4_1qbid"]
+[ext_resource type="AudioStream" uid="uid://cghgeynlpxeo7" path="res://scenes/creative_mode/scroll_004.wav" id="5_l5pjj"]
+[ext_resource type="AudioStream" uid="uid://bxkegkefuumjk" path="res://scenes/creative_mode/scratch_004.wav" id="6_rrdui"]
+[ext_resource type="AudioStream" uid="uid://dhear2iug85an" path="res://scenes/creative_mode/confirmation_004.wav" id="7_vt80r"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p4wk6"]
+bg_color = Color(0, 0, 0, 1)
+
+[node name="FinalWindow" type="Window"]
+auto_translate_mode = 1
+size = Vector2i(700, 650)
+unresizable = true
+borderless = true
+always_on_top = true
+script = ExtResource("1_1y6yo")
+metadata/_edit_lock_ = true
+
+[node name="BarTop" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(0, 90)
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
+[node name="BarBottom" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(50, 80)
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -130.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="Title" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -345.0
+offset_right = 343.0
+offset_bottom = 93.3333
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 64
+text = "Speed Mode Rating"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TotalTime" type="Label" parent="."]
+custom_minimum_size = Vector2(300, 0)
+offset_left = 250.0
+offset_top = 100.0
+offset_right = 550.0
+offset_bottom = 135.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Total Time: 00:00"
+vertical_alignment = 1
+
+[node name="TotalWord" type="Label" parent="."]
+custom_minimum_size = Vector2(300, 0)
+offset_left = 250.0
+offset_top = 130.0
+offset_right = 550.0
+offset_bottom = 165.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Total Word: 0"
+vertical_alignment = 1
+
+[node name="MaxCombo" type="Label" parent="."]
+custom_minimum_size = Vector2(300, 0)
+offset_left = 250.0
+offset_top = 160.0
+offset_right = 550.0
+offset_bottom = 195.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Max Combo: 0"
+vertical_alignment = 1
+
+[node name="SpeedRating2" type="Label" parent="."]
+visible = false
+custom_minimum_size = Vector2(240, 0)
+offset_left = 80.0
+offset_top = 200.0
+offset_right = 320.0
+offset_bottom = 270.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 48
+text = "Speed: S"
+vertical_alignment = 1
+
+[node name="SpeedRating" parent="." instance=ExtResource("3_8ebfg")]
+offset_left = 80.0
+offset_top = 200.0
+offset_right = 80.0
+offset_bottom = 200.0
+
+[node name="KPM" type="Label" parent="."]
+custom_minimum_size = Vector2(240, 0)
+offset_left = 430.0
+offset_top = 201.0
+offset_right = 670.0
+offset_bottom = 241.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "KPM: 0"
+vertical_alignment = 1
+
+[node name="WPM" type="Label" parent="."]
+custom_minimum_size = Vector2(240, 0)
+offset_left = 430.0
+offset_top = 231.0
+offset_right = 670.0
+offset_bottom = 271.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "WPM: 0"
+vertical_alignment = 1
+
+[node name="StyleRating2" type="Label" parent="."]
+visible = false
+custom_minimum_size = Vector2(240, 0)
+offset_left = 90.0
+offset_top = 310.0
+offset_right = 330.0
+offset_bottom = 380.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 48
+text = "Style: A"
+vertical_alignment = 1
+
+[node name="StyleRating" parent="." instance=ExtResource("3_8ebfg")]
+offset_left = 90.0
+offset_top = 310.0
+offset_right = 90.0
+offset_bottom = 310.0
+
+[node name="Natural" type="Label" parent="."]
+custom_minimum_size = Vector2(240, 0)
+offset_left = 420.0
+offset_top = 281.0
+offset_right = 660.0
+offset_bottom = 321.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Natural: 0
+"
+vertical_alignment = 1
+
+[node name="Repeat" type="Label" parent="."]
+custom_minimum_size = Vector2(240, 0)
+offset_left = 422.0
+offset_top = 312.0
+offset_right = 662.0
+offset_bottom = 352.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Repeat: 0
+"
+vertical_alignment = 1
+
+[node name="Punctuation" type="Label" parent="."]
+custom_minimum_size = Vector2(240, 0)
+offset_left = 390.0
+offset_top = 340.0
+offset_right = 630.0
+offset_bottom = 380.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Punctuation: 0
+"
+vertical_alignment = 1
+
+[node name="Rhythm" type="Label" parent="."]
+custom_minimum_size = Vector2(240, 0)
+offset_left = 420.0
+offset_top = 368.0
+offset_right = 660.0
+offset_bottom = 408.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Rhythm: 0"
+vertical_alignment = 1
+
+[node name="AccuracyRating2" type="Label" parent="."]
+visible = false
+custom_minimum_size = Vector2(240, 0)
+offset_left = 35.0
+offset_top = 410.0
+offset_right = 356.0
+offset_bottom = 480.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 48
+text = "Accuracy: S"
+vertical_alignment = 1
+
+[node name="AccuracyRating" parent="." instance=ExtResource("3_8ebfg")]
+offset_left = 35.0
+offset_top = 410.0
+offset_right = 35.0
+offset_bottom = 410.0
+
+[node name="Accuracy" type="Label" parent="."]
+custom_minimum_size = Vector2(240, 0)
+offset_left = 390.0
+offset_top = 425.0
+offset_right = 630.0
+offset_bottom = 465.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 24
+text = "Accuracy: 0.0%"
+vertical_alignment = 1
+
+[node name="FinalLabel" type="Label" parent="."]
+offset_left = 145.0
+offset_top = 525.0
+offset_right = 473.0
+offset_bottom = 595.0
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 32
+text = "Final: "
+vertical_alignment = 1
+
+[node name="FinalRating2" type="Label" parent="."]
+visible = false
+offset_left = 410.0
+offset_top = 420.0
+offset_right = 569.0
+offset_bottom = 705.833
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_font_sizes/font_size = 196
+text = "S"
+vertical_alignment = 1
+
+[node name="FinalRating" parent="." instance=ExtResource("4_1qbid")]
+offset_left = 410.0
+offset_top = 435.0
+offset_right = 554.0
+offset_bottom = 675.0
+
+[node name="OK" type="Button" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -53.0
+offset_top = -61.0
+offset_right = 67.0
+offset_bottom = -29.6667
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_k4p25")
+theme_override_styles/normal = SubResource("StyleBoxFlat_p4wk6")
+text = "OK"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_l5pjj")
+volume_db = -10.0
+pitch_scale = 0.95
+max_polyphony = 3
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_rrdui")
+volume_db = -5.0
+pitch_scale = 1.1
+
+[node name="AudioStreamPlayer3" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_vt80r")
+volume_db = 3.0
+pitch_scale = 1.08

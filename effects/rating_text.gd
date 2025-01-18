@@ -5,12 +5,21 @@ class_name RatingText
 @onready var label2: Label = $Label2
 @onready var label3: Label = $Label/Label3
 
-var text := ''  :
+var font_res = '' : 
+    set(v):
+        for lb in [label, label2, label3]:
+            if v:
+                lb.add_theme_font_override('font', v)
+            else:
+                lb.remove_theme_font_override('font')
+
+var text := '' :
     set(v):
         label.text = v
         label2.text = v
         label3.text = v
         text = v
+
 var count : float = 0 :
     set(v):
         count = v
@@ -56,7 +65,6 @@ var _current_color: Color = Color.WHITE
 #         update_label()
 
 func update_label():
-    # var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     # if font_size == 2: 
     #     extra_scale = 1.5

@@ -12,14 +12,14 @@ func show_key_capture():
     
     # 创建捕获窗口
     _key_capture_dialog = KeyCaptureDialog.new()
-    _key_capture_dialog.title = "按下快捷键"
+    _key_capture_dialog.title = "Press Shortcut"
     _key_capture_dialog.size = Vector2(300, 100)
     _key_capture_dialog.unresizable = true
     _key_capture_dialog.exclusive = true
     
     # 添加提示标签
     var label = Label.new()
-    label.text = "请按下快捷键..."
+    label.text = "Press Shortcut... (Esc to Cancel)"
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     label.anchors_preset = Control.PRESET_FULL_RECT
@@ -76,17 +76,22 @@ class KeyCaptureDialog extends Window:
             # 添加主键
             var keycode = OS.get_keycode_string(event.keycode)
             emit_signal('mod_captured', key_string + keycode)
-            if keycode:
-                match keycode:
-                    'Shift': return
-                    'Ctrl': return
-                    'Alt': return
-                    'Option': return
-                    'Windows': return
-                    'Command': return
-                    'Meta': return
-                    'Super': return
-                    'Cmd': return
-                    _: key_string += keycode
+            var key_name = event.as_text_keycode()
+
+            if key_name == 'Escape':
+                close_requested.emit()
+                return
+            # if keycode:
+            #     match keycode:
+            #         'Shift': return
+            #         'Ctrl': return
+            #         'Alt': return
+            #         'Option': return
+            #         'Windows': return
+            #         'Command': return
+            #         'Meta': return
+            #         'Super': return
+            #         'Cmd': return
+            #         _: key_string += keycode
             
-            emit_signal('key_captured', key_string)
+            emit_signal('key_captured', key_name)

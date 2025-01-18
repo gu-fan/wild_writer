@@ -121,6 +121,14 @@ var available_commands = {
         "description": "toggle fullscreen",
         "action": "toggle_fullscreen"
     },
+    "ur": {
+        "description": "redraw screen",
+        "action": "redraw"
+    },
+    "us": {
+        "description": "toggle setting panel",
+        "action": "toggle_setting"
+    },
 }
 
 # 命令执行函数
@@ -235,6 +243,8 @@ func call_action(action: String, count: int = 1) -> void:
         'move_line_start': move_line_start()
         'move_line_end': move_line_end()
         'toggle_fullscreen': Editor.toggle_fullscreen()
+        'toggle_setting': Editor.toggle_setting()
+        'redraw': Editor.view.redraw()
 
 func move_file_start():
     if last_focused_editor:
@@ -559,4 +569,4 @@ func mode_finish():
     Editor.creative_mode.finish_goal()
 func show_cmd(cmd):
     if last_focused_editor:
-        last_focused_editor.show_char('Ctrl+E '+cmd, 0.01)
+        last_focused_editor.show_char(cmd, 0.01)

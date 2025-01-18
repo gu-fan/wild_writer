@@ -23,4 +23,4 @@ color = Color(0, 0, 0, 0.392157)
 
 [node name="Firework" parent="CanvasLayer" instance=ExtResource("3_8lsmc")]
 
-[node name="CreativeMode" parent="CanvasLayer" instance=ExtResource("2_yh8gg")]
+[node name="SpeedMode" parent="CanvasLayer" instance=ExtResource("2_yh8gg")]

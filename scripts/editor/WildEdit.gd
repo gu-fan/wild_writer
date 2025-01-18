@@ -70,7 +70,6 @@ const Dust: PackedScene    = preload("res://effects/dust.tscn")
 const PackedFireworkProjectile: PackedScene = preload("res://effects/firework_projectile.tscn")
 
 var effects = {
-    level=1,
     combo=1,
     combo_shot=1,
     audio=1,
@@ -79,6 +78,10 @@ var effects = {
     delete=1,
     newline=1,
     particles=1,
+    match_effect= 1,
+    match_words = [],
+    sound = '',
+    sound_increase = 1,
 }
 
 var shake: float = 0.0
@@ -104,7 +107,10 @@ const TIME_BOOM_INTERVAL = 0.1
 const TIME_CHAR_INTERVAL = 0.1
 var _time_b: float = 0.0
 # var _time_c: float = 0.0
+
 var font_size := 0 # the setting in basic
+var font_res_fx = ''
+var font_res_ui = ''
 
 
 var ime
@@ -307,6 +313,7 @@ func _on_gui_input(event):
             # XXX: 
             # on macOS, pressing multi key in same time will emit (Unset) and keycode 0, like 'jk'
             # check unicode to ignore it
+            # this will causing feed with english word in ime fail
             if !_is_ascii(last_unicode):
                 is_ime_input = true
                 # 记录输入序列
@@ -342,7 +349,10 @@ func _physics_process(delta):
 
     if shake > 0:
         shake -= delta
-        position = Vector2(randf_range(-shake_intensity,shake_intensity), randf_range(-shake_intensity,shake_intensity))
+        if effects.shake == 2:
+            position = Vector2(randf_range(-shake_intensity,shake_intensity), randf_range(-shake_intensity,shake_intensity)) * 1.5
+        else:
+            position = Vector2(randf_range(-shake_intensity,shake_intensity), randf_range(-shake_intensity,shake_intensity))
     else:
         position = Vector2.ZERO
 
@@ -373,26 +383,31 @@ func _on_text_changed():
         _dc(abs(len_d)*3)
         _show_boom_extra(len_d)
     elif len_d > 0: # len_d == 0, it's changed by other words
-        var thing = Blip.instantiate()
-        thing.pitch_increase = pitch_increase
-        pitch_increase += 1.0
-        pitch_increase = min(pitch_increase, 999)
-        thing.position = pos
-        thing.destroy = true
-        thing.audio = effects.audio
-        thing.blips = effects.particles
-        thing.last_key = last_unicode
-        add_child(thing)
         is_text_updated = true
         Editor.creative_mode.incr_key()
+        if effects.chars: 
+            var thing = Blip.instantiate()
+            thing.pitch_increase = pitch_increase
+            pitch_increase += 1.0
+            pitch_increase = min(pitch_increase, 999)
+            thing.position = pos
+            thing.destroy = true
+            thing.audio = effects.audio
+            thing.blips = effects.particles
+            thing.sound = effects.sound
+            thing.sound_increase = effects.sound_increase
+            thing.font_size = font_size
+            thing.font_res = font_res_fx
+            thing.last_key = last_unicode
+            add_child(thing)
         _ic(len_d)
         if effects.shake:
             match font_size:
                 # _ss(0.05, 6)
-                0: _ss(0.04, 3)
-                1: _ss(0.04, 4)
-                2: _ss(0.05, 5)
-                3: _ss(0.05, 6)
+                0: _ss(0.04, 2)
+                1: _ss(0.04, 2)
+                2: _ss(0.05, 3)
+                3: _ss(0.05, 4)
 
     if cur_caret_line != last_caret_newline:
         var combo_count = _get_combo_count()
@@ -402,11 +417,12 @@ func _on_text_changed():
             thing.destroy = true
             thing.caret_col = cur_caret_col
             thing.last_key = last_unicode
+            thing.font_size = font_size
             add_child(thing)
 
             _fc(pos)
         if effects.shake:
-            _ss(0.08, 8)
+            _ss(0.08, 6)
 
         last_line = get_line(last_caret_line)
         Editor.creative_mode.update_combo(last_line)
@@ -444,6 +460,8 @@ func _gfcp():
 func _ccnin():
     if combo_node == null or !is_instance_valid(combo_node):
         var thing = Combo.instantiate()
+        thing.font_res = font_res_fx
+        thing.font_size = font_size
         add_child.call_deferred(thing)
         combo_node = thing
         if _is_combo_rating_shown: 
@@ -476,7 +494,7 @@ func _fc(pos):
                 add_child(thing)
                 if effects.shake:
                     var size = EffectLaser.get_count_size(count)
-                    _ssf(EffectLaser.get_main_duration(count)-0.3, size * 3)
+                    _ssf(EffectLaser.get_main_duration(count)-0.3, size * 2)
             TwnLite.at(combo_node).tween({prop='modulate:a', to=0.0, dur=0.3}).callee(combo_node.queue_free)
             combo_node = null
 
@@ -593,7 +611,7 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
     # we need a more intutive combo, that per each type
     var _alt_t = t.replace(' ', '').replace('\'', '')
     var t_d = _get_delta_len(_alt_t, ime_state.last_compose_alt)
-    prints('got alt len', _alt_t, t_d)
+    # prints('got alt len', _alt_t, t_d)
 
     var is_feed_empty = false
     if t.length() == 0:
@@ -607,7 +625,6 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
             var last_buf_len = ime_state.last_tiny_ime_buffer.length()
             var curr_buf_len = ime_state.curr_tiny_ime_buffer.length()
             t_d = curr_buf_len - last_buf_len
-            print('got tiny delta', t_d)
             if curr_buf_len != 0: 
                 is_feed_empty = false
             else:
@@ -619,7 +636,7 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
                 t_d = 0
                 print('got partial feed of OS IME')
 
-    prints('got t_d', t.length(), t_d, is_feed_empty, '|', ime_state.last_compose, '|', t, '|', is_feed_by_os_ime)
+    # prints('got t_d', t.length(), t_d, is_feed_empty, '|', ime_state.last_compose, '|', t, '|', is_feed_by_os_ime)
     
     # Trigger the delta VFX
     _trigger_ime_compose_effect(t_d, is_feed_empty, is_feed_by_os_ime)
@@ -654,28 +671,30 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
                 # _handle_ime_cancel()
                 _wait_ime_cancel_or_finish()
 
-    prints('set last compose', ime_state, is_feed_empty)
+    # prints('set last compose', ime_state, is_feed_empty)
 
     ime_state.last_compose = t
     ime_state.last_compose_alt = _alt_t
     if t != "": ime_state.last_non_empty = t
     ime_state.last_update_time = current_time
 
-    if is_feed_empty:
-        if _has_ime_compose(ime_state.compose_id):
-            var m = _get_ime_compose(ime_state.compose_id)
-            m.set_text(t)
-            push_error('set prev composed text to 0')
-        clear_compose()
-    else:
-        var m = _get_ime_compose(ime_state.compose_id)
-        m.set_text(_alt_t)
-        print('set ime compose text:', t, '|')
-        if t in ['新年快乐', '万事如意']:
-            m._label.enable_rainbow = true
+    if effects.chars:
+        if is_feed_empty:
+            if _has_ime_compose(ime_state.compose_id):
+                var m = _get_ime_compose(ime_state.compose_id)
+                m.set_text(t)
+                push_error('set prev composed text to 0')
+            clear_compose()
         else:
-            if m._label.enable_rainbow:
-                m._label.enable_rainbow = false
+            var m = _get_ime_compose(ime_state.compose_id)
+            m.set_text(_alt_t)
+            print('set ime compose text:', t, '|')
+            if effects.match_effect:
+                if t in effects.match_words:
+                    m._label.enable_rainbow = true
+                else:
+                    if m._label.enable_rainbow:
+                        m._label.enable_rainbow = false
 
 
 func _handle_ime_finish():
@@ -692,15 +711,6 @@ func _handle_ime_finish():
         # m.position = Vector2.ZERO
         # m.finish_compose()
 
-        # 在这里触发完成效果
-        # var pos = _gfcp()
-        # var thing = Blip.instantiate()
-        # thing.position = pos
-        # thing.destroy = true
-        # thing.audio = effects.audio
-        # thing.blips = effects.particles
-        # thing.last_key = ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty
-        # add_child.call_deferred(thing)
 
         # _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false, {audio=false})
         _show_multi_char(ime_state.input_sequence if ime_state.input_sequence != "" else ime_state.last_non_empty, false)
@@ -712,8 +722,9 @@ func _handle_ime_finish():
         # if effects.shake:
         #     _ss(0.08, 8)
 
-        if ime_state.input_sequence in ['新年快乐', '万事如意']:
-            start_fireworks(ime_state.input_sequence)
+        if effects.match_effect:
+            if ime_state.input_sequence in effects.match_words:
+                start_fireworks(ime_state.input_sequence)
         
         ime_state.last_compose = ""
         ime_state.last_compose_alt = ""
@@ -723,7 +734,7 @@ func _handle_ime_finish():
         ime_state.last_finish_time = Time.get_ticks_msec()
         ime_state.first_input = ""
         ime_state.input_sequence = ""  # 重置输入序列
-        print('set state finish', ime_state)
+        # print('set state finish', ime_state)
 
         finish_compose()
 
@@ -737,14 +748,16 @@ func _handle_ime_cancel():
     if ime_state.pending_cancel and ime_state.last_non_empty:
         # 在这里触发取消效果
         var pos = _gfcp()
-        var thing = Dust.instantiate()
-        thing.position = pos
-        thing.destroy = true
-        thing.audio = effects.audio
-        thing.blips = effects.particles
-        add_child.call_deferred(thing)
+        if effects.chars:
+            var thing = Dust.instantiate()
+            thing.position = pos
+            thing.destroy = true
+            thing.audio = effects.audio
+            thing.blips = effects.particles
+            thing.font_size = font_size
+            add_child.call_deferred(thing)
         
-        if effects.shake: _ss(0.05, 6)
+        if effects.shake: _ss(0.05, 5)
 
         Editor.creative_mode.incr_error()
         
@@ -755,7 +768,7 @@ func _handle_ime_cancel():
         ime_state.pending_cancel = false
         ime_state.first_input = ""
         ime_state.input_sequence = ""  # 重置输入序列
-        print('set state cancel', ime_state)
+        # print('set state cancel', ime_state)
         cancel_compose()
     else:
         push_error('not canceld ?', ime_state)
@@ -763,15 +776,17 @@ func _handle_ime_cancel():
 
 func finish_compose():
     var id = ime_state.compose_id
-    var m = _get_ime_compose(id)
-    m.finish_compose()
-    _free_ime_compose(id)
+    if _has_ime_compose(id):
+        var m = _get_ime_compose(id)
+        m.finish_compose()
+        _free_ime_compose(id)
 
 func cancel_compose():
     var id = ime_state.compose_id
-    var m = _get_ime_compose(id)
-    m.cancel_compose()
-    _free_ime_compose(id)
+    if _has_ime_compose(id):
+        var m = _get_ime_compose(id)
+        m.cancel_compose()
+        _free_ime_compose(id)
 
 func clear_compose():
     for id in compose_nodes:
@@ -876,7 +891,11 @@ func show_char(t, d=0.0):
         thing.position = p
         thing.destroy = true
         thing.audio = effects.audio
+        thing.sound = effects.sound
+        thing.sound_increase = effects.sound_increase
         thing.blips = effects.particles
+        thing.font_size = font_size
+        thing.font_res = font_res_fx
         thing.last_key = t
         add_child(thing)
 
@@ -896,7 +915,11 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
         pitch_increase = min(pitch_increase, 999)
         thing.position = p
         thing.char_offset = Vector2(x, 0)
+        thing.font_size = font_size
+        thing.font_res = font_res_fx
         thing.destroy = true
+        thing.sound = effects.sound
+        thing.sound_increase = effects.sound_increase
         if d:
             # thing.audio = params.get('audio', effects.audio)
             thing.audio = false
@@ -909,10 +932,10 @@ func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
     
     if effects.shake: 
         match font_size:
-            0: _ss(0.04, 3)
-            1: _ss(0.04, 4)
-            2: _ss(0.05, 5)
-            3: _ss(0.05, 6)
+            0: _ss(0.04, 2)
+            1: _ss(0.04, 2)
+            2: _ss(0.05, 3)
+            3: _ss(0.05, 4)
         
 func _is_ascii(c):
     if c.is_empty(): return true
@@ -952,7 +975,7 @@ func start_fireworks(chars:String):
     
     # 计算字符总宽度，以便居中排列
     var total_chars = chars.length()
-    var char_spacing = 200  # 字符间距
+    var char_spacing = 240  # 字符间距
     var total_width = total_chars * char_spacing
     var start_x = center_x - (total_width / 2)
 
@@ -977,7 +1000,6 @@ func start_fireworks(chars:String):
     # Editor.view.firework.stop_spray()
 func _launch_firework(config):
     var delay = config.get('delay', 0)
-    print('get delay', delay)
     # if delay: await get_tree().create_timer(delay)
     await Util.wait(delay)
     var projectile = FireworkProjectile.create(
@@ -1016,63 +1038,56 @@ func _trigger_ime_compose_effect(t_d, is_feed_empty, is_feed_by_os_ime):
         if is_feed_empty: return
         Editor.creative_mode.incr_error()
         _dc(-t_d * 2)
-        var pos = _gfcp()
-        var thing = Dust.instantiate()
-        thing.position = pos
-        thing.destroy = true
-        thing.audio = effects.audio
-        thing.blips = effects.particles
-        add_child.call_deferred(thing)
-
+        if effects.chars:
+            var pos = _gfcp()
+            var thing = Dust.instantiate()
+            thing.position = pos
+            thing.destroy = true
+            thing.audio = effects.audio
+            thing.blips = effects.particles
+            thing.font_size = font_size
+            add_child.call_deferred(thing)
 
 # -----------------
 
 func _show_boom_extra(delta=0):
     await get_tree().process_frame
     _time_b = 0.0
-    if effects.shake: _ss(0.2, 12)
+    if effects.shake: _ss(0.2, 10)
     Editor.creative_mode.incr_error()
-    prints('incr error', 1, 'text changed', caret_pos, last_caret_pos, delta)
-    var thing
-    var has_explode = false
-    if abs(delta) > 10:
-        if abs(caret_pos.y - last_caret_pos.y) > 100:
-            thing = BoomBig.instantiate()
-            thing.position = (last_caret_pos + caret_pos) / 2.0
+    if effects.delete:
+        var thing
+        var has_explode = false
+        if abs(delta) > 10:
+            if abs(caret_pos.y - last_caret_pos.y) > 100:
+                thing = BoomBig.instantiate()
+                thing.position = (last_caret_pos + caret_pos) / 2.0
+                thing.destroy = true
+                thing.last_key = ''
+                thing.audio = effects.audio
+                thing.blips = effects.particles
+                # thing.scale = Vector2.ONE
+                thing.animation = '2'
+                thing.particle_scale = 2
+                thing.sprite_scale = 2
+                thing.font_size = font_size
+                thing.font_res = font_res_fx
+                add_child(thing)
+                has_explode = true
+
+        if not has_explode:
+            thing = Boom.instantiate()
+            thing.position = caret_pos
             thing.destroy = true
-            thing.last_key = ''
+            if is_mod_key:
+                thing.last_key = last_key_name
+            else:
+                thing.last_key = last_unicode
+            thing.font_size = font_size
+            thing.font_res  = font_res_fx
             thing.audio = effects.audio
             thing.blips = effects.particles
-            # thing.scale = Vector2.ONE
-            thing.animation = '2'
-            thing.particle_scale = 2
-            thing.sprite_scale = 2
             add_child(thing)
-            has_explode = true
-        # elif abs(caret_pos.x - last_caret_pos.x) > 100:
-        #     thing = Boom.instantiate()
-        #     thing.position =  (last_caret_pos + caret_pos) / 2.0
-        #     thing.destroy = true
-        #     thing.last_key = ''
-        #     thing.audio = effects.audio
-        #     thing.blips = effects.particles
-        #     thing.sprite_scale = 1.5
-        #     thing.particle_scale = 1.5
-        #     # thing.scale.x = 2.0
-        #     add_child(thing)
-        #     has_explode = true
-
-    if not has_explode:
-        thing = Boom.instantiate()
-        thing.position = caret_pos
-        thing.destroy = true
-        if is_mod_key:
-            thing.last_key = last_key_name
-        else:
-            thing.last_key = last_unicode
-        thing.audio = effects.audio
-        thing.blips = effects.particles
-        add_child(thing)
 
 # ---------------------
 var gutter_index_line = 0
@@ -1098,7 +1113,6 @@ const SIZE_GUTTER_W = {
 func update_gutter():
     var line_count = get_line_count()
     var len = str(line_count).length()
-    var font_size = Editor.config.get_basic_setting("font_size")
     var gutter_size = SIZE_GUTTER_W[font_size]
     set_gutter_width(gutter_index_line, max(4*gutter_size, (len+1)*gutter_size))
     if Editor.config.get_basic_setting('line_number'):
@@ -1134,7 +1148,11 @@ func reset_editor_stats():
     last_caret_pos = Vector2.ZERO
     is_dirty = false
     _rc()
-    update_gutter()
+    # update_gutter()
+
+    await get_tree().process_frame
+    # set_line_as_first_visible(caret_line)
+    center_viewport_to_caret()
 
 func move_caret_to_file_start():
     set_caret_line(0)

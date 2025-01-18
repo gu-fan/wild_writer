@@ -32,8 +32,9 @@ const COMBO_COLORS = {
 
 # 当前颜色
 var _current_color: Color = Color.WHITE
+var font_size = 1
+var font_res = ''
 func _ready():
-    var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     if font_size == 2: 
         extra_scale = 1.5
@@ -42,6 +43,10 @@ func _ready():
 
     label.scale =  Vector2.ONE * extra_scale
     label2.scale =  Vector2.ONE * extra_scale
+    if font_res:
+        label.set("theme_override_fonts/font", font_res)
+        label2.set("theme_override_fonts/font", font_res)
+        label3.set("theme_override_fonts/font", font_res)
 
 func _update_text():
     if count <= 10:
@@ -103,7 +108,6 @@ func set_count(n):
     if count > 10: color_label()
 
 func color_label():
-    var font_size = SettingManager.get_basic_setting("font_size")
     var extra_scale = 1
     if font_size == 2: 
         extra_scale = 1.5
