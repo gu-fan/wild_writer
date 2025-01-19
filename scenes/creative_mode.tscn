@@ -62,15 +62,15 @@ KPM: 0.0"
 
 [node name="KPM" parent="StatsPanel" instance=ExtResource("5_eqhix")]
 offset_left = -5.0
-offset_top = -19.0
+offset_top = -25.0
 offset_right = -5.0
-offset_bottom = -19.0
+offset_bottom = -25.0
 
 [node name="WPM" parent="StatsPanel" instance=ExtResource("5_eqhix")]
 offset_left = -8.0
-offset_top = 10.0
+offset_top = 7.0
 offset_right = -8.0
-offset_bottom = 10.0
+offset_bottom = 7.0
 
 [node name="StatsDetail" type="Control" parent="."]
 visible = false
@@ -218,9 +218,9 @@ custom_minimum_size = Vector2(200, 40)
 layout_mode = 3
 anchors_preset = 0
 offset_left = -8.0
-offset_top = 10.0
-offset_right = -8.0
-offset_bottom = 10.0
+offset_top = 5.0
+offset_right = 192.0
+offset_bottom = 45.0
 script = ExtResource("8_q7se5")
 
 [node name="Label" type="Label" parent="ProgressPanel/Label"]

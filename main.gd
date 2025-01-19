@@ -359,11 +359,12 @@ func _update_char():
     char_label.text = '%dC' % editor_man.editor.text.length() 
 
 # --------------------------------
+
 func _on_files_dropped(files: PackedStringArray) -> void:
     var is_failed = true
     for file_path in files:
         # Check if the file is an txt
-        if file_path.get_extension().to_lower() in ["txt", "md", "rst", "py", "json", "text", "ini", "js", "gd"]:
+        if file_path.get_extension().to_lower() in DocumentManager.TXT_EXTS:
             current_file_path = file_path
             file_manager.open_file(editor, file_path)
             show_hint(':open dropped %s' % current_file_path)
@@ -376,3 +377,4 @@ func _on_files_dropped(files: PackedStringArray) -> void:
             return
 
     show_hint(':failed to open file, not txt extension')
+

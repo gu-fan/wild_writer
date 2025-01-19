@@ -115,6 +115,14 @@ var font_res_ui = ''
 
 var ime
 var ime_display
+var pad
+var pad_lines = 1 : 
+    set(v):
+        pad_lines = v
+        # pad_viewport_to_caret()
+        update_pad()
+
+var mac_prefix_use_option = false
 
 var skip_effect = false
 var is_single_letter = false
@@ -136,6 +144,7 @@ var ime_state = {
     last_os_ime_compose = "",
     curr_tiny_ime_buffer = "",
     last_tiny_ime_buffer = "",
+    is_os_ime = false,
 }
 
 
@@ -143,6 +152,8 @@ var combo_node: Control
 var compose_nodes : = {}
 # var compose_node_pool :  = []
 # var compose_node_pool_size := 4
+
+var is_debug = false
 
 func _ready():
 
@@ -184,43 +195,38 @@ func update_ime_position():
         var line_height = get_line_height()
         var ime_height = ime_display.size.y
         var caret_pos = _gfcp()
+        var vw_rect = get_viewport_rect()
+        var view_right = vw_rect.size.x + vw_rect.position.x
+        var view_bottom = vw_rect.size.y + vw_rect.position.y
         
-        var pos = position + caret_pos + Vector2(0, line_height)
+        var pos = caret_pos + Vector2(0, line_height)
         match font_size:
-            0: pos.y += 40
-            1: pos.y += 30
-            2: pos.y += 16
-            3: pos.y -= 75
+            0: pos.y -= 5
+            1: pos.y -= 15
+            2: pos.y -= 30
+            3: pos.y -= 60
 
-        if pos.y > size.y-10: 
-            pos = position + caret_pos + Vector2(0, -line_height)
+        if pos.y > view_bottom - 20: 
+            pos = caret_pos + Vector2(0, -line_height)
             match font_size:
-                0: pos.y += 12
-                1: pos.y += 6
-                2: pos.y += 2
-                3: pos.y -= 4
+                0: pos.y -= 40
+                1: pos.y -= 30
+                2: pos.y -= 20
+                3: pos.y += 10
         
         # 确保不会超出右边界
-        var editor_width = size.x
-        if pos.x + ime_display.size.x > editor_width:
-            pos.x = editor_width - ime_display.size.x
+        if pos.x + ime_display.size.x + 90 > view_right:
+            pos.x = view_right - ime_display.size.x - 90
             
         # 确保不会超出左边界
         if pos.x < 0: pos.x = 0
             
         ime_display.position = pos
 
-func update_compose_position(nd):
-    if !is_active: return
-    await get_tree().process_frame
-    var line_height = get_line_height()
-    var ime_height = nd.size.y
-    var caret_pos = _gfcp()
-    var pos = position + caret_pos - Vector2(0, line_height) - Vector2(0, 30)
-    nd.position = pos
 
 func _on_gui_input(event):
     if !is_active: return
+    if !editable: return
     if event is InputEventKey and event.pressed:
         if event.unicode:
             last_unicode = String.chr(event.unicode)
@@ -232,82 +238,31 @@ func _on_gui_input(event):
         last_key_name = event.as_text_keycode()
         is_single_letter = true
         skip_effect = false
-        prints(Util.f_msec(), 'INPUT:', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|', event.as_text_key_label(),event.as_text_physical_keycode() )
+        prints(Util.f_msec(), 'INPUT:', last_key_name, last_unicode, event.keycode, 'compose|', ime_state.last_compose, '|')
+        if is_debug:
+            Editor.log('INPUT %s %s %s compose|%s|' % [last_key_name, last_unicode, event.keycode, ime_state.last_compose])
 
         # XXX:
         # some key is not repeating 
         # if last_key_name in '1234567890FJQPXVBM' and is_mod_key:
-        if last_key_name in '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' and is_mod_key and event.echo:
+        if last_key_name.length() == 1 and last_key_name in '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' and is_mod_key and event.echo:
             # print('insert echo f/j ??')
             insert_text_at_caret(pre_unicode)
-
+            get_viewport().set_input_as_handled()
+        elif TinyIME.will_process_fullwidth(last_unicode):
+            insert_text_at_caret(TinyIME.get_fullwidth(last_unicode))
+            get_viewport().set_input_as_handled()
         elif last_key_name in ['Space', 'Enter'] and pre_key_name not in ['Space', 'Enter']:
             Editor.creative_mode.incr_word()
         # if last_key_name == 'Delete' or last_key_name == 'Backspace':
         #     clear_compose()
         #     Editor.creative_mode.incr_error()
-        elif last_key_name in ['Ctrl+X', 'Cmd+X', 'Command+X']:
-            last_text = text
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-            skip_effect = true
-        elif last_key_name in ['Ctrl+Z', 'Cmd+Z', 'Command+Z']:
-            last_text = text
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-            skip_effect = true
-        elif last_key_name in ['Ctrl+Y', 'Cmd+Y', 'Command+Y']:
-            last_text = text
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-            skip_effect = true
-        elif last_key_name in ['Ctrl+C', 'Cmd+C', 'Command+C']:
-            _show_char_force(last_key_name)
-            Editor.creative_mode.incr_key()
-            skip_effect = true
-        elif last_key_name in ['Ctrl+V', 'Cmd+V', 'Command+V']:
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-            last_text = text
-            skip_effect = true
-        elif last_key_name in ['Ctrl+D', 'Cmd+D', 'Command+D']:
-            move_caret_line(10)
-            skip_effect = true
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-        elif last_key_name in ['Ctrl+U', 'Cmd+U', 'Command+U']:
-            move_caret_line(-10)
-            skip_effect = true
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-        elif last_key_name in ['Ctrl+J', 'Cmd+J', 'Command+J']:
-            move_caret_line(1)
-            skip_effect = true
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-        elif last_key_name in ['Ctrl+K', 'Cmd+K', 'Command+K']:
-            move_caret_line(-1)
-            skip_effect = true
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-        elif last_key_name in ['Ctrl+H', 'Cmd+H', 'Command+H']:
-            move_caret_column(-1)
-            skip_effect = true
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-        elif last_key_name in ['Ctrl+L', 'Cmd+L', 'Command+L']:
-            move_caret_column(1)
-            skip_effect = true
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
         elif last_key_name in ['Up', 'Down', 'Right', 'Left']:
             Editor.creative_mode.incr_key()
             _show_char_force(last_key_name)
             skip_effect = true
-        elif last_key_name in ['Ctrl+A', 'Cmd+A', 'Command+A']:
-            Editor.creative_mode.incr_key()
-            _show_char_force(last_key_name)
-            skip_effect = true
+        else:
+            _handle_binding_commands()
 
         if event.keycode == 0 or last_key_name == 'Unknown':
             # XXX: 
@@ -322,7 +277,7 @@ func _on_gui_input(event):
                     ime_state.input_sequence = last_unicode
                 else:
                     ime_state.input_sequence += last_unicode
-                print('len |', last_unicode, '|', last_unicode.length())
+                print('len |', last_unicode, '|', last_unicode.length(), last_key_name)
                 # NOW DELAY ALL OS, and OS IME UPDATE WAIT CANCEL IS DELAYED TOO
                 # 0.04 (try_handle_finish)
                 # 0.07 (_wait_ime_cancel_or_finish)
@@ -336,6 +291,7 @@ func _on_gui_input(event):
 
                 ime_state.pending_finish = true
                 Util.delay('_ime_compose', 0.04, _handle_ime_finish)
+                # skip_effect = true
             else:
                 is_ime_input = false
         else:
@@ -358,16 +314,22 @@ func _physics_process(delta):
 
 func _on_text_changed():
     is_dirty = true
+    # pad_viewport_to_caret()
     if !is_active: return
     emit_signal('changed')
     if skip_effect:
         last_text = text
         return
 
+
     var len_d = len(text) - len(last_text)
-    var pos = _gfcp() 
     var cur_caret_line = get_caret_line()
     var cur_caret_col = get_caret_column()
+
+    # await get_tree().process_frame
+
+    var pos = _gfcp() 
+
 
     # Editor.creative_mode.incr_key(len_d)
     # Editor.creative_mode.update_stats(len_d, true)
@@ -385,21 +347,7 @@ func _on_text_changed():
     elif len_d > 0: # len_d == 0, it's changed by other words
         is_text_updated = true
         Editor.creative_mode.incr_key()
-        if effects.chars: 
-            var thing = Blip.instantiate()
-            thing.pitch_increase = pitch_increase
-            pitch_increase += 1.0
-            pitch_increase = min(pitch_increase, 999)
-            thing.position = pos
-            thing.destroy = true
-            thing.audio = effects.audio
-            thing.blips = effects.particles
-            thing.sound = effects.sound
-            thing.sound_increase = effects.sound_increase
-            thing.font_size = font_size
-            thing.font_res = font_res_fx
-            thing.last_key = last_unicode
-            add_child(thing)
+        show_char(last_unicode)
         _ic(len_d)
         if effects.shake:
             match font_size:
@@ -411,21 +359,13 @@ func _on_text_changed():
 
     if cur_caret_line != last_caret_newline:
         var combo_count = _get_combo_count()
-        if effects.newline:
-            var thing = Newline.instantiate()
-            thing.position = pos 
-            thing.destroy = true
-            thing.caret_col = cur_caret_col
-            thing.last_key = last_unicode
-            thing.font_size = font_size
-            add_child(thing)
 
-            _fc(pos)
-        if effects.shake:
-            _ss(0.08, 6)
+        _show_newline(cur_caret_col)
+
+        if effects.shake: _ss(0.08, 6)
 
         last_line = get_line(last_caret_line)
-        Editor.creative_mode.update_combo(last_line)
+        Editor.creative_mode.update_combo(last_line, combo_count)
 
         pitch_increase = 0.0
         is_text_updated = true
@@ -436,6 +376,19 @@ func _on_text_changed():
     caret_line = cur_caret_line
     caret_column = cur_caret_col
     prints(Util.f_msec(), 'TEXT CHANGED UPDATED', is_text_updated, last_unicode, len_d, last_key_name)
+
+func _show_newline(col):
+    await get_tree().process_frame
+    var pos = _gfcp() 
+    if effects.newline:
+        var thing = Newline.instantiate()
+        thing.position = pos 
+        thing.destroy = true
+        thing.caret_col = col
+        thing.font_size = font_size
+        add_child(thing)
+
+    _fc(pos)
 
 func _on_caret_changed():
     last_caret_line = caret_line
@@ -455,12 +408,16 @@ func _gfcp():
     # if c_col == 0 and c_line != 0: cp.y += lh * 0.45
     if c_col == 0: cp.y += lh * 0.45
     cp += Vector2(0,-lh/2.0)
+    # if font_size == 3:
+    #     if c_col == 0: cp.y += -20
+
+        
     return cp
 # ---------------
 func _ccnin():
     if combo_node == null or !is_instance_valid(combo_node):
         var thing = Combo.instantiate()
-        thing.font_res = font_res_fx
+        thing.font_res = font_res_ui
         thing.font_size = font_size
         add_child.call_deferred(thing)
         combo_node = thing
@@ -486,7 +443,8 @@ func _fc(pos):
             pitch_increase = 0
             var count = combo_node.combo_count
             prints(Util.f_msec(), 'finish combo', count, effects.combo_shot, EffectLaser.can_finish_combo(count), last_key_name=='Enter', last_unicode, last_key_name)
-            if effects.combo_shot and EffectLaser.can_finish_combo(count) and last_key_name == 'Enter':
+            print('effects', effects)
+            if effects.combo_shot and effects.newline and EffectLaser.can_finish_combo(count) and last_key_name == 'Enter':
                 var thing = Laser.instantiate()
                 thing.count = count
                 thing.audio = effects.audio
@@ -540,12 +498,15 @@ func _notification(what):
     if what == NOTIFICATION_OS_IME_UPDATE:
         if !is_active: return
         var t = DisplayServer.ime_get_text()
-        prints(Util.f_msec(), 'OS IME UPDATE', is_ime_input, t)
         if t == "" and ime_state.last_os_ime_compose == "":  # macOS always feed empty update
             ime_state.last_os_ime_compose = t
             return
+        prints(Util.f_msec(), 'OS IME UPDATE', is_ime_input, t)
+        if is_debug:
+            Editor.log('OS IME UPDATE %s %s' % [is_ime_input, t])
         # is_feed_by_os_ime = true
         ime_state.last_os_ime_compose = t
+        ime_state.is_os_ime = true
         ime_state.is_composing = true  # make it always true, so it can be canceld when is_feed_empty
         _feed_ime_compose(t, true)
 
@@ -556,17 +517,22 @@ func _on_ime_buffer_changed(buffer, is_partial_feed=false):
     # there is another problem, that when partial feed candidate
     # should not consider the delta
     prints(Util.f_msec(), 'TINY IME UPDATE', is_ime_input, buffer)
+    if is_debug:
+        Editor.log('TINY IME UPDATE %s %s' % [is_ime_input, buffer])
     # is_feed_by_os_ime = false
     ime_state.is_partial_feed = is_partial_feed
     ime_state.curr_tiny_ime_buffer = buffer
+    ime_state.is_os_ime = false
     # if buffer.length() == 0: ime_state.is_composing = false
     ime_state.is_composing = true  # make it always true, so it can be canceld when is_feed_empty
     _feed_ime_compose(ime.context.get_current_candidate(), false)
     ime_state.last_tiny_ime_buffer = buffer
 
-class IMECompose extends ColorRect:
+class IMECompose extends Control:
     var _label: AnimatedText = null
     var is_ready = false
+    var is_debug = false
+    var font_size = 64
     func _init():
         custom_minimum_size = Vector2(10, 10)
         # color = '336633'
@@ -576,6 +542,8 @@ class IMECompose extends ColorRect:
 
     func _ready():
         is_ready = true
+        _label.font_size = font_size
+        _label.enable_rect = is_debug
         _label.text = text
 
     var text = ''
@@ -634,7 +602,6 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
             # this is partial feed of OS IME
             if _get_cjk_len(_alt_t) > _get_cjk_len(ime_state.last_compose_alt):
                 t_d = 0
-                print('got partial feed of OS IME')
 
     # prints('got t_d', t.length(), t_d, is_feed_empty, '|', ime_state.last_compose, '|', t, '|', is_feed_by_os_ime)
     
@@ -683,7 +650,6 @@ func _feed_ime_compose(t: String, is_feed_by_os_ime: bool):
             if _has_ime_compose(ime_state.compose_id):
                 var m = _get_ime_compose(ime_state.compose_id)
                 m.set_text(t)
-                push_error('set prev composed text to 0')
             clear_compose()
         else:
             var m = _get_ime_compose(ime_state.compose_id)
@@ -707,6 +673,8 @@ func _handle_ime_finish():
         #     return
             
         prints(Util.f_msec(), 'finish ime compose', ime_state.last_compose, ime_state.last_non_empty, ime_state.input_sequence)
+        if is_debug:
+            Editor.log('FINISH IME COMPOSE %s %s' % [ime_state.last_compose, ime_state.input_sequence])
         # var m = _get_ime_compose()
         # m.position = Vector2.ZERO
         # m.finish_compose()
@@ -760,6 +728,9 @@ func _handle_ime_cancel():
         if effects.shake: _ss(0.05, 5)
 
         Editor.creative_mode.incr_error()
+
+        if is_debug:
+            Editor.log('CANCEL IME COMPOSE %s %s' % [ime_state.last_compose, ime_state.input_sequence])
         
         ime_state.last_compose = ""
         ime_state.last_compose_alt = ""
@@ -798,11 +769,34 @@ func _get_ime_compose(id=''):
         return compose_nodes[id]
     var node = IMECompose.new()
     node.z_index = 10
+    match font_size:
+        0: node.font_size = 64
+        1: node.font_size = 64
+        2: node.font_size = 96
+        3: node.font_size = 128
+    node.is_debug = is_debug
     # add_child(node)
     add_child.call_deferred(node)
     update_compose_position(node)
     compose_nodes[id] = node
     return node
+
+func update_compose_position(nd):
+    if !is_active: return
+    await get_tree().process_frame
+    var line_height = get_line_height()
+    var caret_pos = _gfcp()
+    var pos = caret_pos - Vector2(0, line_height) - Vector2(0, 30)
+    match font_size:
+        0: pos.y -= 30
+        1: pos.y -= 10
+        2: pos.y -= 30
+        3: pos.y -= 30
+    # XXX: fix the os_ime pos error when caret_column is 0
+    if caret_column == 0 and ime_state.is_os_ime:
+        pos.y -= line_height / 2.0
+    nd.position = pos
+
 func _free_ime_compose(id=''):
     if id in compose_nodes:
         var nd = compose_nodes[id]
@@ -902,9 +896,12 @@ func show_char(t, d=0.0):
 func _show_char_force(t, d=0.0, x=0, p=Vector2.ZERO, params={}):
     await get_tree().process_frame
     if p == Vector2.ZERO:
-        # var line_height = get_line_height()
         # p = get_caret_draw_pos() + Vector2(0,-line_height/2.0)
         p = _gfcp()
+        # XXX: fix the os_ime pos error when caret_column is 0
+        if t == ' ' and ime_state.is_os_ime and caret_column == 0:
+            var line_height = get_line_height()
+            p.y -= line_height / 2.0
     if params.has('position'): p = params.position
     if d: await get_tree().create_timer(d).timeout
     
@@ -1053,9 +1050,9 @@ func _trigger_ime_compose_effect(t_d, is_feed_empty, is_feed_by_os_ime):
 func _show_boom_extra(delta=0):
     await get_tree().process_frame
     _time_b = 0.0
-    if effects.shake: _ss(0.2, 10)
     Editor.creative_mode.incr_error()
     if effects.delete:
+        if effects.shake: _ss(0.2, 10)
         var thing
         var has_explode = false
         if abs(delta) > 10:
@@ -1150,9 +1147,10 @@ func reset_editor_stats():
     _rc()
     # update_gutter()
 
-    await get_tree().process_frame
+    # await get_tree().process_frame
     # set_line_as_first_visible(caret_line)
-    center_viewport_to_caret()
+    # _on_caret_changed()
+    # pad_viewport_to_caret()
 
 func move_caret_to_file_start():
     set_caret_line(0)
@@ -1196,3 +1194,123 @@ func move_caret_column(count):
     var n = caret_column+count
     set_caret_column(n)
     caret_column = get_caret_column()
+
+
+# --------
+func pad_viewport_to_caret():
+    if pad_lines == 0: 
+        pad.custom_minimum_size = Vector2(10, 0)
+        return
+
+    # Get current caret line with wrap
+    var caret_line = get_caret_line() + get_caret_wrap_index()
+    
+    # Calculate lines below caret
+    var visible_lines = get_visible_line_count()
+    var first_visible = get_first_visible_line()
+    var lines_below_caret = visible_lines - (caret_line - first_visible) - 1
+    
+    # Calculate remaining lines in file
+    var total_lines = get_line_count()
+    var lines_remaining = total_lines - (caret_line + 1)
+    var required_empty_lines = pad_lines
+
+    
+    # Adjust padding if near file end
+    if lines_remaining < required_empty_lines:
+        var line_height = get_line_height()
+        var extra_padding = (required_empty_lines - lines_remaining - 1) * line_height
+        pad.custom_minimum_size = Vector2(10, extra_padding)
+    else:
+        pad.custom_minimum_size = Vector2(10, 0)
+    
+    # Only scroll if less than 3 lines below caret
+    if lines_below_caret < required_empty_lines:
+        # Calculate target line to be 2 lines from bottom
+        # var line_count = get_line_count()
+        var target_line = caret_line - (visible_lines - required_empty_lines)
+        target_line = maxi(0, target_line)
+        # if target_line <= line_count:
+        set_line_as_first_visible(target_line)
+
+func update_pad():
+    var line_height = get_line_height()
+    var extra_padding = pad_lines * line_height
+    pad.custom_minimum_size = Vector2(10, extra_padding)
+    set_line_as_center_visible(caret_line)
+
+# --------
+func _handle_binding_commands():
+    var key_prefix = 'Ctrl+'
+    var alt_prefix = key_prefix
+    var use_opt = false
+    if Editor.is_macos: 
+        key_prefix = 'Command+'
+        alt_prefix = key_prefix
+        if mac_prefix_use_option:
+            alt_prefix = 'Option+'
+            use_opt = true
+        else:
+            alt_prefix = 'Ctrl+'
+
+    if last_key_name.begins_with(key_prefix):
+        if last_key_name == key_prefix + 'Z':
+            last_text = text
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name == key_prefix + 'Y':
+            last_text = text
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name == key_prefix + 'C':
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+        elif last_key_name == key_prefix + 'V':
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            last_text = text
+            skip_effect = true
+        elif last_key_name == key_prefix + 'A':
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            skip_effect = true
+    if last_key_name.begins_with(alt_prefix):
+        if last_key_name == alt_prefix + 'D':
+            move_caret_line(10)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            get_viewport().set_input_as_handled()
+        elif last_key_name == alt_prefix + 'U':
+            move_caret_line(-10)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            get_viewport().set_input_as_handled()
+        elif last_key_name == alt_prefix + 'J':
+            move_caret_line(1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            get_viewport().set_input_as_handled()
+        elif last_key_name == alt_prefix + 'K':
+            move_caret_line(-1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            get_viewport().set_input_as_handled()
+        elif last_key_name == alt_prefix + 'H':
+            move_caret_column(-1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            get_viewport().set_input_as_handled()
+        elif last_key_name == alt_prefix + 'L':
+            move_caret_column(1)
+            skip_effect = true
+            Editor.creative_mode.incr_key()
+            _show_char_force(last_key_name)
+            get_viewport().set_input_as_handled()

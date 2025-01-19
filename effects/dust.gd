@@ -61,5 +61,4 @@ func _ready():
 
 
 func _on_Timer_timeout():
-    if destroy:
-        queue_free()
+    queue_free()

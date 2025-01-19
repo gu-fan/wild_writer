@@ -19,12 +19,12 @@ signal combo_rating_changed
 @onready var stats_label: Label = $StatsPanel/Label
 @onready var s_wpm: Control = $StatsPanel/WPM
 @onready var s_kpm: Control = $StatsPanel/KPM
-@onready var stats_detail_panel: Control = $StatsDetail
-@onready var stats_detail_label: Label = $StatsDetail/Label
+# @onready var stats_detail_panel: Control = $StatsDetail
+# @onready var stats_detail_label: Label = $StatsDetail/Label
 @onready var combo_panel: Control = $ComboPanel
 @onready var combo_label: Label = $ComboPanel/Label
-@onready var combo_detail_panel: Control = $ComboDetail
-@onready var combo_detail_label: Label = $ComboDetail/Label
+# @onready var combo_detail_panel: Control = $ComboDetail
+# @onready var combo_detail_label: Label = $ComboDetail/Label
 
 @onready var c_speed: Control = $ComboPanel/Speed
 @onready var c_style: Control = $ComboPanel/Style
@@ -35,13 +35,17 @@ signal combo_rating_changed
 
 var font_res_ui = '' :
     set(v):
+        font_res_ui = v
         for lb in [goal_window, final_window]:
+            lb.font_res = v
+        for lb in [s_wpm, s_kpm, c_speed, c_style, c_accuracy, progress_label]:
             lb.font_res = v
 
 var font_res_fx = '' :
     set(v):
-        for lb in [s_wpm, s_kpm, c_speed, c_style, c_accuracy, progress_label]:
-            lb.font_res = v
+        font_res_fx = v
+        # for lb in [s_wpm, s_kpm, c_speed, c_style, c_accuracy, progress_label]:
+        #     lb.font_res = v
 
 func _ready() -> void:
     
@@ -67,9 +71,9 @@ func _ready() -> void:
     progress_label.text = ''
 
     stats_panel.hide()
-    stats_detail_panel.hide()
+    # stats_detail_panel.hide()
     combo_panel.hide()
-    combo_detail_panel.hide()
+    # combo_detail_panel.hide()
     final_window.hide()
 
     g_label.focus_mode = Control.FOCUS_ALL
@@ -167,9 +171,9 @@ func _on_goal_started():
     # progress_bar.show()
     # progress_bar.modulate.a = 0.7
     stats_panel.show()
-    stats_detail_panel.show()
+    # stats_detail_panel.show()
     combo_panel.show()
-    combo_detail_panel.show()
+    # combo_detail_panel.show()
     progress_label.text = '0%'
 
     _trans_in_stats_label()
@@ -203,13 +207,13 @@ func _on_stats_updated(is_tick:bool) -> void:
         s_kpm.update_label()
         s_wpm.update_label()
 
-    stats_detail_label.text = """
-    accuracy: %.1f%%
-    time: %.1f
-    key: %.1f
-    word: %.1f
-    delete: %.1f
-    """ % [stats.accuracy, stats.time, stats.key, stats.word, stats.delete]
+    # stats_detail_label.text = """
+    # accuracy: %.1f%%
+    # time: %.1f
+    # key: %.1f
+    # word: %.1f
+    # delete: %.1f
+    # """ % [stats.accuracy, stats.time, stats.key, stats.word, stats.delete]
 
 func _on_combo_updated():
     var ps = creative_mode.paragraph_stats
@@ -232,13 +236,13 @@ func _on_combo_updated():
     # Util.pos_x_out(c_accuracy, 2.2)
     _trans_in_combo_rating({speed=ps.rating_speed,style=ps.rating_style,accuracy=ps.rating_accuracy})
 
-    combo_detail_label.text = """
-    natural: %.1f
-    repeat: %.1f
-    punctuation: %.1f
-    rhythm: %.1f
-    style final: %.1f
-    """ % [ps.score_natural, ps.score_repeat, ps.score_punc, ps.score_rhythm, ps.score_style]
+    # combo_detail_label.text = """
+    # natural: %.1f
+    # repeat: %.1f
+    # punctuation: %.1f
+    # rhythm: %.1f
+    # style final: %.1f
+    # """ % [ps.score_natural, ps.score_repeat, ps.score_punc, ps.score_rhythm, ps.score_style]
 
 func _on_goal_reached() -> void:
     print('goal reached')
@@ -247,9 +251,9 @@ func _on_goal_reached() -> void:
 func _on_goal_finished() -> void:
     progress_bar.hide()
     stats_panel.hide()
-    stats_detail_panel.hide()
+    # stats_detail_panel.hide()
     combo_panel.hide()
-    combo_detail_panel.hide()
+    # combo_detail_panel.hide()
     progress_label.text = ''
     
     # 显示最终评分面板

@@ -7,9 +7,17 @@ const _data = {
         preset=UI.PRESET_FULL_RECT,
         # mouse_filter = UI.MOUSE_FILTER_STOP,
         children={
+            'Close':{
+                type='Button',
+                custom_minimum_size = Vector2(30, 30),
+                flat = true,
+                focus_mode=0,
+                preset=UI.PRESET_BOTTOM_RIGHT,
+            },
             'Margin':{
                 'type':'MarginContainer',
                 'preset':UI.PRESET_FULL_RECT,
+                # 'mouse_filter': UI.MOUSE_FILTER_IGNORE,
                 'margin':{
                     left=20,
                     right=20,
@@ -31,8 +39,10 @@ const _data = {
                 'child':{
                     name='Background',
                     type='Control',
+                    # mouse_filter = UI.MOUSE_FILTER_STOP,
                     # color ='333399',
                     # custom_minimum_size = Vector2(80, 80),
+                    # on_pressed='self:hide',
                     child={
                         name='TabContainer',
                         type='TabContainer',

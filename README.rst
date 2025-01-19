@@ -59,3 +59,74 @@ fullscreen mode
 mini pad mode -> borderless, minimal screen, c+enter to send to other application
 
 
+---------
+
+CHECKED TODO MAC
+
+1. DONE preload all effect scenes: boom, bigboom, blip, dust, laser, newline
+2. DONE boom char fly offset reduce bit
+3. XXX xl font will miss the caret pos? hint redraw
+4. DONE add interface hint to tell user redraw if linewrap now shown correctly
+5. DONE audio option should also effect the rating final window
+6. DONE combo not break if newline effect off
+7. add text edit default placeholder
+8. DONE when tiny ime showing candidate, prev/next page should not pop to key
+9. XXX mac OS input at col 0 the input bar pos is not correct
+10. DONE use OS lang is OS lang is en or zh, else use en
+
+CHECKED TODO LINUX
+
+1. DONE preload effects not loading particles, which will be slow
+2. DONE increase blip font move distance, increase a bit (30)
+3. DONE misc placeholder title name
+4. DONE misc option desc
+
+CHECKED TODO WINDOWS
+
+1. DONE intial Windows is too big will make it looks like fullscreen
+2. DONE internal fullwidth punc will produce multi chars
+3. DONE change default ime toggle to a key that on all OS (Alt+Escape not work on windows)
+4. FIXED the Ctrl+HJKL not working
+5. FIXED combo finish effect not working
+6. DONE padding line will make input errorness, so use pad size only
+7. DONE add next_tip button
+
+CHECKED TODO WEB
+
+1. the Ctrl+HJKL should set as handled as it will input keys
+2. add some text
+
+-----------------
+
+CHECKLIST TEST_OVERVIEW
+
+1. open, new, save
+2. autosave, open recent
+3. document directory
+4. file line number / lines / ....
+5. fonts ...  (check the padding and redraw betweeing settings)
+6. effects
+7. speed mode, start, finish
+7. shortcut
+8. input method
+   OS input method
+9. debug?
+10. language
+
+DEBUG 
+1. DONE MAC
+2. DONE Linux
+3. DONE Windows
+4. DONE Web
+
+ENCRYPTED
+
+1. MAC
+2. Linux
+3. Windows
+4. Web
+5. Decrypt
+
+PUBLISH VIDEO
+
+

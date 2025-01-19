@@ -37,6 +37,10 @@ var available_executors = {
         "description": "Toggle debug",
         "executor": "debug"
     },
+    "redraw": {
+        "description": "redraw",
+        "executor": "redraw"
+    },
     # "python": {
     #     "description": "Run Python script",
     #     "executor": "python"
@@ -110,6 +114,8 @@ func execute_command(command: String, args: Dictionary) -> void:
             execute_mode(args)
         "fullscreen":
             Editor.toggle_fullscreen()
+        "redraw":
+            Editor.redraw()
     
 # 执行器实现
 func execute_python(args: Dictionary) -> void:

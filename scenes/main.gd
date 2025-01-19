@@ -9,12 +9,13 @@ var mask
 
 func _ready():
     canvas = $CanvasLayer
-    mask = $CanvasLayer/Mask
+    mask = $CanvasLayer/EditorMask
     editor_view = $CanvasLayer/EditorView
     firework = $CanvasLayer/Firework
     editor_view.firework = firework
 
     Editor.main = self
+    Editor.mask = mask
     Editor.view = editor_view
     Editor.view.main = self
 

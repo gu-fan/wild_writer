@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://ba2akrrsrxf0i"]
+[gd_scene load_steps=6 format=3 uid="uid://ba2akrrsrxf0i"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_i6hjk"]
 [ext_resource type="PackedScene" uid="uid://cbcxxvyi6tcc0" path="res://scenes/editor_view.tscn" id="2_k7h6b"]
 [ext_resource type="PackedScene" uid="uid://djcnynny2rf2j" path="res://scenes/creative_mode.tscn" id="2_yh8gg"]
 [ext_resource type="PackedScene" uid="uid://lkaqq4hg2mgq" path="res://effects/firework.tscn" id="3_8lsmc"]
+[ext_resource type="Script" path="res://scenes/editor_mask.gd" id="3_42hna"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_i6hjk")
@@ -12,7 +13,7 @@ script = ExtResource("1_i6hjk")
 
 [node name="EditorView" parent="CanvasLayer" instance=ExtResource("2_k7h6b")]
 
-[node name="Mask" type="ColorRect" parent="CanvasLayer"]
+[node name="EditorMask" type="ColorRect" parent="CanvasLayer"]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,6 +21,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.392157)
+script = ExtResource("3_42hna")
 
 [node name="Firework" parent="CanvasLayer" instance=ExtResource("3_8lsmc")]
 

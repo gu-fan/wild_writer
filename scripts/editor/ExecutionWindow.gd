@@ -101,8 +101,7 @@ func _input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed:
         var key_name = event.as_text_keycode()
         if event.keycode == KEY_ESCAPE:
-            emit_signal("execution_canceled")
-            queue_free()
+            _on_close_requested()
         elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
             execute_command()
         elif event.keycode == KEY_BACKSPACE:
@@ -157,9 +156,9 @@ func execute_command() -> void:
                 args["value"] = parts[2]  # 子命令的参数值
 
         emit_signal("execution_requested", command, args)
+        queue_free()
     else:
-        emit_signal("execution_canceled")
-    queue_free()
+        _on_close_requested()
 
 func _on_item_clicked(index: int, _at_position: Vector2, _mouse_button_index: int) -> void:
     if _mouse_button_index == 1:
@@ -172,3 +171,7 @@ func _on_viewport_resized():
     var window_size = Vector2(size)
     var viewport_size = Vector2(get_tree().current_scene.get_viewport_rect().size)
     position = Vector2((viewport_size - window_size) / 2)
+
+func _on_close_requested() -> void:
+    emit_signal("execution_canceled")
+    queue_free()

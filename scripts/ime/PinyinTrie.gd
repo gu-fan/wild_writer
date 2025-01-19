@@ -63,6 +63,37 @@ func search(pinyin: String) -> Array:
     # 缓存结果
     cache[pinyin] = results
     return results
+    
+func search_words(pinyin_words: Array) -> Array:
+    var results = []
+    var seen_chars = {}
+    
+    # 处理每个拼音词
+    for word in pinyin_words:
+        # 检查缓存
+        if word in cache:
+            var word_matches = cache[word]
+            for match in word_matches:
+                if not match.char in seen_chars:
+                    results.append(match)
+                    seen_chars[match.char] = true
+            continue
+        
+        # 搜索当前拼音词
+        var node = _find_node(word)
+        if node and node.is_end:
+            for char in node.words:
+                if not char in seen_chars:
+                    results.append({
+                        "char": char,
+                        "freq": node.words[char],
+                        "pinyin": word
+                    })
+                    seen_chars[char] = true
+    
+    # 按频率排序
+    results.sort_custom(func(a, b): return a.freq > b.freq)
+    return results
 
 # 搜索前缀匹配
 func search_prefix(prefix: String) -> Array:

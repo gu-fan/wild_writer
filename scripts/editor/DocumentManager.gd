@@ -7,6 +7,7 @@ signal document_changed(doc: Document)
 signal document_saved(doc: Document)
 
 const TXT_FILES =  ['*.txt,*.text,*.md,*.rst;TextFiles', '*.c,*.cpp,*.py,*.gd,*.json;CodeFiles', '*.html,*.css,*.js;WebFiles', '*.ini,*.dat;DataFiles']
+const TXT_EXTS  = ["txt", "md", "rst", "py", "json", "text", "ini", "js", "gd"]
 
 # 文本操作类
 class TextOperation:
@@ -165,7 +166,7 @@ static func get_home_expanded(dir:String):
     else:
         return dir
 
-func show_save_dialog() -> void:
+func show_save_dialog():
     var file_dialog = FileDialog.new()
     get_tree().root.add_child(file_dialog)
     
@@ -196,6 +197,7 @@ func show_save_dialog() -> void:
         emit_signal('file_selected', '')
         file_dialog.queue_free()
     )
+    return file_dialog
 
 func show_open_dialog(file_path='') -> void:
     var file_dialog = FileDialog.new()

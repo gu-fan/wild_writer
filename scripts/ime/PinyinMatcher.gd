@@ -9,7 +9,7 @@ var fuzzy_enabled: bool = false # 添加模糊音开关
 
 func _init():
     trie = PinyinTrie.new()
-    _init_fuzzy_rules()
+    # _init_fuzzy_rules()
 
 # 加载拼音词典
 func load_dictionary(path: String) -> void:
@@ -69,16 +69,94 @@ func update_candidates(context: CompositionContext) -> void:
         context.candidates_matched_lengths.clear()
         return
     
+    # 如果启用了双拼，先转换为全拼
+    var search_text = context.buffer
+    var ret = {}
+    if shuangpin_enabled:
+        var pinyin_array = ShuangpinScheme.convert_to_pinyin(context.buffer, trie)
+        # search_text = "".join(pinyin_array)
+        # ERRORNESS
+        ret = _get_match_from_search_text_shuangpin(pinyin_array, context)
+        # pinyin array is a array,
+        # should deal with each situation in this array
+        # var all_matches = []
+        # var all_lengths = []
+        # var seen_chars = {}
+        
+        # # 遍历每个可能的拼音组合
+        # for pinyin in pinyin_array:
+        #     var current_ret = _get_match_from_search_text(pinyin, context)
+            
+        #     # 合并结果，避免重复
+        #     for i in range(current_ret.matches.size()):
+        #         var match_item = current_ret.matches[i]
+        #         if not seen_chars.has(match_item.char):
+        #             all_matches.append(match_item)
+        #             all_lengths.append(current_ret.matched_lengths[i])
+        #             seen_chars[match_item.char] = true
+        
+        # ret = {
+        #     "matches": all_matches,
+        #     "matched_lengths": all_lengths,
+        #     "seen_chars": seen_chars
+        # }
+    else:
+        ret = _get_match_from_search_text(search_text, context)
+    
+    
+    # 最终排序：优先考虑匹配长度，然后是频率
+    var sorted_indices = range(ret.matches.size())
+    sorted_indices.sort_custom(func(a, b): 
+        var a_len = ret.matched_lengths[a]
+        var b_len = ret.matched_lengths[b]
+        
+        # 如果长度不同，优先选择更长的匹配
+        if a_len != b_len:
+            return a_len > b_len
+        
+        # 长度相同时，按频率排序
+        return ret.matches[a].freq > ret.matches[b].freq
+    )
+    
+    # 按排序后的顺序重组数组
+    var sorted_matches = []
+    var sorted_lengths = []
+    for i in sorted_indices:
+        sorted_matches.append(ret.matches[i])
+        sorted_lengths.append(ret.matched_lengths[i])
+    
+    # 更新上下文
+    context.candidates = sorted_matches.map(func(m): return m.char)
+    context.candidates_matched_lengths = sorted_lengths
+    context.current_selection = 0
+    context.current_page = 0
+
+func _get_match_from_search_text_shuangpin(search_array, context):
+    
     var matches = []
     var matched_lengths = []
     var seen_chars = {}
+
+    var full_matches = trie.search_words(search_array)
+    for match in full_matches:
+        if not match.char in seen_chars:
+            matches.append(match)
+            matched_lengths.append(context.buffer.length())
+            seen_chars[match.char] = true
+
+    return {
+            matches = matches,
+            matched_lengths=matched_lengths,
+            seen_chars=seen_chars,
+            }
+
+
+func _get_match_from_search_text(search_text, context):
     
-    # 如果启用了双拼，先转换为全拼
-    var search_text = context.buffer
-    if shuangpin_enabled:
-        var pinyin_array = ShuangpinScheme.convert_to_pinyin(context.buffer)
-        # search_text = "".join(pinyin_array)
-    
+    var matches = []
+    var matched_lengths = []
+    var seen_chars = {}
+
     # 1. 如果是单个字母，使用first_letter_cache并只匹配单字
     if search_text.length() == 1:
         var first_letter = search_text[0]
@@ -114,41 +192,20 @@ func update_candidates(context: CompositionContext) -> void:
                     matched_lengths.append(prefix.length())
                     seen_chars[match.char] = true
         
-        # 4. 添加模糊音匹配
-        if fuzzy_enabled and not fuzzy_rules.is_empty():  # 只在启用模糊音且有规则时执行
-            var fuzzy_matches = _get_fuzzy_matches(search_text)
-            for match in fuzzy_matches:
-                if not match.char in seen_chars:
-                    matches.append(match)
-                    matched_lengths.append(context.buffer.length())
-                    seen_chars[match.char] = true
-    
-    # 最终排序：优先考虑匹配长度，然后是频率
-    var sorted_indices = range(matches.size())
-    sorted_indices.sort_custom(func(a, b): 
-        var a_len = matched_lengths[a]
-        var b_len = matched_lengths[b]
-        
-        # 如果长度不同，优先选择更长的匹配
-        if a_len != b_len:
-            return a_len > b_len
-        
-        # 长度相同时，按频率排序
-        return matches[a].freq > matches[b].freq
-    )
-    
-    # 按排序后的顺序重组数组
-    var sorted_matches = []
-    var sorted_lengths = []
-    for i in sorted_indices:
-        sorted_matches.append(matches[i])
-        sorted_lengths.append(matched_lengths[i])
-    
-    # 更新上下文
-    context.candidates = sorted_matches.map(func(m): return m.char)
-    context.candidates_matched_lengths = sorted_lengths
-    context.current_selection = 0
-    context.current_page = 0
+        # # 4. 添加模糊音匹配
+        # if fuzzy_enabled and not fuzzy_rules.is_empty():  # 只在启用模糊音且有规则时执行
+        #     var fuzzy_matches = _get_fuzzy_matches(search_text)
+        #     for match in fuzzy_matches:
+        #         if not match.char in seen_chars:
+        #             matches.append(match)
+        #             matched_lengths.append(context.buffer.length())
+        #             seen_chars[match.char] = true
+
+    return {
+            matches=matches,
+            matched_lengths=matched_lengths,
+            seen_chars=seen_chars,
+        }
 
 # 辅助函数：检查字符是否已在匹配列表中
 func _contains_char(matches: Array, char: String) -> bool:

@@ -1,4 +1,6 @@
 class_name Rnd
+# v3.2.0
+# add Rnd.index(arr)
 # v3.1.0
 # alternative with seeding: RndGenerator
 # var rnd = RndGenerator.new('xxxx')
@@ -107,6 +109,11 @@ static func pick(arr, _constrain_filter=null):
     if arr.size():
         return arr[randi_range(0, arr.size()-1)]
     return null
+
+static func index(arr):
+    # return random of arr
+    return randi_range(0, arr.size()-1)
+
 
 # --------------------
 static func prior(dic):

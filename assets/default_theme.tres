@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=22 format=3 uid="uid://07kcvj2gqhbo"]
+[gd_resource type="Theme" load_steps=24 format=3 uid="uid://07kcvj2gqhbo"]
 
 [ext_resource type="FontVariation" uid="uid://r045b8gwnt3k" path="res://assets/fonts/agave_fixed.tres" id="1_26vv4"]
 [ext_resource type="Texture2D" uid="uid://bpwhum17yikfj" path="res://assets/themes/checkbutton_unchecked.png" id="2_7i37d"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://d2fepkqof34q5" path="res://assets/themes/slider_tick_count.png" id="2_ya87t"]
 [ext_resource type="Texture2D" uid="uid://dgbqyicxvebnf" path="res://assets/themes/checkbutton_disabled.png" id="3_2yeyj"]
 [ext_resource type="FontFile" uid="uid://dcjd24t3fpryt" path="res://assets/fonts/NotoSansSC-Regular.ttf" id="6_ihw7h"]
+[ext_resource type="FontFile" uid="uid://b7ot58evs2iel" path="res://assets/fonts/NotoSansSC-Bold.ttf" id="6_ob0ul"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_td3mu"]
 bg_color = Color(0.4, 0.4, 0.4, 1)
@@ -20,6 +21,10 @@ bg_color = Color(0.4, 0.4, 0.4, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v0nj1"]
 bg_color = Color(0.266667, 0.266667, 0.266667, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_hjhgb"]
+base_font = ExtResource("6_ob0ul")
+variation_embolden = 0.5
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6y1dq"]
 
@@ -85,6 +90,7 @@ HSlider/icons/tick = ExtResource("2_ya87t")
 LineEdit/constants/caret_width = 4
 LineEdit/styles/focus = SubResource("StyleBoxFlat_v0nj1")
 RichTextLabel/colors/default_color = Color(0.466667, 0.466667, 0.466667, 1)
+RichTextLabel/fonts/bold_font = SubResource("FontVariation_hjhgb")
 RichTextLabel/styles/focus = SubResource("StyleBoxEmpty_6y1dq")
 RichTextLabel/styles/normal = SubResource("StyleBoxEmpty_84wai")
 TabContainer/styles/panel = SubResource("StyleBoxFlat_l5aqf")

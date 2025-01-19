@@ -17,14 +17,19 @@ var font_size = 1
 var font_res = ''
 var sound = ''
 var sound_increase = 1
+var size_offset = Vector2.ZERO
 
 func _ready():
 
     var extra_scale = 1
+    if font_size == 0: 
+        size_offset = Vector2(0, -5)
     if font_size == 2: 
         extra_scale = 1.5
+        size_offset = Vector2(0, -30)
     elif font_size == 3: 
         extra_scale = 2
+        size_offset = Vector2(0, -80)
 
     if audio:
         if sound:
@@ -70,7 +75,7 @@ func _ready():
     elif last_key == 'Enter':
         label.text = 'Enter'
     else:
-        label.text = SettingManager.get_key_shown_shift(last_key)
+        label.text = Editor.config.get_key_shown_shift(last_key)
 
     # label.set("theme_override_font_sizes/font_size", 96)
     if font_res:
@@ -91,8 +96,8 @@ func _ready():
         parallel=true,
     }).tween({
         prop='position',
-        from=Vector2(-35+20, -70) + char_offset,
-        to=Vector2(-35-150, -120)*extra_scale + char_offset if !move_right else Vector2(-35+200, -120)*extra_scale + char_offset,
+        from=Vector2(-35+30, -70) + char_offset + size_offset,
+        to=Vector2(-35-170, -120)*extra_scale + char_offset + size_offset if !move_right else Vector2(-35+200, -120)*extra_scale + char_offset + size_offset,
         dur=0.9,
         parallel=true,
         ease=Tween.EASE_OUT,
@@ -114,5 +119,4 @@ func _ready():
     })
 
 func _on_Timer_timeout():
-    if destroy:
-        queue_free()
+    queue_free()

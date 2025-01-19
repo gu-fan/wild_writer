@@ -86,16 +86,169 @@ msgstr "超大"
 
 # --------
 msgid "RICH_TIPS_0"
-msgstr "小提示：\n连续打字不要超过一个小时，\n如果感到头晕目眩或不适，可以停下来休息一下"
+msgstr "小提示：\n连续打字不要超过一个小时，\n如果感到头晕目眩或不适，可以[color=9999FF]停下来休息一下[/color]"
 
 msgid "RICH_TIPS_1"
-msgstr "小提示："
+msgstr "小提示：\n可以使用[color=9999FF]<Ctrl-E>[/color]开始动作命令，比如hjkl进行方向移动"
 
 msgid "RICH_TIPS_2"
 msgstr "小提示：\nCtrl+A全选，Ctrl+C复制，Ctrl+V粘贴\nCtrl+Z撤销，Ctrl+Y重做\n(mac下为Cmd)"
 
 msgid "RICH_TIPS_3"
 msgstr "小提示：\n可以将文本文件拖拽到窗口里来打开"
+
+msgid "RICH_TIPS_4"
+msgstr "小提示：\n可以使用[color=9999FF]<Ctrl-J>/<Ctrl-K>[/color]移动到上一行/下一行"
+
+msgid "RICH_TIPS_5"
+msgstr "小提示：\n"
+"您可以使用 [color=9999FF]<Ctrl-E>-ms[/color] 启动速度模式\n"
+"并使用 [color=9999FF]<Ctrl-E>-mf[/color] 结束速度模式\n"
+
+# --------
+
+msgid "RICH_ABOUT"
+msgstr ""
+"[center][shake][font s=32]WildType 0.03[/font][/shake]\n"
+"by xianrenak[/center]\n"
+"\n"
+"下载（Win, Linux, Mac, Web）:\n"
+"[url]http://xianrenak.itch.io/wildtype[/url]\n"
+"[url]http://github.com/xianrenak/wildtype[/url]\n"
+"\n"
+"B站更新:\n"
+"[url]http://space.bilibili.com/589805968[/url]\n"
+"\n"
+"Bug反馈\n"
+"[url]http://github.com/xianrenak/wildtype/issues[/url]\n"
+
+msgid "DEV_LOG_TITLE"
+msgstr "[center][color=888888][font s=24]更新日志[/font][/color][/center]"
+
+msgid "DEV_LOG_0"
+msgstr ""
+"\n"
+"[color=AAAAAA][b]0.0.1：[/b][/color]\n"
+"\n"
+"修改Godot插件\n"
+"    github.com/jotson/ridiculous_coding\n"
+"加入文件编辑的基本功能\n"
+"    打开，新建，保存\n"
+"其他\n"
+"    开发本版本的原因来自莫浪等用户的评论，\n"
+"    因此让不用Godot编辑器的用户也体验一下\n"
+"\n"
+
+msgid "DEV_LOG_1"
+msgstr ""
+"\n"
+"[color=AAAAAA][b]0.0.2：[/b][/color]\n"
+"\n"
+"增加基本的编辑器功能\n"
+"    设置面板，快捷键\n"
+"增加基本的文本编辑功能\n"
+"    自动打开，自动保存，字数，行号，自动换行，改变字号等\n"
+"加入内置输入法功能\n"
+"    解决在部分Linux系统中输入法不能正确响应的问题\n"
+"    目前只有拼音，并且不支持全角符号\n"
+"    目前词库使用的是GooglePinyin的默认词库\n"
+"    需要扩充常用词组的请在\n"
+"        github.com/xianrenak/wildwriter/issues里提交\n"
+"重新制作了全部特效\n"
+"    音效: 优化了所有音效，优化了连续打字的音效\n"
+"    屏幕震动: 稍微降低了强度\n"
+"        [color=ff3333]警告:[/color]长时间的屏幕震动确实会让人头晕\n"
+"        并导致开发中断了一天\n"
+"    文字特效: 色彩/间距/大小/动画\n"
+"    回车特效: 重绘动画\n"
+"    删除特效: 重绘动画/增加粒子效果\n"
+"    加入连击特效和连击终结特效\n"
+"字体\n"
+"    使用新的字体以提供更好的显示效果\n"
+"修复导出\n"
+"    修复了导出到Windows后不工作的问题\n"
+"    增加了Mac的导出\n"
+"        注意： 因为开发者身份已过期所以没有签名，会被Gatekeeper阻止\n"
+"    目前没有Android/iOS上的版本的计划，但是可以使用Web版进行体验\n"
+"按键捕捉\n"
+"    优化以更好的捕捉按键\n"
+"    加入方向键上下左右的显示\n"
+"    修复了Windows下未知按键的问题\n"
+"    修复了Mac下部分按键的问题(cmd+c/cmd+v)\n"
+"优化\n"
+"    一些性能和细节优化\n"
+"其他\n"
+"    一些视觉效果的建议：\n"
+"        连击: Digita1Extremes 的高赞评论，很多用户也提出类似建议\n"
+"        连击终结: My_SSR， 很多用户也提出类似建议\n"
+"        透明 Yzl_烟雨 离散度 L0very \n"
+"        色彩 无端艺想 动画 NnWinter冬\n"
+"        分散文字 朋克洛德银狼/iiiieee \n"
+"    一些文本编辑的建议： \n"
+"        自动保存 GALZY素夜\n"
+"        字体大小 Venlac\n"
+"\n"
+
+msgid "DEV_LOG_2"
+msgstr ""
+"\n"
+"[color=AAAAAA][b]0.0.3：[/b][/color]\n"
+"25-01-19\n"
+"\n"
+"输入\n"
+"    解决了使用输入法时检测输入字符的问题\n"
+"    同时为输入法添加了组合效果\n"
+"    使中文输入的感觉更加奔放\n"
+"速度模式\n"
+"    添加速度模式，用于速度测试和评级\n"
+"    使用 [color=9999FF]<Ctrl-E>-ms[/color] 启动速度模式\n"
+"    使用 [color=9999FF]<Ctrl-E>-mf[/color] 结束速度模式\n"
+"特效\n"
+"    为输入法添加文字上方的组合效果\n"
+"    添加匹配效果，用于使用输入法匹配单词\n"
+"    添加选项控制屏幕震动级别以避免眩晕\n"
+"    添加字符声音选项，可以在输入时使用更多声音\n"
+"    添加选项以禁用字符声音的音调增加\n"
+"    添加更强的删除效果，用于删除一定范围内的文本\n"
+"动作(Motion)\n"
+"    添加类似 vim 的动作，更方便进行移动 (hjkl 和 Ctrl-hjkl)\n"
+"    使用 [color=9999FF]<Ctrl-E>[/color] 显示动作面板并移动\n"
+"    您可以在设置->快捷方式中查看已定义的动作\n"
+"命令\n"
+"    添加命令窗口，用于执行一些命令\n"
+"    使用 [color=9999FF]<Ctrl-R>[/color] 显示命令面板\n"
+"编辑器\n"
+"    添加英语语言支持\n"
+"    去掉备份选项以避免一些小错误\n"
+"    使用内部剪贴板处理 [color=9999FF]Ctrl-C/V[/color] 以避免乱码\n"
+"界面\n"
+"    优化字体，避免模糊\n"
+"    为编辑器添加衬线字体\n"
+"    为效果和 UI 添加更多特殊字体选项\n"
+"    添加提示\n"
+"内置输入法\n"
+"    添加全角标点支持\n"
+"快捷键\n"
+"    目前mac的默认快捷键使用 Cmd 作为前缀\n"
+"已知问题\n"
+"    mac关闭了hdpi以避免 UI 缩放问题\n"
+"    内部输入法目前将只显示最前方的匹配\n"
+"    打开的文件应将编码限制为 UTF-8 以避免乱码\n"
+"    字体 香萃零度黑 的左方向图标显示错误\n"
+"    更改字体大小后，自动换行可能没有正确更新，需要使用 [color=9999FF]<Ctrl-R>redraw[/color] 进行手动更新\n"
+"其他\n"
+"    将英文名称更新为WildType以符合中文名称\n"
+"\n"
+
+msgid "INTERFACE_TIP"
+msgstr ""
+"小提示:\n"
+"如果更改字体后换行显示不正确，请使用 [color=9999FF]<Ctrl-R>redraw[/color] 重新绘制屏幕"
+"\n"
+
+# --------
+msgid "NEXT_TIP"
+msgstr "下一个提示"
 
 msgid "RESET_ALL"
 msgstr "重置全部选项"
@@ -108,6 +261,9 @@ msgstr "重置全部快捷键"
 msgid "FILE_OPENED"
 msgstr "已打开文件"
 
+msgid "FILE_OPEN_ERROR"
+msgstr "文件打开错误"
+
 msgid "FILE_SAVED"
 msgstr "已保存文件"
 
@@ -115,7 +271,7 @@ msgid "FILE_NEW"
 msgstr "已开始新文档"
 
 msgid "NOT_SAVED"
-msgstr "尚未保存"
+msgstr "当前文件尚未保存"
 
 msgid "CONTINUE_CREATE_NEW_FILE"
 msgstr "继续创建新文件?"
@@ -168,6 +324,12 @@ msgstr "特效字体"
 msgid "EFFECT_FONT_DESC"
 msgstr "字符特效的字体"
 
+msgid "PAD_LINES"
+msgstr "填充行数"
+
+msgid "PAD_LINES_DESC"
+msgstr "在当前行下方保留多行进行填充"
+
 msgid "YouSheBiaoTiHei"
 msgstr "优设标题黑"
 
@@ -181,7 +343,7 @@ msgid "INTERFACE_FONT"
 msgstr "界面字体"
 
 msgid "INTERFACE_FONT_DESC"
-msgstr "一些界面的字体，比如结算界面"
+msgstr "一些界面的字体，比如连击和结算界面"
 
 # --------
 
@@ -201,7 +363,7 @@ msgid "COMBO_SHOT"
 msgstr "连击终结"
 
 msgid "COMBO_SHOT_DESC"
-msgstr "当一行结束时显示连击终结效果"
+msgstr "当一行结束时显示连击终结的激光效果"
 
 msgid "SCREEN_SHAKE_LEVEL"
 msgstr "屏幕震动"
@@ -214,6 +376,9 @@ msgstr "字符特效"
 
 msgid "CHAR_PARTICLE"
 msgstr "字符粒子效果"
+
+msgid "CHAR_PARTICLE_DESC"
+msgstr "显示字符和删除的粒子特效"
 
 msgid "CHAR_SOUND"
 msgstr "字符音效"
@@ -236,11 +401,17 @@ msgstr "字符提高音调"
 msgid "CHAR_SOUND_INCREASE_DESC"
 msgstr "当连续输入字符的时候提高音调"
 
-msgid "ENTER_EFFECT"
+msgid "NEWLINE_EFFECT"
 msgstr "换行特效"
+
+msgid "NEWLINE_EFFECT_DESC"
+msgstr "开始新行时显示箭头动画"
 
 msgid "DELETE_EFFECT"
 msgstr "删除特效"
+
+msgid "DELETE_EFFECT_DESC"
+msgstr "删除后显示爆炸效果"
 
 msgid "MATCH_EFFECT"
 msgstr "匹配特效"
@@ -251,6 +422,20 @@ msgstr "当使用输入法匹配词组后显示特效"
 msgid "MATCH_WORDS"
 msgstr "匹配词组"
 
+msgid "PLACEHOLDER_TIP"
+msgstr ""
+"                      狂野打字        \t0.0.3\n"
+"\n"
+"                      你可以直接开始打字，也可以\n"
+"\n"
+"                      新建文件        \t{new_file}\n"
+"                      打开文件        \t{open_file}\n"
+"                      保存文件        \t{save_file}\n"
+"                      显示设置        \t{toggle_setting}\n"
+"                      切换输入法     \t{toggle_ime}\n"
+"                      运行动作        \t{start_motion}\n"
+"                      运行命令        \t{start_command}\n"
+
 # --------
 
 msgid "NEW_FILE"
@@ -259,8 +444,15 @@ msgstr "创建文件"
 msgid "OPEN_FILE"
 msgstr "打开文件"
 
+msgid "OPEN_EXT_FILE_FAILED"
+msgstr "只能打开文本文件"
+
 msgid "SAVE_FILE"
 msgstr "保存文件"
+
+
+msgid "FILE_AUTO_SAVED"
+msgstr "文件已自动保存"
 
 msgid "TOGGLE_SETTING"
 msgstr "切换设置面板"
@@ -275,7 +467,13 @@ msgid "TOGGLE_IME"
 msgstr "切换输入法"
 
 msgid "TOGGLE_IME_DESC"
-msgstr "内置输入法"
+msgstr "切换内置输入法"
+
+msgid "TOGGLE_IME_FULLWIDTH"
+msgstr "切换标点全角"
+
+msgid "TOGGLE_IME_FULLWIDTH_DESC"
+msgstr "切换内置输入法的标点状态到全角/半角"
 
 msgid "START_MOTION"
 msgstr "开始动作(Motion)"
@@ -289,5 +487,73 @@ msgstr "开始命令(Command)"
 msgid "START_COMMAND_DESC"
 msgstr "显示命令面板，可以运行一些命令"
 
+msgid "MAC_PREFIX_USE_OPTION"
+msgstr "mac使用Option前缀"
+
+msgid "MAC_PREFIX_USE_OPTION_DESC"
+msgstr "在 mac 中，使用 Option 而不是 Ctrl 来执行 Ctrl+H/J/K/L 移动\n"
+"没有 Cmd，因为 Cmd+H 是隐藏当前窗口"
+
+# ---------------
+
 msgid "SHORCUT_TIP"
-msgstr "移动(Movement):\nCtrl+H/J/K/L\t\t向左/下/上/右移动\nCtrl+U/D        \t\t向上/下移动多行\n\n动作(Motions):\nh/j/k/l \t\t移动方向(可以使用数字前缀)\nw/b     \t\t移动到词尾/向前一个词\n0/$      \t\t移动到行首/行尾\ngg/G    \t\t移动到文件头部/尾部\nms/mf  \t\t开始/结束速度模式\nuf        \t\t切换全屏\nur        \t\t重绘屏幕\nus        \t\t切换设置面板\n\n命令(Commands):\nsetting\t\t设置一些编辑器选项\nmode   \t\t开始/结束模式(当前只有速度模式)\ndebug  \t\t切换Debug"
+msgstr "移动(Movement):\n"
+"Ctrl+H/J/K/L\t\t向左/下/上/右移动\n"
+"Ctrl+U/D        \t\t向上/下移动多行\n"
+"(mac 下可改变为 Option)\n"
+"\n"
+"动作(Motions):\n"
+"h/j/k/l \t\t移动方向(可以使用数字前缀)\n"
+"w/b     \t\t移动到词尾/向前一个词\n"
+"0/$      \t\t移动到行首/行尾\n"
+"gg/G    \t\t移动到文件头部/尾部\n"
+"ms/mf  \t\t开始/结束速度模式\n"
+"uf        \t\t切换全屏\n"
+"ur        \t\t重绘屏幕\n"
+"us        \t\t切换设置面板\n"
+"\n"
+"命令(Commands):\n"
+"setting\t\t设置一些编辑器选项\n"
+"mode   \t\t开始/结束模式(当前只有速度模式)\n"
+"redraw \t\t强制重绘屏幕\n"
+"debug  \t\t切换Debug\n"
+
+# ---------
+msgid "PINYIN_ICON"
+msgstr "拼音图标"
+
+msgid "PINYIN_ICON_DESC"
+msgstr "底部显示拼音图标"
+
+msgid "PINYIN_PAGE_SIZE"
+msgstr "输入条大小"
+
+msgid "PREV_PAGE_KEY"
+msgstr "上一页"
+
+msgid "NEXT_PAGE_KEY"
+msgstr "下一页"
+
+msgid "PINYIN_FULLWIDTH"
+msgstr "全角标点"
+
+msgid "PINYIN_FULLWIDTH_DESC"
+msgstr "拼音输入时，使用全角标点符号"
+
+# ---------
+
+msgid "MODE_ALREADY_STARTED"
+msgstr "已在模式中"
+
+msgid "SPEED_MODE_STARTED"
+msgstr "速度模式已开始"
+
+msgid "NO_ACTIVE_MODE"
+msgstr "没有进行中的模式"
+
+msgid "GOAL_REACHED"
+msgstr "目标达成!"
+
+msgid "GOAL_NOT_REACHED"
+msgstr "目标尚未达成"
+

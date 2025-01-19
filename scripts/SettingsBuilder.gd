@@ -9,16 +9,6 @@ static func build_settings(container: Control, config: Dictionary, section: Stri
         var item = _create_setting_item(section, key, setting)
         container.add_child(item)
 
-static func _create_section(name: String) -> Control:
-    var section = VBoxContainer.new()
-    
-    var label = Label.new()
-    label.text = name.capitalize()
-    label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-    section.add_child(label)
-    
-    return section
-
 static func _create_setting_item(section: String, key: String, config: Dictionary) -> Control:
     var item = SETTING_SCENE.instantiate()
     item.name = key
@@ -53,6 +43,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
                 func(value): control.set_pressed_no_signal(value)
             )
 
+            control.name = 'bool'
             item.get_node('Control').add_child(control)
             
         "int":
@@ -61,7 +52,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             slider.min_value = config.get("min", 0)
             slider.max_value = config.get("max", 3)
             slider.value = current_value
-            slider.tick_count = slider.max_value + 1
+            slider.tick_count = slider.max_value - slider.min_value + 1
             slider.ticks_on_borders = true
             slider.custom_minimum_size = Vector2(135, 20)
 
@@ -71,6 +62,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
 
             control = slider
 
+            control.name = 'int'
             item.get_node('Control').add_child(control)
 
             if config.has('keys'):
@@ -105,6 +97,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             Editor.config.subscribe(section, key, control, 
                 func(value): control.text = Editor.config.get_key_shown(value)
             )
+            control.name = 'shortcut'
             item.get_node('Control').add_child(control)
 
         "option":
@@ -115,6 +108,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
             button.custom_minimum_size.x = 100
             button.focus_mode = 0
             control = button
+            control.name = 'option'
             Editor.config.subscribe(section, key, control, 
                 func(value): control.select(value)
             )
@@ -147,6 +141,7 @@ static func _create_setting_item(section: String, key: String, config: Dictionar
                 func(v): Editor.config.set_setting(section, key, v)
             )
             control = input
+            control.name = 'string'
             Editor.config.subscribe(section, key, control, 
                 func(value): 
                     var tmp_caret = control.caret_column
@@ -239,6 +234,19 @@ static func build_btn(container: Control, text: String, callback=null):
     container.add_child(box)
     if callback: btn.pressed.connect(callback)
     return btn
+
+static func build_btn_right(container: Control, text: String, callback=null):
+    var box = HBoxContainer.new()
+    box.alignment = 2
+    var btn = Button.new()
+    btn.text = text
+    btn.custom_minimum_size = Vector2(100,30)
+    btn.focus_mode = 0
+    box.add_child(btn)
+    container.add_child(box)
+    if callback: btn.pressed.connect(callback)
+    return btn
+
 
 static func build_control(container):
     var con = Control.new()

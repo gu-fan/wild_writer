@@ -99,8 +99,7 @@ func _ready():
         label.hide()
 
 func _on_Timer_timeout():
-    if destroy:
-        queue_free()
+    queue_free()
 
 func _play_animation(font_size, extra_scale):
     animated_sprite_2d.show()

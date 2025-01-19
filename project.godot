@@ -10,9 +10,9 @@ config_version=5
 
 [application]
 
-config/name="wild_writer"
-config/description="A type writer that is wild"
-config/version="0.0.2"
+config/name="WildType"
+config/description="A typing editor that goes wild"
+config/version="0.0.3"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 run/low_processor_mode=true
@@ -35,8 +35,6 @@ file_logging/enable_file_logging=true
 
 [display]
 
-window/size/viewport_width=1728
-window/size/viewport_height=972
 window/stretch/aspect="ignore"
 window/dpi/allow_hidpi=false
 window/vsync/vsync_mode=0

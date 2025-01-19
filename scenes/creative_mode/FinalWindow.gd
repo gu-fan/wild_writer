@@ -241,8 +241,10 @@ func _on_viewport_resized():
     position = Vector2((viewport_size - window_size) / 2)
 
 func __play_audio():
+    if !Editor.config.get_setting('effect', 'audio'): return
     if visible: audio_stream_player.play()
 func __play_audio2(rating='A'):
+    if !Editor.config.get_setting('effect', 'audio'): return
     if visible: 
         match rating:
             'S': audio_stream_player2.pitch_scale = 1.3
@@ -251,6 +253,7 @@ func __play_audio2(rating='A'):
             'C': audio_stream_player2.pitch_scale = 1.0
         audio_stream_player2.play()
 func __play_audio3(rating='A'):
+    if !Editor.config.get_setting('effect', 'audio'): return
     if visible:
         match rating:
             'S': audio_stream_player3.pitch_scale = 1.3

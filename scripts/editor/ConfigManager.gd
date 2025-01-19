@@ -8,6 +8,19 @@ var config = ConfigFile.new()
 var _has_valid_config = false
 
 
+var _macos_shortcut = {
+        "new_file": "Command+N",
+        "open_file": "Command+O",
+        "save_file": "Command+S",
+        "toggle_setting": "Command+Apostrophe",
+        "toggle_effect": "Command+BackSlash",
+        "toggle_ime": "Command+BracketRight",
+        "toggle_ime_fullwidth_punc": "Command+Period",
+        "start_motion": "Command+E",
+        "start_command": "Command+R",
+        "mac_prefix_use_option": 0,
+    }
+
 # 默认设置
 var _default_settings = {
     "basic": {
@@ -23,56 +36,49 @@ var _default_settings = {
         "backup_file": "",
         "backup_caret_line": 0,
         "backup_caret_col": 0,
+        "is_language_set": 0,
     },
     "interface":{
         "editor_font": 0,
         "effect_font": 1,
-        "interface_font": 1,
+        "interface_font": 0,
         "font_size": 1,
-        # "fullscreen": 0,
+        "pad_lines": 2,
     },
     "effect": {
         "fx_switch": 1,
         "combo": 1,
         "combo_shot": 1,
         "audio": 1,
-        # "screen_shake": 1,
         "screen_shake_level": 1,
         "char_effect": 1,
         "char_particle": 1,
         "char_sound": 0,
         "char_sound_increase": 1,
-        "enter_effect": 1,
+        "newline_effect": 1,
         "delete_effect":1 ,
         "match_effect":1 ,
-        "match_words":"非常不错,我很开心,新年快乐,万事如意",
+        "match_words":"为什么,虽然但是,总而言之,非常不错,我很开心,新年快乐,春节愉快,万事如意",
     },
     "shortcut": {
         "new_file": "Ctrl+N",
         "open_file": "Ctrl+O",
         "save_file": "Ctrl+S",
         "toggle_setting": "Ctrl+Apostrophe",
-        "toggle_effect": "Ctrl+Slash",
-        "toggle_ime": "Option+Escape",
-        # "split_view": "Ctrl+B",
+        "toggle_effect": "Ctrl+BackSlash",
+        "toggle_ime": "Ctrl+BracketRight",
+        "toggle_ime_fullwidth_punc": "Ctrl+Period",
         "start_motion": "Ctrl+E",
         "start_command": "Ctrl+R",
+        "mac_prefix_use_option": 0,
     },
     "ime": {
         "pinyin_icon": 1,
-        "shuangpin": 0,
         "pinyin_page_size": 5,
-        # "switch_ime_key": "Shift+Escape",
         "prev_page_key": "BracketLeft",
         "next_page_key": "BracketRight",
-        "fuzzy_pinyin": 0,
+        "pinyin_fullwidth": 1,
     },
-    # "network": {
-    #     "default_port": 7000,
-    #     "default_host": "127.0.0.1",
-    #     "auto_accept_duel": false,
-    #     "show_typing_stats": true
-    # }
 }
 
 const SETTINGS_CONFIG = {
@@ -165,6 +171,12 @@ const SETTINGS_CONFIG = {
             "label": "TOGGLE_IME",
             "desc": "TOGGLE_IME_DESC"
         },
+        "toggle_ime_fullwidth_punc": {
+            "type": "shortcut",
+            "default": "",
+            "label": "TOGGLE_IME_FULLWIDTH",
+            "desc": "TOGGLE_IME_FULLWIDTH_DESC"
+        },
         "start_motion": {
             "type": "shortcut",
             "default": "",
@@ -177,12 +189,18 @@ const SETTINGS_CONFIG = {
             "label": "START_COMMAND",
             "desc": "START_COMMAND_DESC"
         },
+        "mac_prefix_use_option": {
+            "type": "bool",
+            "default": true,
+            "label": "MAC_PREFIX_USE_OPTION",
+            "desc": "MAC_PREFIX_USE_OPTION_DESC"
+        },
     },
     "interface": {
         "editor_font": {
             "type": "option",
-            "options": ["SANS_SERIF", "SERIF"],
-            "values": ["NotoSansSC-Regular.ttf", "NotoSerifSC-SemiBold.ttf"],
+            "options": ["SERIF", "SANS_SERIF", ],
+            "values": ["NotoSerifSC-SemiBold.ttf", "NotoSansSC-Regular.ttf"],
             "default": 0,
             "label": "EDITOR_FONT",
             "desc": "EDITOR_FONT_DESC"
@@ -219,6 +237,15 @@ const SETTINGS_CONFIG = {
         #     "label": "FULLSCREEN",
         #     "desc": "FULLSCREEN_DESC"
         # },
+        "pad_lines": {
+            "type": "int",
+            "default": 1,
+            "min": 0,
+            "max": 3,
+            "label": "PAD_LINES",
+            "desc": "PAD_LINES_DESC",
+            "keys" : ["0", "1", "2", "3"],
+        },
     },
     "effect": {
         "fx_switch": {
@@ -276,7 +303,7 @@ const SETTINGS_CONFIG = {
             "type": "bool",
             "default": false,
             "label": "CHAR_PARTICLE",
-            "desc": ""
+            "desc": "CHAR_PARTICLE_DESC"
         },
         "char_sound": {
             "type": "option",
@@ -292,17 +319,17 @@ const SETTINGS_CONFIG = {
             "label": "CHAR_SOUND_INCREASE",
             "desc": "CHAR_SOUND_INCREASE_DESC"
         },
-        "enter_effect": {
+        "newline_effect": {
             "type": "bool",
             "default": false,
-            "label": "ENTER_EFFECT",
-            "desc": ""
+            "label": "NEWLINE_EFFECT",
+            "desc": "NEWLINE_EFFECT_DESC"
         },
         "delete_effect": {
             "type": "bool",
             "default": false,
             "label": "DELETE_EFFECT",
-            "desc": ""
+            "desc": "DELETE_EFFECT_DESC"
         },
         "match_effect": {
             "type": "bool",
@@ -325,35 +352,44 @@ const SETTINGS_CONFIG = {
             "label": "PINYIN_ICON",
             "desc": "PINYIN_ICON_DESC"
         },
-        "shuangpin": {
-            "type": "bool",
-            "default": false,
-            "label": "SHUANGPIN",
-            "desc": "SHUANGPIN_DESC"
-        },
-        "fuzzy_pinyin": {
-            "type": "bool",
-            "default": false,
-            "label": "FUZZY_PINYIN",
-            "desc": "FUZZY_PINYIN_DESC"
-        },
+        # "shuangpin": {
+        #     "type": "bool",
+        #     "default": false,
+        #     "label": "SHUANGPIN",
+        #     "desc": "SHUANGPIN_DESC"
+        # },
+        # "fuzzy_pinyin": {
+        #     "type": "bool",
+        #     "default": false,
+        #     "label": "FUZZY_PINYIN",
+        #     "desc": "FUZZY_PINYIN_DESC"
+        # },
         "pinyin_page_size": {
             "type": "int",
             "default": 5,
+            "min": 5,
+            "max": 8,
+            "keys": {5:"5", 6:"6", 7:"7", 8:"8"},
             "label": "PINYIN_PAGE_SIZE",
-            "desc": "PINYIN_PAGE_SIZE_DESC"
+            "desc": ""
         },
         "prev_page_key": {
             "type": "shortcut",
             "default": "",
             "label": "PREV_PAGE_KEY",
-            "desc": "PREV_PAGE_KEY_DESC"
+            "desc": ""
         },
         "next_page_key": {
             "type": "shortcut",
             "default": "",
             "label": "NEXT_PAGE_KEY",
-            "desc": "NEXT_PAGE_KEY_DESC"
+            "desc": ""
+        },
+        "pinyin_fullwidth": {
+            "type": "bool",
+            "default": false,
+            "label": "PINYIN_FULLWIDTH",
+            "desc": "PINYIN_FULLWIDTH_DESC"
         },
     },
 }
@@ -404,8 +440,23 @@ const RICH_TIPS = [
         'RICH_TIPS_1',
         'RICH_TIPS_2',
         'RICH_TIPS_3',
+        'RICH_TIPS_4',
+        'RICH_TIPS_5',
     ]
 
+var dev_logs = [
+        'DEV_LOG_0',
+        'DEV_LOG_1',
+        'DEV_LOG_2',
+    ]
+
+# ----------------
+func _init():
+    if Editor.is_macos:
+        _default_settings.shortcut = _macos_shortcut
+        print('init mac')
+    else:
+        print('init no ' )
 # ----------------
 static func get_key_shown(key_string: String) -> String:
     if key_string.is_empty():
@@ -607,26 +658,31 @@ func toggle_setting(section, key):
 # update editor by config # config -> editor
 
 var lb_rich_tips
+var opt_lang
 func build_ui():
     var settings = Editor.init_node('ui/settings:Settings')
-    settings.script = EditorConfigUI
+    settings.script = EditorSettingUI
     # 获取设置界面的容器节点
     var basic_container = settings.get_node("Margin/Background/TabContainer/TAB_BASIC/Scroll/Margin/VBox")
     
     if basic_container:
         SettingsBuilder.build_settings(basic_container, SETTINGS_CONFIG, "basic")
         SettingsBuilder.build_sep(basic_container, 0, 10)
-        var tip = Rnd.pick(RICH_TIPS)
-        lb_rich_tips = SettingsBuilder.build_rich(basic_container, tip)
+        # var tip = Rnd.pick(RICH_TIPS)
+        lb_rich_tips = SettingsBuilder.build_rich(basic_container, '')
         lb_rich_tips.size_flags_vertical =  Control.SIZE_EXPAND_FILL
+        SettingsBuilder.build_btn_right(basic_container, 'NEXT_TIP', next_tip)
         SettingsBuilder.build_sep(basic_container)
         SettingsBuilder.build_btn(basic_container, 'RESET_ALL', reset_to_default)
+        opt_lang = basic_container.get_node('language/Control/option')
+        random_tip()
 
     var interface_container = settings.get_node("Margin/Background/TabContainer/TAB_INTERFACE/Scroll/Margin/VBox")
     if interface_container:
         SettingsBuilder.build_settings(interface_container, SETTINGS_CONFIG, "interface")
         SettingsBuilder.build_sep(interface_container)
-        SettingsBuilder.build_control(interface_container)
+        var lb_rich_interface= SettingsBuilder.build_rich(interface_container, 'INTERFACE_TIP')
+        lb_rich_interface.size_flags_vertical =  Control.SIZE_EXPAND_FILL
 
     var effect_container = settings.get_node("Margin/Background/TabContainer/TAB_EFFECT/Scroll/Margin/VBox")
     if effect_container:
@@ -637,11 +693,11 @@ func build_ui():
     var shortcut_container = settings.get_node("Margin/Background/TabContainer/TAB_SHORTCUT/Scroll/Margin/VBox")
     if shortcut_container:
         SettingsBuilder.build_settings(shortcut_container, SETTINGS_CONFIG, "shortcut")
+        SettingsBuilder.build_sep(shortcut_container)
+        SettingsBuilder.build_btn(shortcut_container, 'RESET_SHORTCUT', reset_key_to_default)
         SettingsBuilder.build_sep(shortcut_container, 5, 5)
         var lb_rich_shortcut = SettingsBuilder.build_rich(shortcut_container, 'SHORCUT_TIP')
         lb_rich_shortcut.size_flags_vertical =  Control.SIZE_EXPAND_FILL
-        SettingsBuilder.build_sep(shortcut_container)
-        SettingsBuilder.build_btn(shortcut_container, 'RESET_SHORTCUT', reset_key_to_default)
 
     var ime_container = settings.get_node("Margin/Background/TabContainer/TAB_IME/Scroll/Margin/VBox")
     if ime_container:
@@ -655,20 +711,33 @@ func build_ui():
         # SettingsBuilder.build_sep(about_container)
         # SettingsBuilder.build_control(about_container)
         var rich
-        rich = SettingsBuilder.build_rich(about_container, 'RICH_ABOUT_0')
-        SettingsBuilder.build_sep(about_container)
-        rich = SettingsBuilder.build_rich(about_container, 'RICH_ABOUT_1')
-        rich.size_flags_vertical =  Control.SIZE_EXPAND_FILL
+        rich = SettingsBuilder.build_rich(about_container, 'RICH_ABOUT')
+        rich.custom_minimum_size.x = 660
+        SettingsBuilder.build_sep(about_container, 15, 15)
+        rich = SettingsBuilder.build_rich(about_container, 'DEV_LOG_TITLE')
+        for log in Arr.reversed(dev_logs):
+            rich = SettingsBuilder.build_rich(about_container, log)
+            rich.size_flags_vertical =  Control.SIZE_EXPAND_FILL
+            SettingsBuilder.build_sep(about_container)
 
     settings.init()
 
 # ----------------
+var _tip_idx = 0
+func random_tip():
+    _tip_idx = Rnd.index(RICH_TIPS)
+    lb_rich_tips.text = RICH_TIPS[_tip_idx]
+func next_tip():
+    _tip_idx = Arr.wrap_index(_tip_idx, RICH_TIPS)
+    lb_rich_tips.text = RICH_TIPS[_tip_idx]
+
 func reset_to_default():
     for section in _default_settings:
         if section == 'shortcut': continue
         for key in _default_settings[section]:
             set_setting(section, key, _default_settings[section][key])
     save_config()
+    Editor.view._init_language()
 
 func reset_key_to_default():
     for key in _default_settings['shortcut']:

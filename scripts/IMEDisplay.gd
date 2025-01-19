@@ -11,19 +11,19 @@ var font_size = 0  :
         font_size = v
         match font_size:
             0: 
-                _font_size_actual = 20
+                _font_size_actual = 16
                 panel.size.y = 55
                 pinyin_label.position.y = 25
             1: 
-                _font_size_actual = 24
+                _font_size_actual = 32
                 panel.size.y = 60
                 pinyin_label.position.y = 30
             2: 
-                _font_size_actual = 28
+                _font_size_actual = 48
                 panel.size.y = 65
                 pinyin_label.position.y = 35
             3: 
-                _font_size_actual = 32
+                _font_size_actual = 96
                 panel.size.y = 70
                 pinyin_label.position.y = 40
 

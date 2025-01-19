@@ -8,9 +8,9 @@ signal stats_updated(is_tick:bool)
 signal combo_updated
 
 # 目标和进度
-var typing_goal: int = 10  # 默认目标
-# var has_reached_goal = false
-var has_reached_goal = true
+var typing_goal: int = 100
+var has_reached_goal = false
+# var has_reached_goal = true
 
 # 速度统计
 var start_time: float = 0.0
@@ -187,7 +187,7 @@ func _reset_stats() -> void:
         "punc": 0.0,
         "rhythm": 0.0
     }
-
+    has_reached_goal = false
 
 func _reset_paragraph_stats():
     var current_time = Time.get_unix_time_from_system()
@@ -217,7 +217,6 @@ func _reset_paragraph_stats():
         "rating_accuracy": "NA",
     }
 
-
 func incr_word(n=1):
     total_words += n
     update_stats()
@@ -234,7 +233,6 @@ func incr_error():
     paragraph_stats.errors += 1
     paragraph_stats.end_time = Time.get_unix_time_from_system()
     _update_paragraph_stats()
-    print('incr error', wrong_chars, paragraph_stats.errors)
 
 func incr_key(n = 1):
     total_keys += n
@@ -273,6 +271,7 @@ func update_stats(is_tick=false) -> void:
     # 检查是否达到目标
     if total_words >= typing_goal and !has_reached_goal:
         has_reached_goal = true
+        Editor.toast("GOAL_REACHED")
         goal_reached.emit()
     
     stats_updated.emit(is_tick)
@@ -281,20 +280,27 @@ func set_goal(chars: int) -> void:
     typing_goal = chars
 
 func new_goal():
-    goal_new.emit()
+    if is_active:
+        Editor.toast("MODE_ALREADY_STARTED")
+    else:
+        goal_new.emit()
 
 func start_goal():
     is_active = true
     _reset_stats()
     _reset_paragraph_stats()
+    Editor.toast("SPEED_MODE_STARTED")
 
 func finish_goal():
+    if !is_active:
+        Editor.toast("NO_ACTIVE_MODE")
+        return
     if has_reached_goal:
         _calculate_final_rating()
         goal_finished.emit()
         is_active = false
     else:
-        print('goal is not reached')
+        Editor.toast("GOAL_NOT_REACHED")
 
 func _calculate_final_rating() -> void:
     has_reached_goal = true

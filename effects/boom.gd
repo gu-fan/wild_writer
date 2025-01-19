@@ -17,16 +17,21 @@ var particle_scale = 1.0
 var sprite_scale = 1.0
 var font_size = 1
 var font_res = ''
+var size_offset = Vector2.ZERO
 
 func _ready():
 
     timer.start()
 
     var extra_scale = 1
+    if font_size == 0: 
+        size_offset = Vector2(0, -5)
     if font_size == 2: 
         extra_scale = 1.5
+        size_offset = Vector2(0, -30)
     elif font_size == 3: 
         extra_scale = 2
+        size_offset = Vector2(0, -80)
 
     if audio:
         audio_stream_player.pitch_scale += randf_range(-0.1, 0.1)
@@ -82,8 +87,8 @@ func _ready():
             parallel=true,
         }).tween({
             prop='position',
-            from=Vector2(-35-20, -60),
-            to=Vector2(-35+80, -110),
+            from=Vector2(-35-20, -60) + size_offset,
+            to=Vector2(-35+80, -100)*extra_scale + size_offset,
             dur=0.6,
             parallel=true,
             ease=Tween.EASE_OUT,
@@ -100,5 +105,4 @@ func _ready():
         label.hide()
 
 func _on_Timer_timeout():
-    if destroy:
-        queue_free()
+    queue_free()

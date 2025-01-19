@@ -7,6 +7,7 @@ signal buffer_changed(buffer: String, is_partial_feed: bool)
 
 var context: CompositionContext
 var matcher: PinyinMatcher
+var keys = {}
 
 func _init(p_context: CompositionContext, p_matcher: PinyinMatcher):
     context = p_context
@@ -33,6 +34,8 @@ func process_key(event: InputEventKey) -> bool:
         "Space":
             if context.has_candidates():
                 return _handle_number_selection("1")  # 选择第一个候选词
+            else:
+                return _handle_enter()
             return false
     
     # 处理数字键选择
@@ -40,20 +43,22 @@ func process_key(event: InputEventKey) -> bool:
         return true
     
     # 处理翻页 - 使用SettingManager的快捷键设置
-    if SettingManager.is_match_shortcut(key_string, 'ime', 'prev_page_key'):
+    if keys['prev_page_key'] == key_string:
         if context.current_page > 0:
             context.current_page -= 1
             context.current_selection = 0
             emit_signal("composition_updated")
-        return true
+        if context.candidates.size():
+            return true
             
-    if SettingManager.is_match_shortcut(key_string, 'ime', 'next_page_key'):
+    if keys['next_page_key'] == key_string:
         var total_pages = ceil(float(context.candidates.size()) / context.page_size)
         if context.current_page < total_pages - 1:
             context.current_page += 1
             context.current_selection = 0
             emit_signal("composition_updated")
-        return true
+        if context.candidates.size():
+            return true
     
     # 处理拼音输入
     return _handle_pinyin_input(key_string)

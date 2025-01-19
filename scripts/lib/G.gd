@@ -95,7 +95,8 @@ const WRITER_LOGS = [
 """,
 ]
 
-const WRITER_ABOUT = """[center][shake][font s=22]wild writer 0.02[/font][/shake]
+const WRITER_ABOUT = """
+[center][shake][font s=22]wild writer 0.02[/font][/shake]
 by xianrenak[/center]
 
 下载（Win, Linux, Mac, Web）:

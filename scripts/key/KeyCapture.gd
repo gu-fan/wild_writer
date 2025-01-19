@@ -81,17 +81,16 @@ class KeyCaptureDialog extends Window:
             if key_name == 'Escape':
                 close_requested.emit()
                 return
-            # if keycode:
-            #     match keycode:
-            #         'Shift': return
-            #         'Ctrl': return
-            #         'Alt': return
-            #         'Option': return
-            #         'Windows': return
-            #         'Command': return
-            #         'Meta': return
-            #         'Super': return
-            #         'Cmd': return
-            #         _: key_string += keycode
+            if keycode:
+                match keycode:
+                    'Shift': return
+                    'Ctrl': return
+                    'Alt': return
+                    'Option': return
+                    'Windows': return
+                    'Command': return
+                    'Meta': return
+                    'Super': return
+                    'Cmd': return
             
             emit_signal('key_captured', key_name)

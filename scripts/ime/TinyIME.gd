@@ -5,6 +5,7 @@ var context: CompositionContext
 var processor: InputProcessor
 var matcher: PinyinMatcher
 var page_size: int  : get = get_page_size, set = set_page_size
+var _is_fullwidth = false
 
 func _init():
     context = CompositionContext.new()
@@ -47,8 +48,6 @@ func _on_buffer_changed(buf, is_partial_feed=false) -> void:
 func _on_text_committed(text: String) -> void:
     emit_signal("ime_text_changed", text)
 
-
-# 重写基类方法
 func toggle() -> void:
     super.toggle()
     if not is_active:
@@ -58,15 +57,12 @@ func reset() -> void:
     context.reset()
     emit_signal("composition_updated")
 
-# 设置页面大小
 func set_page_size(size: int) -> void:
     context.set_page_size(size)
 
-# 获取页面大小
 func get_page_size() -> int:
     return context.get_page_size()
 
-# 切换双拼模式
 func toggle_shuangpin() -> void:
     matcher.shuangpin_enabled = not matcher.shuangpin_enabled
     context.reset()
@@ -74,7 +70,8 @@ func set_shuangpin(v):
     matcher.shuangpin_enabled = v
     context.reset()
 
-# 更新设置
+# -------------
+# NOT USED
 func update_settings(settings: Dictionary) -> void:
     if "page_size" in settings:
         set_page_size(settings.page_size)
@@ -82,3 +79,61 @@ func update_settings(settings: Dictionary) -> void:
         matcher.shuangpin_enabled = settings.shuangpin
     if "fuzzy" in settings:
         matcher.fuzzy_enabled = settings.fuzzy
+# -------------
+func set_key(k, v):
+    processor.keys[k] = v
+
+func set_fullwidth(v:bool):
+    _is_fullwidth = v
+func toggle_fullwidth():
+    _is_fullwidth = !_is_fullwidth
+
+func is_fullwidth():
+    return is_active and _is_fullwidth
+
+const FULLWIDTH_PUNC = ',.!?:;@#$%^&\'"`<>(){}[]+-*\\=~'
+func will_process_fullwidth(c:String):
+    return is_fullwidth() and c in FULLWIDTH_PUNC
+
+const FULLWIDTH_PUNC_DIC = {
+        ',': '，',
+        '.': '。',
+        '!': '！',
+        '?': '？',
+        ':': '：',
+        ';': '；',
+        '@': '＠',
+        '#': '＃',
+        '$': '¥',
+        '%': '％',
+        '&': '＆',
+        '^': '……',
+        '\'': '‘’',
+        '"': '“”',
+        '`': '·',
+        '<': '《',
+        '>': '》',
+        '(': '（',
+        ')': '）',
+        '{': '「',
+        '}': '」',
+        '[': '【',
+        ']': '】',
+        '+': '＋',
+        '-': '－',
+        '*': '＊',
+        '\\': '＼',
+        '=': '＝',
+        '~': '〜',
+    }
+var _sequence_punc = {'"': 0,'\'':0}
+func get_fullwidth(c:String):
+    if c in _sequence_punc:
+        if _sequence_punc[c] == 0:
+            _sequence_punc[c] = 1
+            return FULLWIDTH_PUNC_DIC[c][0]
+        else:
+            _sequence_punc[c] = 0
+            return FULLWIDTH_PUNC_DIC[c][1]
+    else:
+        return FULLWIDTH_PUNC_DIC[c]

@@ -3,6 +3,7 @@ extends Node
 var scale = 1
 var root
 var main: Node
+var mask: ColorRect
 var view: EditorView
 var config: ConfigManager
 var creative_mode
@@ -15,6 +16,8 @@ var is_android = false
 var is_ios = false
 var PLATFORM = ''
 var HOME_DIR = ''
+
+var is_debug = false
 
 func init_node(raw):
     return UI.init_node_hidden_from_raw(raw, {parent=main.canvas})
@@ -94,14 +97,23 @@ func load_scene(_scn, _scrpt):
     , CONNECT_ONE_SHOT)
     get_tree().change_scene_to_packed(_scn)
 
-func toggle_debug():
-    view.toggle_debug()
 func toggle_ime():
     TinyIME.toggle()
 func toggle_setting():
     view.toggle_setting()
+func toggle_debug():
+    is_debug = !is_debug
+    view.set_debug(is_debug)
+func log(txt):
+    view.log(txt)
+
+func redraw():
+    view.redraw()
+
+
 func toggle_fullscreen():
     var mode = DisplayServer.window_get_mode()
+    self.log('got mode %s : %s' % [mode, mode == DisplayServer.WINDOW_MODE_FULLSCREEN])
     if mode == DisplayServer.WINDOW_MODE_FULLSCREEN:
         DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
     else:

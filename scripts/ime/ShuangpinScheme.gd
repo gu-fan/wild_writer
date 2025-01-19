@@ -69,52 +69,56 @@ const FINALS = {
 
 # 零声母韵母映射
 const ZERO_FINALS = {
-    "a": "aa",
-    "ai": "ai",
-    "an": "an",
-    "ang": "ah",
-    "ao": "ao",
-    "e": "ee",
-    "ei": "ei",
-    "en": "en",
-    "eng": "eg",
-    "er": "er",
-    "o": "oo",
-    "ou": "ou"
+    "aa" :"a",   
+    "ai" :"ai",  
+    "an" :"an",  
+    "ah" :"ang", 
+    "ao" :"ao",  
+    "ee" :"e",   
+    "ei" :"ei",  
+    "en" :"en",  
+    "eg" :"eng", 
+    "er" :"er",  
+    "oo" :"o",   
+    "ou" :"ou",  
 }
 
 # 将双拼转换为全拼
-static func convert_to_pinyin(shuangpin: String) -> Array[String]:
-    var results: Array[String] = []
+static func convert_to_pinyin(shuangpin: String, trie) -> Array:
+    # var results: Array[String] = []
+    var results: Array = []
     
     # 每两个字符为一组
     for i in range(0, shuangpin.length(), 2):
         if i + 1 >= shuangpin.length():
+            results.append(shuangpin[i])
             break
             
         var first = shuangpin[i]
         var second = shuangpin[i + 1]
         var pair = first + second
         
-        # 1. 检查是否是零声母特殊组合
         if pair in ZERO_FINALS:
             results.append(ZERO_FINALS[pair])
             continue
             
-        # 2. 分别获取声母和韵母
         var initial = INITIALS.get(first, "")
         var finals = []
         
-        # 查找对应的韵母
         for f in FINALS:
             if FINALS[f] == second:
-                finals.append(f)
-        
+                var matches = trie.search(initial + f)
+                if matches.size():
+                    finals.append(f)
+                    break
+
+        if finals.is_empty():
+            return results
+         
         for final in finals:
             if initial != "" and final != "":
                 results.append(initial + final)
             elif final != "":
                 results.append(final)
     
-    prints('got shuangpin', shuangpin, results)
-    return results 
+    return results
