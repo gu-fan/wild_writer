@@ -1,10 +1,12 @@
 extends Control
 
+
 var shake: float = 0.0
 var count: float = 0
 var combo_count : float = 0 : 
     get:
         return count - 10
+var on_count_reset = null
 
 @onready var label: Label = $Label
 @onready var label2: Label = $Label2
@@ -177,6 +179,7 @@ func color_label():
 func _reset_count():
     count = 0
     _update_text()
+    if on_count_reset: on_count_reset.call()
 
 func get_count_facor_scale(extra_scale=1):
     return max(1, min(combo_count, 400) / 100.0 ) * extra_scale

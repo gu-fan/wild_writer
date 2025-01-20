@@ -388,7 +388,8 @@ func _show_newline(col):
         thing.font_size = font_size
         add_child(thing)
 
-    _fc(pos)
+    if effects.combo_shot:
+        _fc(pos)
 
 func _on_caret_changed():
     last_caret_line = caret_line
@@ -421,6 +422,7 @@ func _ccnin():
         thing.font_size = font_size
         add_child.call_deferred(thing)
         combo_node = thing
+        combo_node.on_count_reset = _reset_count_pitch
         if _is_combo_rating_shown: 
             combo_node.modulate.a = 0.0
 
@@ -468,6 +470,9 @@ func _rc():
         if combo_node:
             combo_node.queue_free()
             combo_node = null
+
+func _reset_count_pitch():
+    pitch_increase = 0
 
 func _ss(duration, intensity):
     if shake > 0:

@@ -363,7 +363,7 @@ msgid "COMBO_SHOT"
 msgstr "连击终结"
 
 msgid "COMBO_SHOT_DESC"
-msgstr "当一行结束时显示连击终结的激光效果"
+msgstr "当换行时终结连击并显示激光效果，如果关闭此选项则连击不会在换行时结束"
 
 msgid "SCREEN_SHAKE_LEVEL"
 msgstr "屏幕震动"
@@ -421,6 +421,9 @@ msgstr "当使用输入法匹配词组后显示特效"
 
 msgid "MATCH_WORDS"
 msgstr "匹配词组"
+
+msgid "MATCH_WORDS_DESC"
+msgstr "匹配的词组, 每个词用逗号分开"
 
 msgid "PLACEHOLDER_TIP"
 msgstr ""

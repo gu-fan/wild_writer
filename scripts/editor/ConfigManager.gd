@@ -340,9 +340,8 @@ const SETTINGS_CONFIG = {
         "match_words": {
             "type": "string",
             "default": "",
-            "placeholder": "match_PLACEHOLDER",
             "label": "MATCH_WORDS",
-            "desc": ""
+            "desc": "MATCH_WORDS_DESC"
         },
     },
     "ime": {

@@ -362,7 +362,7 @@ msgid "COMBO_SHOT"
 msgstr "Combo Finish"
 
 msgid "COMBO_SHOT_DESC"
-msgstr "show laser effect when finish a combo line"
+msgstr "finish combo and show laser effect when start a new line, if turn off this option, combo will not finished"
 
 msgid "SCREEN_SHAKE_LEVEL"
 msgstr "Screen shake level"
@@ -420,6 +420,10 @@ msgstr "show effects after matching words when typing with input method"
 
 msgid "MATCH_WORDS"
 msgstr "Match words"
+
+msgid "MATCH_WORDS_DESC"
+msgstr "Matched words, each word seperate with comma"
+
 
 # --------
 
