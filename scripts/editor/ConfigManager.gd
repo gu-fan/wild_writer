@@ -58,7 +58,7 @@ var _default_settings = {
         "newline_effect": 1,
         "delete_effect":1 ,
         "match_effect":1 ,
-        "match_words":"为什么,虽然但是,总而言之,非常不错,我很开心,新年快乐,春节愉快,万事如意",
+        "match_words":"为什么,虽然但是,总而言之,非常不错,我很开心,哈哈哈哈,新年快乐,春节愉快,万事如意",
     },
     "shortcut": {
         "new_file": "Ctrl+N",

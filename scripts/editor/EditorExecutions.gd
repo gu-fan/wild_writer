@@ -1,5 +1,6 @@
 class_name EditorExecutions
 extends RefCounted
+# XXX: clicking will not trigger sub command
 
 var editor_view: Node  # Reference to EditorView instance
 
@@ -29,10 +30,10 @@ var available_executors = {
         "description": "Toggle fullscreen",
         "executor": "toggle_fullscreen"
     },
-    "ime": {
-        "description": "Toggle Ime",
-        "executor": "ime"
-    },
+    # "ime": {
+    #     "description": "Toggle Ime",
+    #     "executor": "ime"
+    # },
     "debug": {
         "description": "Toggle debug",
         "executor": "debug"
@@ -209,9 +210,11 @@ func toggle_setting(args: Dictionary) -> void:
             # 如果没有提供值，则切换布尔值
             var current_value = Editor.config.get_basic_setting(setting_name)
             if typeof(current_value) == TYPE_BOOL or (typeof(current_value) == TYPE_INT and current_value in [0, 1]):
-                Editor.config.set_basic_setting(setting_name, not bool(current_value))
+                var n_val = 0 if current_value else 1
+                Editor.config.set_basic_setting(setting_name, n_val)
 
 func toggle_ime(args: Dictionary) -> void:
+    # XXX: will not show IMEDisplay
     TinyIME.toggle()
 
 func execute_mode(args):

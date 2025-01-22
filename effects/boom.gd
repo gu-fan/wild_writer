@@ -69,7 +69,7 @@ func _ready():
             label.text='Cmd+←'
         elif last_key == 'Windows+Backspace': 
             label.text='Windows+←'
-        if last_key == 'Ctrl+X':
+        if last_key == 'Ctrl+X': 
             label.hide()
             return
         var clr_to = Color.from_hsv(0.0 + Rnd.rangef(-0.05, 0.05), 0.8, 1.0)

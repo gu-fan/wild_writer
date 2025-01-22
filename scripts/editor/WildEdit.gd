@@ -3,6 +3,10 @@ extends CodeEdit
 
 signal changed
 
+# wildtype/issue/2 in gui_input the english sequence is not include the english char
+
+
+
 # Input Process Direction
 # KEY_PRESSED -> gui_input -> text_changed
 # OS IME 
@@ -291,7 +295,7 @@ func _on_gui_input(event):
 
                 ime_state.pending_finish = true
                 Util.delay('_ime_compose', 0.04, _handle_ime_finish)
-                # skip_effect = true
+                skip_effect = true
             else:
                 is_ime_input = false
         else:
@@ -445,7 +449,6 @@ func _fc(pos):
             pitch_increase = 0
             var count = combo_node.combo_count
             prints(Util.f_msec(), 'finish combo', count, effects.combo_shot, EffectLaser.can_finish_combo(count), last_key_name=='Enter', last_unicode, last_key_name)
-            print('effects', effects)
             if effects.combo_shot and effects.newline and EffectLaser.can_finish_combo(count) and last_key_name == 'Enter':
                 var thing = Laser.instantiate()
                 thing.count = count
@@ -735,7 +738,7 @@ func _handle_ime_cancel():
         Editor.creative_mode.incr_error()
 
         if is_debug:
-            Editor.log('CANCEL IME COMPOSE %s %s' % [ime_state.last_compose, ime_state.input_sequence])
+            Editor.log('CANCEL IME COMPOSE %s %s' % [ime_state.last_non_empty, ime_state.input_sequence])
         
         ime_state.last_compose = ""
         ime_state.last_compose_alt = ""
@@ -1164,6 +1167,7 @@ func move_caret_to_file_start():
     caret_column = 0
     last_caret_line = 0
     last_caret_newline = 0
+    set_line_as_first_visible(caret_line)
     _rc()
 func move_caret_to_file_end():
     var line = get_line_count() - 1
@@ -1175,6 +1179,7 @@ func move_caret_to_file_end():
     caret_column = col
     last_caret_line = line
     last_caret_newline = line
+    set_line_as_center_visible(caret_line)
     _rc()
 
 func move_caret_to_line_start():
@@ -1242,6 +1247,9 @@ func update_pad():
     var line_height = get_line_height()
     var extra_padding = pad_lines * line_height
     pad.custom_minimum_size = Vector2(10, extra_padding)
+    set_line_as_center_visible(caret_line)
+
+func center_caret_line():
     set_line_as_center_visible(caret_line)
 
 # --------

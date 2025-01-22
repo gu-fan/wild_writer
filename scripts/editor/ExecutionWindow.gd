@@ -59,7 +59,6 @@ func update_command_list(filter_text: String) -> void:
     var cmd_filter = parts[0]
     var arg_filter = parts[1] if parts.size() > 1 else ''
     var value = parts[2] if parts.size() > 2 else ''
-    prints('cmd', cmd_filter, arg_filter, value)
     
     for cmd in available_executors:
         var executor = available_executors[cmd]

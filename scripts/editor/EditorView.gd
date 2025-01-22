@@ -475,6 +475,7 @@ func _on_timer_fps_timeout():
     
     # Format the stats
     stat_box.get_node('OS').text = "OS: %s" % os_name
+    stat_box.get_node('VER').text = "VER: %s.%s" % [Editor.main_version, Editor.internal_version]
     stat_box.get_node('FPS').text = "FPS: %.1f" % fps
     stat_box.get_node('DRAW').text = "DRAW CALL: %.1f" % draw_call
     stat_box.get_node('VRAM').text = "VRAM: %.1f MB" % vram_usage
@@ -717,7 +718,9 @@ func redraw():
     # await get_tree().process_frame
     # for edit in [text_edit, text_edit_secondary]:
     #     edit.pad_viewport_to_caret()
-    # await get_tree().process_frame
+    await get_tree().process_frame
+    for edit in [text_edit, text_edit_secondary]:
+        edit.center_caret_line()
     # for edit in [text_edit, text_edit_secondary]:
     #     edit._on_caret_changed()
 # ---------------

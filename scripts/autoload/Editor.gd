@@ -17,6 +17,9 @@ var is_ios = false
 var PLATFORM = ''
 var HOME_DIR = ''
 
+var main_version = '0.0.3'
+var internal_version = '55'
+
 var is_debug = false
 
 func init_node(raw):
@@ -36,6 +39,7 @@ func _init():
                 HOME_DIR = OS.get_environment("HOMEDRIVE") + OS.get_environment('HOMEPATH')
             else:
                 HOME_DIR = OS.get_environment("USERPROFILE")
+            HOME_DIR = HOME_DIR.replace('\\', '/')
             PLATFORM = 'windows'
         "macOS":
             is_macos = true

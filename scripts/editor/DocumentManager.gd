@@ -240,7 +240,13 @@ func _test():
     print('dir folded:', get_home_folded('/Users/xrak/Documents'))
     print('dir folded:', get_home_folded('/Users/xrak/Documents/wikis/Users/xrak'))
 
+    print('dir expand:', get_home_expanded('~/Documents'))
+    print('dir expand:', get_home_expanded('~/Documents/wikis/~'))
+
+    print('dir folded:', get_home_folded('/Users/xrak/Documents'))
+    print('dir folded:', get_home_folded('/Users/xrak/Documents/wikis/Users/xrak'))
+
 # ---------------------------------------
 func _ready():
-    # _test()
+    _test()
     pass
